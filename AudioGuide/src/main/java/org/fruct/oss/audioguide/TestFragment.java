@@ -81,7 +81,7 @@ public class TestFragment extends Fragment {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		if (item.getItemId() == R.id.action_test) {
-			multiPanel.pushFragment(MainActivity.PlaceholderFragment.newInstance(5));
+			multiPanel.pushFragment(MainActivity.PlaceholderFragment.newInstance((int) (Math.random() * 100)));
 			return true;
 		} else if (item.getItemId() == android.R.id.home) {
 			multiPanel.popFragment();
