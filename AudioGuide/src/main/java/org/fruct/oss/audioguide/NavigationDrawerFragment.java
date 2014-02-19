@@ -188,6 +188,14 @@ public class NavigationDrawerFragment extends Fragment {
         mDrawerLayout.setDrawerListener(mDrawerToggle);
     }
 
+	/**
+	 * Disable up button
+	 * @param enabled
+	 */
+	public void setUpEnabled(boolean enabled) {
+		mDrawerToggle.setDrawerIndicatorEnabled(enabled);
+	}
+
     private void selectItem(int position) {
         mCurrentSelectedPosition = position;
         if (mDrawerListView != null) {
