@@ -18,17 +18,17 @@
             android:layout_width="0dp"
             android:layout_height="match_parent" />
 
-        <!--<FrameLayout
+        <FrameLayout
             android:id="@+id/panel2"
             android:layout_weight="1"
             android:layout_width="0dp"
             android:layout_height="match_parent" />
-
-        <FrameLayout
-            android:id="@+id/panel3"
-            android:layout_weight="1"
-            android:layout_width="0dp"
-            android:layout_height="match_parent" />-->
+        <!--
+                <FrameLayout
+                    android:id="@+id/panel3"
+                    android:layout_weight="1"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent" />-->
     </LinearLayout>
     <!-- android:layout_gravity="start" tells DrawerLayout to treat
          this as a sliding drawer on the left side for left-to-right

@@ -2,6 +2,7 @@ package org.fruct.oss.audioguide;
 
 import android.app.Activity;
 import android.net.Uri;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.Fragment;
@@ -20,7 +21,7 @@ import java.util.List;
 
 public class MainActivity extends ActionBarActivity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks, MultiPanel, TestFragment.OnFragmentInteractionListener {
-	//private static final int[] PANEL_IDS = {R.id.panel1, R.id.panel2, R.id.panel3};
+	private static final int[] PANEL_IDS = {R.id.panel1, R.id.panel2/*, R.id.panel3*/};
 
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
@@ -33,10 +34,10 @@ public class MainActivity extends ActionBarActivity
      */
     private CharSequence mTitle;
 
-	private int panelsCount = 1;
-	private int currentIndex = 0;
+	private int panelsCount = 2;
 	private List<Fragment> fragmentStack = new ArrayList<Fragment>();
-	private  FragmentManager fragmentManager;
+
+	private FragmentManager fragmentManager;
 
 	@Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,10 +61,14 @@ public class MainActivity extends ActionBarActivity
 		while (fragmentManager.getBackStackEntryCount() > 0)
 			fragmentManager.popBackStack();
 
-        fragmentManager.beginTransaction()
-                .replace(R.id.panel1, position == 0
-						? TestFragment.newInstance("qwe", "asd")
-						: PlaceholderFragment.newInstance(position + 1))
+		Fragment fragment = (position == 0
+				? TestFragment.newInstance("qwe", "asd")
+				: PlaceholderFragment.newInstance(position + 1));
+		fragmentStack.clear();
+		fragmentStack.add(fragment);
+
+		fragmentManager.beginTransaction()
+                .replace(R.id.panel1, fragment)
 				.commit();
     }
 
@@ -121,39 +126,56 @@ public class MainActivity extends ActionBarActivity
         return super.onOptionsItemSelected(item);
     }
 
-	/*private void updateFragmentsLayout() {
-		FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-
-		for (int i = 0; i < panelsCount; i++) {
-			int fragmentIdx = currentIndex + i;
-
-			if (fragmentIdx < fragmentStack.size())
-				transaction.replace(PANEL_IDS[i], fragmentStack.get(fragmentIdx));
-
-		}
-
-		transaction.commit();
-	}*/
-
 	@Override
 	public void pushFragment(Fragment fragment) {
-		mNavigationDrawerFragment.setUpEnabled(false);
-		fragmentManager.beginTransaction()
-				.replace(R.id.panel1, fragment)
-				.addToBackStack(null)
-				.commit();
+		fragmentStack.add(fragment);
+
+		if (fragmentStack.size() <= panelsCount) {
+			fragmentManager.beginTransaction()
+					.replace(PANEL_IDS[fragmentStack.size() - 1], fragment)
+					.commit();
+		} else {
+			int firstPanelIndex = fragmentStack.size() - panelsCount;
+
+			FragmentTransaction trans = fragmentManager.beginTransaction();
+
+			// Remove fragment from first panel
+			trans.remove(fragmentStack.get(firstPanelIndex - 1));
+
+			// Shift fragments
+			for (int i = 1; i < panelsCount; i++) {
+				Fragment oldFragment = fragmentStack.get(i + firstPanelIndex - 1);
+				Class<?> savedClass = oldFragment.getClass();
+				Fragment.SavedState state = fragmentManager.saveFragmentInstanceState(oldFragment);
+				trans.remove(oldFragment);
+
+				try {
+					Fragment newFragment = (Fragment) savedClass.newInstance();
+					newFragment.setInitialSavedState(state);
+					trans.replace(PANEL_IDS[i - 1], newFragment);
+				} catch (InstantiationException e) {
+					e.printStackTrace();
+				} catch (IllegalAccessException e) {
+					e.printStackTrace();
+				}
+			}
+			trans.addToBackStack("screen-state").commit();
+
+			mNavigationDrawerFragment.setUpEnabled(false);
+		}
 	}
 
 	@Override
 	public void popFragment() {
 		int count = fragmentManager.getBackStackEntryCount();
 
-		// Don't allow pop last fragment
-		if (count > 0)
-			fragmentManager.popBackStack();
+		// Don't allow pop last transaction
+		if (count > 0) {
+			fragmentManager.popBackStack("screen-state", FragmentManager.POP_BACK_STACK_INCLUSIVE);
+			fragmentStack.remove(fragmentStack.size() - 1);
+		}
 
-		// This is root fragment, re-attach drawer
-		if (count == 1) {
+		if (fragmentStack.size() < panelsCount) {
 			mNavigationDrawerFragment.setUpEnabled(true);
 			restoreActionBar();
 		}
@@ -204,6 +226,6 @@ public class MainActivity extends ActionBarActivity
             ((MainActivity) activity).onSectionAttached(
                     getArguments().getInt(ARG_SECTION_NUMBER));
         }
-    }
+	}
 
 }
