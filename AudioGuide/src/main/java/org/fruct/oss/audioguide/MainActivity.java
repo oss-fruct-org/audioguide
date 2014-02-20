@@ -49,7 +49,7 @@ public class MainActivity extends ActionBarActivity
 	@Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+		
 		fragmentManager = getSupportFragmentManager();
 
 		if (savedInstanceState != null) {
