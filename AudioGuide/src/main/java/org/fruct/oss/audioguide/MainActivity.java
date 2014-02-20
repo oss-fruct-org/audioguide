@@ -22,11 +22,10 @@ import java.util.ArrayList;
 
 public class MainActivity extends ActionBarActivity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks, MultiPanel, TestFragment.OnFragmentInteractionListener {
-	private int[] panelIds = {R.id.panel1, R.id.panel2, R.id.panel3};
+	private int[] panelIds = {R.id.panel1, R.id.panel2/*, R.id.panel3*/};
 
 	private static final String STATE_PANELS_COUNT = "panels-count";
 	private static final String STATE_STACK_SIZE = "stack-size";
-	private static final String STATE_DRAWER_UP_ENABLED = "drawer-up-enabled";
 	private static final String STATE_STACK = "stack-fragment";
 
 	private static final String TAG_PANEL_FRAGMENT = "panel-fragment";
