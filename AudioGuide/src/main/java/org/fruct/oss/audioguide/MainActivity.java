@@ -2,6 +2,8 @@ package org.fruct.oss.audioguide;
 
 import android.app.Activity;
 import android.net.Uri;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBar;
@@ -17,15 +19,17 @@ import android.support.v4.widget.DrawerLayout;
 import android.widget.TextView;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class MainActivity extends ActionBarActivity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks, MultiPanel, TestFragment.OnFragmentInteractionListener {
 	private int[] panelIds = {R.id.panel1, R.id.panel2, R.id.panel3};
 
+	private static final String STATE_PANELS_COUNT = "panels-count";
 	private static final String STATE_STACK_SIZE = "stack-size";
 	private static final String STATE_DRAWER_UP_ENABLED = "drawer-up-enabled";
-	private static final String STATE_STACK_PREFIX = "stack-prefix-id-";
+	private static final String STATE_STACK = "stack-fragment";
+
+	private static final String TAG_PANEL_FRAGMENT = "panel-fragment";
 
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
@@ -38,10 +42,10 @@ public class MainActivity extends ActionBarActivity
     private CharSequence mTitle;
 
 	private int panelsCount = 0;
-	private List<Fragment> fragmentStack = new ArrayList<Fragment>();
-	private boolean suppressDrawerItemChange = false;
+	private ArrayList<FragmentStorage> fragmentStack = new ArrayList<FragmentStorage>();
 
 	private FragmentManager fragmentManager;
+	private boolean suppressDrawerItemSelect = false;
 
 	@Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,18 +53,16 @@ public class MainActivity extends ActionBarActivity
 
 		fragmentManager = getSupportFragmentManager();
 
-		// Restore old stack state
 		if (savedInstanceState != null) {
-			int stackSize = savedInstanceState.getInt(STATE_STACK_SIZE);
-			for (int i = 0; i < stackSize; i++) {
-				Fragment fragment = fragmentManager.getFragment(savedInstanceState, STATE_STACK_PREFIX + i);
-				fragmentStack.add(fragment);
-			}
-			suppressDrawerItemChange = true;
+			suppressDrawerItemSelect = true;
+			fragmentStack = savedInstanceState.getParcelableArrayList(STATE_STACK);
+			for (FragmentStorage storage : fragmentStack)
+				storage.setFragmentManager(fragmentManager);
 		}
 
 		setContentView(R.layout.activity_main);
 
+		panelsCount = panelIds.length;
 		for (int i = 0; i < panelIds.length; i++) {
 			View view = findViewById(panelIds[i]);
 			if (view == null) {
@@ -68,7 +70,6 @@ public class MainActivity extends ActionBarActivity
 				break;
 			}
 		}
-		panelsCount = 3;
 
         mNavigationDrawerFragment = (NavigationDrawerFragment)
                 fragmentManager.findFragmentById(R.id.navigation_drawer);
@@ -79,34 +80,42 @@ public class MainActivity extends ActionBarActivity
                 R.id.navigation_drawer,
                 (DrawerLayout) findViewById(R.id.drawer_layout));
 
+
 		if (savedInstanceState != null) {
-			mNavigationDrawerFragment.setUpEnabled(savedInstanceState.getBoolean(STATE_DRAWER_UP_ENABLED));
+			FragmentTransaction trans = fragmentManager.beginTransaction();
+			recreateFragmentStack(trans);
+			trans.commit();
 		}
 	}
 
     @Override
     public void onNavigationDrawerItemSelected(int position) {
-		System.out.println("onNavigationDrawerItemSelected");
-
-		if (suppressDrawerItemChange) {
-			suppressDrawerItemChange = false;
-			return;
-		}
-
 		FragmentManager fragmentManager = getSupportFragmentManager();
 		FragmentTransaction trans = fragmentManager.beginTransaction();
-		for (int i = 1; i < fragmentStack.size(); i++)
-			trans.remove(fragmentStack.get(i));
-		trans.commit();
+		try {
+			if (fragmentManager.getFragments() != null) {
+				for (Fragment fragment : fragmentManager.getFragments()) {
+					if (fragment != null && fragment.getTag() != null && fragment.getTag().equals(TAG_PANEL_FRAGMENT))
+						trans.remove(fragment);
+				}
+			}
+		} finally {
+			trans.commit();
+		}
+
+		if (suppressDrawerItemSelect) {
+			suppressDrawerItemSelect = false;
+			return;
+		}
 
 		Fragment fragment = (position == 0
 				? TestFragment.newInstance("qwe", "asd")
 				: PlaceholderFragment.newInstance(position + 1));
 		fragmentStack.clear();
-		fragmentStack.add(fragment);
+		fragmentStack.add(new FragmentStorage(fragment).setFragmentManager(fragmentManager));
 
 		fragmentManager.beginTransaction()
-                .replace(R.id.panel1, fragment)
+                .replace(R.id.panel1, fragment, TAG_PANEL_FRAGMENT)
 				.commit();
     }
 
@@ -164,87 +173,78 @@ public class MainActivity extends ActionBarActivity
         return super.onOptionsItemSelected(item);
     }
 
-	@Override
-	public void pushFragment(Fragment fragment) {
-		fragmentStack.add(fragment);
+	private Fragment cloneFragment(Fragment fragment) {
+		try {
+			Fragment.SavedState state = fragmentManager.saveFragmentInstanceState(fragment);
+			Fragment newFragment = fragment.getClass().newInstance();
+			newFragment.setInitialSavedState(state);
+			return newFragment;
+		} catch (InstantiationException e) {
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+		}
+
+		return null;
+	}
+
+	private void removeFragments(FragmentTransaction trans) {
+		for (FragmentStorage fragmentStorage : fragmentStack) {
+			if (!fragmentStorage.isStored()) {
+				Fragment fragment = fragmentStorage.getFragment();
+				if (fragment.getTag() == null || !fragment.getTag().equals(TAG_PANEL_FRAGMENT))
+					continue;
+
+				fragmentStorage.storeFragment();
+				trans.remove(fragment);
+			}
+		}
+	}
+
+	private void recreateFragmentStack(FragmentTransaction trans) {
+		int maxIter = Math.min(panelsCount, fragmentStack.size());
+		for (int i = 0; i < maxIter; i++) {
+			int fragmentIdx = Math.max(0, fragmentStack.size() - panelsCount) + i;
+			System.out.println(maxIter);
+			FragmentStorage fragmentStorage = fragmentStack.get(fragmentIdx);
+			trans.add(panelIds[i], fragmentStorage.getFragment(), TAG_PANEL_FRAGMENT);
+		}
 
 		if (fragmentStack.size() <= panelsCount) {
+			mNavigationDrawerFragment.setUpEnabled(true);
+		} else {
+			mNavigationDrawerFragment.setUpEnabled(false);
+		}
+	}
+
+	@Override
+	public void pushFragment(Fragment fragment) {
+		fragmentStack.add(new FragmentStorage(fragment).setFragmentManager(fragmentManager));
+		if (fragmentStack.size() <= panelsCount) {
 			fragmentManager.beginTransaction()
-					.replace(panelIds[fragmentStack.size() - 1], fragment)
+					.add(panelIds[fragmentStack.size() - 1], fragment, TAG_PANEL_FRAGMENT)
 					.commit();
 		} else {
-			int firstFragmentIdx = fragmentStack.size() - panelsCount - 1;
-
 			FragmentTransaction trans = fragmentManager.beginTransaction();
-
-			// Detach fragment in first panel
-			trans.detach(fragmentStack.get(firstFragmentIdx));
-
-			// Fragments since second panel shifting left
-			// First detach remaining fragments
-			for (int panelIdx = 1; panelIdx < panelsCount; panelIdx++) {
-				int fragmentIdx = firstFragmentIdx + panelIdx;
-				Fragment shiftingFragment = fragmentStack.get(fragmentIdx);
-				trans.remove(shiftingFragment);
-			}
+			removeFragments(trans);
+			recreateFragmentStack(trans);
 			trans.commit();
-			fragmentManager.executePendingTransactions();
-
-			// Then reattach them
-			trans = fragmentManager.beginTransaction();
-			for (int panelIdx = 0; panelIdx < panelsCount; panelIdx++) {
-				int fragmentIdx = firstFragmentIdx + panelIdx + 1;
-				Fragment shiftingFragment = fragmentStack.get(fragmentIdx);
-
-				trans.add(panelIds[panelIdx], shiftingFragment);
-			}
-
-			// Add new fragment to last position
-			//trans.add(panelIds[panelsCount - 1], fragment);
-			trans.commit();
-
-			mNavigationDrawerFragment.setUpEnabled(false);
 		}
 	}
 
 	@Override
 	public void popFragment() {
 		if (fragmentStack.size() <= panelsCount) {
-			fragmentManager.beginTransaction().remove(fragmentStack.get(fragmentStack.size() - 1)).commit();
+			fragmentManager.beginTransaction()
+					.remove(fragmentStack.get(fragmentStack.size() - 1).getFragment())
+					.commit();
+			fragmentStack.remove(fragmentStack.size() - 1);
 		} else {
-			// Remove last fragment
 			FragmentTransaction trans = fragmentManager.beginTransaction();
-			int firstFragmentIdx = fragmentStack.size() - panelsCount;
-
-			trans.remove(fragmentStack.get(fragmentStack.size() - 1));
-
-			// Shift other fragments right
-			for (int panelIdx = 0; panelIdx < panelsCount - 1; panelIdx++) {
-				int fragmentIdx = firstFragmentIdx + panelIdx;
-				Fragment shiftingFragment = fragmentStack.get(fragmentIdx);
-				trans.remove(shiftingFragment);
-			}
+			removeFragments(trans);
+			fragmentStack.remove(fragmentStack.size() - 1);
+			recreateFragmentStack(trans);
 			trans.commit();
-			fragmentManager.executePendingTransactions();
-
-			// Reattach them
-			trans = fragmentManager.beginTransaction();
-			for (int panelIdx = 1; panelIdx < panelsCount; panelIdx++) {
-				int fragmentIdx = firstFragmentIdx + panelIdx - 1;
-				Fragment shiftingFragment = fragmentStack.get(fragmentIdx);
-
-				trans.add(panelIds[panelIdx], shiftingFragment);
-			}
-			trans.attach(fragmentStack.get(firstFragmentIdx - 1));
-			trans.commit();
-
-		}
-
-		fragmentStack.remove(fragmentStack.size() - 1);
-
-		if (fragmentStack.size() <= panelsCount) {
-			mNavigationDrawerFragment.setUpEnabled(true);
-			restoreActionBar();
 		}
 	}
 
@@ -252,12 +252,21 @@ public class MainActivity extends ActionBarActivity
 	protected void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
 
+		outState.putInt(STATE_PANELS_COUNT, panelsCount);
 		outState.putInt(STATE_STACK_SIZE, fragmentStack.size());
-		outState.putBoolean(STATE_DRAWER_UP_ENABLED, fragmentStack.size() <= panelsCount);
-		int idx = 0;
-		for (Fragment fragment : fragmentStack) {
-			fragmentManager.putFragment(outState, STATE_STACK_PREFIX + idx++, fragment);
+
+		// Store all fragments
+		for (FragmentStorage fragmentStorage : fragmentStack) {
+			if (!fragmentStorage.isStored()) {
+				Fragment fragment = fragmentStorage.getFragment();
+				if (fragment.getTag() == null || !fragment.getTag().equals(TAG_PANEL_FRAGMENT))
+					continue;
+
+				fragmentStorage.storeFragment();
+			}
 		}
+		
+		outState.putParcelableArrayList(STATE_STACK, fragmentStack);
 	}
 
 	@Override
@@ -312,4 +321,75 @@ public class MainActivity extends ActionBarActivity
         }
     }
 
+	private static class FragmentStorage implements Parcelable {
+		private Fragment fragment;
+		private Fragment.SavedState state;
+		private Class<? extends Fragment> aClass;
+		private FragmentManager fragmentManager;
+
+		public FragmentStorage(Fragment fragment) {
+			this.fragment = fragment;
+		}
+
+		public FragmentStorage setFragmentManager(FragmentManager fragmentManager) {
+			this.fragmentManager = fragmentManager;
+			return this;
+		}
+
+		public void storeFragment() {
+			if (fragment == null)
+				return;
+
+			state = fragmentManager.saveFragmentInstanceState(fragment);
+			aClass = fragment.getClass();
+			fragment = null;
+		}
+
+		public boolean isStored() {
+			return fragment == null;
+		}
+
+		public Fragment getFragment() {
+			if (fragment != null)
+				return fragment;
+
+			try {
+				fragment = aClass.newInstance();
+				fragment.setInitialSavedState(state);
+			} catch (InstantiationException e) {
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				e.printStackTrace();
+			}
+
+			return fragment;
+		}
+
+		@Override
+		public int describeContents() {
+			return 0;
+		}
+
+		@Override
+		public void writeToParcel(Parcel parcel, int i) {
+			parcel.writeParcelable(state, i);
+			parcel.writeSerializable(aClass);
+		}
+
+		@SuppressWarnings("unchecked")
+		public static final Creator<FragmentStorage> CREATOR = new Creator<FragmentStorage>() {
+			@Override
+			public FragmentStorage createFromParcel(Parcel parcel) {
+				FragmentStorage  fs = new FragmentStorage(null);
+				fs.state = parcel.readParcelable(null);
+				fs.aClass = (Class<? extends Fragment>) parcel.readSerializable();
+				return fs;
+			}
+
+			@Override
+			public FragmentStorage[] newArray(int i) {
+				return new FragmentStorage[i];
+			}
+		};
+	}
 }

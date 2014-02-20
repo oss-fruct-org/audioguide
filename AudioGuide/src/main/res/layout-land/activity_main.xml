@@ -8,6 +8,7 @@
     tools:context="org.fruct.oss.audioguide.MainActivity">
 
     <LinearLayout
+        android:id="@+id/container"
         android:baselineAligned="false"
         android:orientation="horizontal"
         android:layout_width="match_parent"

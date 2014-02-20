@@ -53,6 +53,7 @@ public class TestFragment extends Fragment {
         fragment.setArguments(args);
         return fragment;
     }
+
     public TestFragment() {
 		// Required empty public constructor
     }
@@ -65,7 +66,25 @@ public class TestFragment extends Fragment {
 			mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
-    }
+
+		if (savedInstanceState != null) {
+			mParam1 = savedInstanceState.getString(ARG_PARAM1);
+			mParam2 = savedInstanceState.getString(ARG_PARAM2);
+		}
+	}
+
+	@Override
+	public void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
+		outState.putString(ARG_PARAM1, mParam1);
+		outState.putString(ARG_PARAM2, mParam2);
+
+	}
+
+	@Override
+	public void onDestroy() {
+		super.onDestroy();
+	}
 
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
@@ -134,7 +153,12 @@ public class TestFragment extends Fragment {
 		multiPanel = null;
     }
 
-    /**
+	@Override
+	public String toString() {
+		return super.toString() + mParam2;
+	}
+
+	/**
      * This interface must be implemented by activities that contain this
      * fragment to allow an interaction in this fragment to be communicated
      * to the activity and potentially other fragments contained in that
