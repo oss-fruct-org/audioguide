@@ -23,6 +23,12 @@
             android:layout_weight="1"
             android:layout_width="0dp"
             android:layout_height="match_parent" />
+
+        <FrameLayout
+            android:id="@+id/panel3"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="match_parent" />
         <!-- -->
     </LinearLayout>
     <!-- android:layout_gravity="start" tells DrawerLayout to treat
@@ -33,9 +39,9 @@
     <!-- The drawer is given a fixed width in dp and extends the full height of
          the container. -->
     <fragment android:id="@+id/navigation_drawer"
-        android:layout_width="@dimen/navigation_drawer_width"
-        android:layout_height="match_parent"
-        android:layout_gravity="start"
-        android:name="org.fruct.oss.audioguide.NavigationDrawerFragment" />
+              android:layout_width="@dimen/navigation_drawer_width"
+              android:layout_height="match_parent"
+              android:layout_gravity="start"
+              android:name="org.fruct.oss.audioguide.NavigationDrawerFragment" />
 
 </android.support.v4.widget.DrawerLayout>

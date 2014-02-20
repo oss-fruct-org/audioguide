@@ -11,6 +11,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 
 /**
@@ -53,14 +54,15 @@ public class TestFragment extends Fragment {
         return fragment;
     }
     public TestFragment() {
-        // Required empty public constructor
+		// Required empty public constructor
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
+
+		if (getArguments() != null) {
+			mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
     }
@@ -81,7 +83,7 @@ public class TestFragment extends Fragment {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		if (item.getItemId() == R.id.action_test) {
-			multiPanel.pushFragment(MainActivity.PlaceholderFragment.newInstance((int) (Math.random() * 100)));
+			multiPanel.pushFragment(newInstance("qwe", "asd" + (int) (Math.random() * 100)));
 			return true;
 		} else if (item.getItemId() == android.R.id.home) {
 			multiPanel.popFragment();
@@ -95,7 +97,11 @@ public class TestFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_test, container, false);
+        View view = inflater.inflate(R.layout.fragment_test, container, false);
+		TextView textView = (TextView) view.findViewById(android.R.id.text1);
+		textView.setText("" + mParam2);
+
+		return view;
     }
 
     // TODO: Rename method, update argument and hook method into UI event

@@ -2,7 +2,6 @@ package org.fruct.oss.audioguide;
 
 import android.app.Activity;
 import android.net.Uri;
-import android.os.Parcelable;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBar;
@@ -22,32 +21,55 @@ import java.util.List;
 
 public class MainActivity extends ActionBarActivity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks, MultiPanel, TestFragment.OnFragmentInteractionListener {
-	private static final int[] PANEL_IDS = {R.id.panel1, R.id.panel2/*, R.id.panel3*/};
+	private int[] panelIds = {R.id.panel1, R.id.panel2, R.id.panel3};
 
-	private static final String STATE_DRAWER_ITEM = "drawer-item";
+	private static final String STATE_STACK_SIZE = "stack-size";
+	private static final String STATE_DRAWER_UP_ENABLED = "drawer-up-enabled";
+	private static final String STATE_STACK_PREFIX = "stack-prefix-id-";
 
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
      */
     private NavigationDrawerFragment mNavigationDrawerFragment;
 
-
     /**
      * Used to store the last screen title. For use in {@link #restoreActionBar()}.
      */
     private CharSequence mTitle;
 
-	private int panelsCount = 1;
+	private int panelsCount = 0;
 	private List<Fragment> fragmentStack = new ArrayList<Fragment>();
+	private boolean suppressDrawerItemChange = false;
 
 	private FragmentManager fragmentManager;
 
 	@Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
 
 		fragmentManager = getSupportFragmentManager();
+
+		// Restore old stack state
+		if (savedInstanceState != null) {
+			int stackSize = savedInstanceState.getInt(STATE_STACK_SIZE);
+			for (int i = 0; i < stackSize; i++) {
+				Fragment fragment = fragmentManager.getFragment(savedInstanceState, STATE_STACK_PREFIX + i);
+				fragmentStack.add(fragment);
+			}
+			suppressDrawerItemChange = true;
+		}
+
+		setContentView(R.layout.activity_main);
+
+		for (int i = 0; i < panelIds.length; i++) {
+			View view = findViewById(panelIds[i]);
+			if (view == null) {
+				panelsCount = i;
+				break;
+			}
+		}
+		panelsCount = 3;
+
         mNavigationDrawerFragment = (NavigationDrawerFragment)
                 fragmentManager.findFragmentById(R.id.navigation_drawer);
         mTitle = getTitle();
@@ -56,10 +78,21 @@ public class MainActivity extends ActionBarActivity
         mNavigationDrawerFragment.setUp(
                 R.id.navigation_drawer,
                 (DrawerLayout) findViewById(R.id.drawer_layout));
-    }
+
+		if (savedInstanceState != null) {
+			mNavigationDrawerFragment.setUpEnabled(savedInstanceState.getBoolean(STATE_DRAWER_UP_ENABLED));
+		}
+	}
 
     @Override
     public void onNavigationDrawerItemSelected(int position) {
+		System.out.println("onNavigationDrawerItemSelected");
+
+		if (suppressDrawerItemChange) {
+			suppressDrawerItemChange = false;
+			return;
+		}
+
 		FragmentManager fragmentManager = getSupportFragmentManager();
 		FragmentTransaction trans = fragmentManager.beginTransaction();
 		for (int i = 1; i < fragmentStack.size(); i++)
@@ -137,7 +170,7 @@ public class MainActivity extends ActionBarActivity
 
 		if (fragmentStack.size() <= panelsCount) {
 			fragmentManager.beginTransaction()
-					.replace(PANEL_IDS[fragmentStack.size() - 1], fragment)
+					.replace(panelIds[fragmentStack.size() - 1], fragment)
 					.commit();
 		} else {
 			int firstFragmentIdx = fragmentStack.size() - panelsCount - 1;
@@ -163,11 +196,11 @@ public class MainActivity extends ActionBarActivity
 				int fragmentIdx = firstFragmentIdx + panelIdx + 1;
 				Fragment shiftingFragment = fragmentStack.get(fragmentIdx);
 
-				trans.add(PANEL_IDS[panelIdx], shiftingFragment);
+				trans.add(panelIds[panelIdx], shiftingFragment);
 			}
 
 			// Add new fragment to last position
-			//trans.add(PANEL_IDS[panelsCount - 1], fragment);
+			//trans.add(panelIds[panelsCount - 1], fragment);
 			trans.commit();
 
 			mNavigationDrawerFragment.setUpEnabled(false);
@@ -200,7 +233,7 @@ public class MainActivity extends ActionBarActivity
 				int fragmentIdx = firstFragmentIdx + panelIdx - 1;
 				Fragment shiftingFragment = fragmentStack.get(fragmentIdx);
 
-				trans.add(PANEL_IDS[panelIdx], shiftingFragment);
+				trans.add(panelIds[panelIdx], shiftingFragment);
 			}
 			trans.attach(fragmentStack.get(firstFragmentIdx - 1));
 			trans.commit();
@@ -219,13 +252,12 @@ public class MainActivity extends ActionBarActivity
 	protected void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
 
-		/*ArrayList<Parcelable> stackStates = new ArrayList<Parcelable>();
+		outState.putInt(STATE_STACK_SIZE, fragmentStack.size());
+		outState.putBoolean(STATE_DRAWER_UP_ENABLED, fragmentStack.size() <= panelsCount);
+		int idx = 0;
 		for (Fragment fragment : fragmentStack) {
-			Fragment.SavedState state = fragmentManager.saveFragmentInstanceState(fragment);
-			stackStates.add(state);
-		}*/
-
-
+			fragmentManager.putFragment(outState, STATE_STACK_PREFIX + idx++, fragment);
+		}
 	}
 
 	@Override
