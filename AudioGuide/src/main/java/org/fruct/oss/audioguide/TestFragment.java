@@ -71,6 +71,8 @@ public class TestFragment extends Fragment {
 			mParam1 = savedInstanceState.getString(ARG_PARAM1);
 			mParam2 = savedInstanceState.getString(ARG_PARAM2);
 		}
+
+		System.out.println("Create fragment " + mParam2);
 	}
 
 	@Override

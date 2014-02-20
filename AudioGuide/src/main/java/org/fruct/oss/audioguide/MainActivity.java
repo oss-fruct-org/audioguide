@@ -88,7 +88,7 @@ public class MainActivity extends ActionBarActivity
 		}
 	}
 
-    @Override
+	@Override
     public void onNavigationDrawerItemSelected(int position) {
 		FragmentManager fragmentManager = getSupportFragmentManager();
 		FragmentTransaction trans = fragmentManager.beginTransaction();
@@ -205,7 +205,6 @@ public class MainActivity extends ActionBarActivity
 		int maxIter = Math.min(panelsCount, fragmentStack.size());
 		for (int i = 0; i < maxIter; i++) {
 			int fragmentIdx = Math.max(0, fragmentStack.size() - panelsCount) + i;
-			System.out.println(maxIter);
 			FragmentStorage fragmentStorage = fragmentStack.get(fragmentIdx);
 			trans.add(panelIds[i], fragmentStorage.getFragment(), TAG_PANEL_FRAGMENT);
 		}
@@ -250,29 +249,19 @@ public class MainActivity extends ActionBarActivity
 
 	@Override
 	protected void onSaveInstanceState(Bundle outState) {
-		super.onSaveInstanceState(outState);
-
 		outState.putInt(STATE_PANELS_COUNT, panelsCount);
 		outState.putInt(STATE_STACK_SIZE, fragmentStack.size());
 
-		// Store all fragments
-		for (FragmentStorage fragmentStorage : fragmentStack) {
-			if (!fragmentStorage.isStored()) {
-				Fragment fragment = fragmentStorage.getFragment();
-				if (fragment.getTag() == null || !fragment.getTag().equals(TAG_PANEL_FRAGMENT))
-					continue;
+		FragmentTransaction trans = fragmentManager.beginTransaction();
+		removeFragments(trans);
+		trans.commit();
+		fragmentManager.executePendingTransactions();
 
-				fragmentStorage.storeFragment();
-			}
-		}
-		
 		outState.putParcelableArrayList(STATE_STACK, fragmentStack);
+
+		super.onSaveInstanceState(outState);
 	}
 
-	@Override
-	protected void onRestoreInstanceState(Bundle savedInstanceState) {
-		super.onRestoreInstanceState(savedInstanceState);
-	}
 
 	@Override
 	public void onFragmentInteraction(Uri uri) {
