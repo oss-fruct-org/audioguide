@@ -14,6 +14,7 @@ public class ArrayStorage implements ILocalStorage {
 
 	@Override
 	public void storeLocalTrack(Track track) {
+		// TODO: this method updates all local tracks instead of update only changed
 		if (tracks.containsKey(track.getName()))
 			tracks.remove(track.getName());
 

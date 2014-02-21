@@ -16,11 +16,13 @@ public class TrackManagerTest extends AndroidTestCase implements TrackManager.Li
 	private boolean isTracksReceived;
 	private final Object waiter = new Object();
 
+	private ArrayStorage remoteStorage;
+
 	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
 
-		ArrayStorage remoteStorage = new ArrayStorage()
+		remoteStorage = new ArrayStorage()
 				.insert(new Track("aaa", "AAA", "uaaa"))
 				.insert(new Track("bbb", "BBB", "ubbb"));
 
@@ -63,6 +65,21 @@ public class TrackManagerTest extends AndroidTestCase implements TrackManager.Li
 		assertEquals("BBB", tracks.get(1).getDescription());
 	}
 
+	public void testUpdateRemoteTrack() {
+		testLoadingRemoteTracks();
+
+		remoteStorage.insert(new Track("ccc", "CCC", "uccc"));
+		trackManager.loadRemoteTracks();
+
+		waitTracksUpdated();
+		List<Track> tracks = trackManager.getTracks();
+		sortTracks(tracks);
+		assertEquals(3, tracks.size());
+		assertEquals("aaa", tracks.get(0).getName());
+		assertEquals("bbb", tracks.get(1).getName());
+		assertEquals("uccc", tracks.get(2).getUrl());
+	}
+
 	@Override
 	public void tracksUpdated() {
 		synchronized (waiter) {
@@ -73,8 +90,11 @@ public class TrackManagerTest extends AndroidTestCase implements TrackManager.Li
 
 	private void waitTracksUpdated() {
 		synchronized (waiter) {
-			if (isTracksReceived)
+			if (isTracksReceived) {
+				isTracksReceived = false;
 				return;
+			}
+
 			try {
 				waiter.wait(5000);
 			} catch (InterruptedException e) {
@@ -82,6 +102,7 @@ public class TrackManagerTest extends AndroidTestCase implements TrackManager.Li
 
 			if (!isTracksReceived)
 				throw new RuntimeException("Track manager timeout exceeded");
+			isTracksReceived = false;
 		}
 	}
 
