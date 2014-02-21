@@ -17,6 +17,7 @@ public class TrackManagerTest extends AndroidTestCase implements TrackManager.Li
 	private final Object waiter = new Object();
 
 	private ArrayStorage remoteStorage;
+	private ArrayStorage localStorage;
 
 	@Override
 	protected void setUp() throws Exception {
@@ -26,7 +27,7 @@ public class TrackManagerTest extends AndroidTestCase implements TrackManager.Li
 				.insert(new Track("aaa", "AAA", "uaaa"))
 				.insert(new Track("bbb", "BBB", "ubbb"));
 
-		ArrayStorage localStorage = new ArrayStorage();
+		localStorage = new ArrayStorage();
 
 		trackManager = new TrackManager(localStorage, remoteStorage);
 		trackManager.addListener(this);
@@ -48,6 +49,8 @@ public class TrackManagerTest extends AndroidTestCase implements TrackManager.Li
 		assertEquals(2, tracks.size());
 		assertEquals("aaa", tracks.get(0).getName());
 		assertEquals("bbb", tracks.get(1).getName());
+
+		assertEquals(0, localStorage.getTracks().size());
 	}
 
 	public void testUpdateLocalTrack() {
@@ -56,13 +59,21 @@ public class TrackManagerTest extends AndroidTestCase implements TrackManager.Li
 		waitTracksUpdated();
 
 		Track newTrack = new Track("aaa", "AaA", "url");
-		trackManager.updateLocalTrack(newTrack);
+		trackManager.storeLocal(newTrack);
 
 		List<Track> tracks = trackManager.getTracks();
 		sortTracks(tracks);
+
 		assertEquals(2, tracks.size());
 		assertEquals("AaA", tracks.get(0).getDescription());
 		assertEquals("BBB", tracks.get(1).getDescription());
+
+		assertTrue(tracks.get(0).isLocal());
+		assertFalse(tracks.get(1).isLocal());
+
+
+		assertEquals(1, localStorage.getTracks().size());
+		assertEquals("AaA", localStorage.getTracks().get(0).getDescription());
 	}
 
 	public void testUpdateRemoteTrack() {
@@ -78,6 +89,8 @@ public class TrackManagerTest extends AndroidTestCase implements TrackManager.Li
 		assertEquals("aaa", tracks.get(0).getName());
 		assertEquals("bbb", tracks.get(1).getName());
 		assertEquals("uccc", tracks.get(2).getUrl());
+
+		assertEquals(0, localStorage.getTracks().size());
 	}
 
 	@Override
