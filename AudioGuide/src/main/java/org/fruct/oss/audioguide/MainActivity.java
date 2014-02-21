@@ -18,10 +18,13 @@ import android.view.ViewGroup;
 import android.support.v4.widget.DrawerLayout;
 import android.widget.TextView;
 
+import org.fruct.oss.audioguide.fragments.TrackFragment;
+
 import java.util.ArrayList;
 
 public class MainActivity extends ActionBarActivity
-        implements NavigationDrawerFragment.NavigationDrawerCallbacks, MultiPanel, TestFragment.OnFragmentInteractionListener {
+        implements NavigationDrawerFragment.NavigationDrawerCallbacks, MultiPanel,
+		TestFragment.OnFragmentInteractionListener, TrackFragment.OnFragmentInteractionListener {
 	private int[] panelIds = {R.id.panel1, R.id.panel2/*, R.id.panel3*/};
 
 	private static final String STATE_PANELS_COUNT = "panels-count";
@@ -107,9 +110,19 @@ public class MainActivity extends ActionBarActivity
 			return;
 		}
 
-		Fragment fragment = (position == 0
-				? TestFragment.newInstance("qwe", "asd")
-				: PlaceholderFragment.newInstance(position + 1));
+		Fragment fragment = null;
+		switch (position) {
+		case 1:
+			fragment = TestFragment.newInstance("qwe", "asd");
+			break;
+		case 0:
+			fragment = TrackFragment.newInstance("zxc", "mnb");
+			break;
+		case 2:
+			fragment = PlaceholderFragment.newInstance(position + 1);
+			break;
+		}
+
 		fragmentStack.clear();
 		fragmentStack.add(new FragmentStorage(fragment).setFragmentManager(fragmentManager));
 
@@ -249,6 +262,11 @@ public class MainActivity extends ActionBarActivity
 
 	@Override
 	public void onFragmentInteraction(Uri uri) {
+
+	}
+
+	@Override
+	public void onFragmentInteraction(String id) {
 
 	}
 

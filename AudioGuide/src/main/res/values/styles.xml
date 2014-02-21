@@ -1,8 +1,13 @@
 <resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light">
+    <style name="AppTheme" parent="@android:style/Theme.AppCompat">
         <!-- Customize your theme here. -->
+    </style>
+
+    <style name="CustomListView" parent="@android:style/Widget.ListView">
+        <item name="android:background">#2F3F66</item>
+        <item name="android:fastScrollEnabled">true</item>
     </style>
 
 </resources>
