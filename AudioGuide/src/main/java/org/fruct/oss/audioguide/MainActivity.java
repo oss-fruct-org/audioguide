@@ -49,7 +49,7 @@ public class MainActivity extends ActionBarActivity
 	@Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-		
+
 		fragmentManager = getSupportFragmentManager();
 
 		if (savedInstanceState != null) {
@@ -171,21 +171,6 @@ public class MainActivity extends ActionBarActivity
         }
         return super.onOptionsItemSelected(item);
     }
-
-	private Fragment cloneFragment(Fragment fragment) {
-		try {
-			Fragment.SavedState state = fragmentManager.saveFragmentInstanceState(fragment);
-			Fragment newFragment = fragment.getClass().newInstance();
-			newFragment.setInitialSavedState(state);
-			return newFragment;
-		} catch (InstantiationException e) {
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
-		}
-
-		return null;
-	}
 
 	private void removeFragments(FragmentTransaction trans) {
 		for (FragmentStorage fragmentStorage : fragmentStack) {
