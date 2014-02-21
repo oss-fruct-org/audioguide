@@ -5,7 +5,7 @@ import java.util.List;
 
 public interface IStorage extends Closeable {
 	/**
-	 * Perform some initialization tasks like database opening or network connection creating
+	 * Perform some initialization tasks like database opening
 	 */
 	void initialize();
 

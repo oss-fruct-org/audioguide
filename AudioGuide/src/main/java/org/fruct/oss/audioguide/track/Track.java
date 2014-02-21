@@ -9,7 +9,7 @@ public class Track {
 	private boolean isLocal;
 	private boolean isActive;
 
-	Track(String name, String description, String url) {
+	public Track(String name, String description, String url) {
 		this.name = name;
 		this.description = description;
 		this.url = url;
