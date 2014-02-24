@@ -9,7 +9,7 @@
 
     <LinearLayout
         android:layout_alignParentLeft="true"
-        android:layout_toLeftOf="@+id/imageButton"
+        android:layout_toLeftOf="@+id/buttonsLayout"
         android:orientation="vertical"
         android:layout_width="wrap_content"
         android:layout_height="match_parent">
@@ -30,12 +30,21 @@
             />
     </LinearLayout>
 
-    <ImageButton
-        android:src="@drawable/ic_drawer"
+    <LinearLayout
+        android:id="@id/buttonsLayout"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@id/imageButton"
+        android:layout_height="match_parent"
         android:layout_alignParentRight="true"
-        android:contentDescription="Download"
-        />
+        android:gravity="center_vertical"
+        android:orientation="vertical">
+        <ImageButton
+            android:src="@drawable/ic_drawer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/imageButton"
+            android:contentDescription="Download"
+            android:background="@null"
+            android:padding="4dp"
+            />
+    </LinearLayout>
 </RelativeLayout>

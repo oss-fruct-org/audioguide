@@ -67,9 +67,9 @@ public class TrackAdapter extends ArrayAdapter<Track> implements View.OnClickLis
 		holder.text2.setText(track.getDescription());
 
 		if (track.isLocal())
-			holder.button1.setVisibility(View.GONE);
+			holder.button1.setColorFilter(0xff999911);
 		else
-			holder.button1.setVisibility(View.VISIBLE);
+			holder.button1.setColorFilter(0xff000000);
 
 		holder.button1.setFocusable(false);
 		holder.button1.setClickable(true);

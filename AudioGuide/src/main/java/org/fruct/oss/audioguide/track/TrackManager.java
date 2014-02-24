@@ -4,8 +4,12 @@ import org.fruct.oss.audioguide.App;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -22,7 +26,7 @@ public class TrackManager {
 	private ExecutorService executor = Executors.newSingleThreadExecutor();
 
 	// All known tracks from local and remote storage
-	private final Map<String, Track> allTracks = new HashMap<String, Track>();
+	private final Map<Track, Track> allTracks = new HashMap<Track, Track>();
 	private List<Listener> listeners = new ArrayList<Listener>();
 
 	public TrackManager(ILocalStorage localStorage, IStorage remoteStorage) {
@@ -42,7 +46,7 @@ public class TrackManager {
 
 		for (Track track : localStorage.getTracks()) {
 			track.setLocal(true);
-			allTracks.put(track.getName(), track);
+			allTracks.put(track, track);
 		}
 
 		isInitialized = true;
@@ -83,7 +87,7 @@ public class TrackManager {
 
 		synchronized (allTracks) {
 			track.setLocal(true);
-			allTracks.put(track.getName(), track);
+			allTracks.put(track, track);
 		}
 	}
 
@@ -98,7 +102,7 @@ public class TrackManager {
 		synchronized (allTracks) {
 			for (Track track : tracks) {
 				if (!allTracks.containsKey(track.getName()))
-					allTracks.put(track.getName(), track);
+					allTracks.put(track, track);
 			}
 		}
 
