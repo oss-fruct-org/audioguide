@@ -2,6 +2,7 @@ package org.fruct.oss.audioguide.adapters;
 
 import android.app.Activity;
 import android.content.Context;
+import android.media.Image;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -16,12 +17,14 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-public class TrackAdapter extends ArrayAdapter<Track> implements AdapterView.OnItemClickListener, View.OnClickListener {
+public class TrackAdapter extends ArrayAdapter<Track> implements View.OnClickListener {
 	private final static Logger log = LoggerFactory.getLogger(TrackAdapter.class);
 
 	private final Context context;
 	private final int resource;
 	private final List<Track> items;
+
+	private Listener listener;
 
 	public TrackAdapter(Context context, int resource, List<Track> items) {
 		super(context, resource, items);
@@ -29,6 +32,10 @@ public class TrackAdapter extends ArrayAdapter<Track> implements AdapterView.OnI
 		this.context = context;
 		this.resource = resource;
 		this.items = items;
+	}
+
+	public void setListener(Listener listener) {
+		this.listener = listener;
 	}
 
 	@Override
@@ -48,6 +55,7 @@ public class TrackAdapter extends ArrayAdapter<Track> implements AdapterView.OnI
 			holder.text2 = (TextView) view.findViewById(android.R.id.text2);
 			holder.track = items.get(position);
 			holder.button1 = (ImageButton) view.findViewById(R.id.imageButton);
+			holder.button1.setTag(holder.track);
 
 			holder.button1.setOnClickListener(this);
 
@@ -69,21 +77,23 @@ public class TrackAdapter extends ArrayAdapter<Track> implements AdapterView.OnI
 	}
 
 	@Override
-	public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-
-	}
-
-	@Override
 	public void onClick(View view) {
-		ImageButton imageButton = (ImageButton) view;
-		log.debug("ImageButton clicked");
+		if (view instanceof ImageButton) {
+			ImageButton imageButton = (ImageButton) view;
+			Track track = (Track) imageButton.getTag();
+			if (listener != null)
+				listener.buttonClicked(track);
+		}
 	}
-
 
 	private static class TrackHolder {
 		Track track;
 		TextView text1;
 		TextView text2;
 		ImageButton button1;
+	}
+
+	public static interface Listener {
+		void buttonClicked(Track track);
 	}
 }

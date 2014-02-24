@@ -22,7 +22,7 @@ import java.util.List;
  * Activities containing this fragment MUST implement the {@link OnFragmentInteractionListener}
  * interface.
  */
-public class TrackFragment extends ListFragment implements TrackManager.Listener {
+public class TrackFragment extends ListFragment implements TrackManager.Listener, TrackAdapter.Listener {
 	private final static Logger log = LoggerFactory.getLogger(TrackFragment.class);
 
     private OnFragmentInteractionListener mListener;
@@ -51,6 +51,7 @@ public class TrackFragment extends ListFragment implements TrackManager.Listener
 		trackManager.initialize();
 
 		trackAdapter = new TrackAdapter(getActivity(), R.layout.list_track_item, trackManager.getTracks());
+		trackAdapter.setListener(this);
 
 		setListAdapter(trackAdapter);
 		trackManager.loadRemoteTracks();
@@ -83,8 +84,9 @@ public class TrackFragment extends ListFragment implements TrackManager.Listener
 
     @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
-        log.debug("List item {} clicked", position);
-    }
+		Track track = trackAdapter.getItem(position);
+		trackClicked(track);
+	}
 
 	@Override
 	public void tracksUpdated() {
@@ -94,6 +96,18 @@ public class TrackFragment extends ListFragment implements TrackManager.Listener
 		trackAdapter.clear();
 		for (Track track : tracks)
 			trackAdapter.add(track);
+	}
+
+	@Override
+	public void buttonClicked(Track track) {
+		log.info("Image button clicked {}", track.getName());
+
+		trackManager.storeLocal(track);
+		trackAdapter.notifyDataSetChanged();
+	}
+
+	public void trackClicked(Track track) {
+		log.info("Track clicked {}", track.getName());
 	}
 
 	/**
