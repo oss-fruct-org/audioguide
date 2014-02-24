@@ -116,7 +116,7 @@ public class MainActivity extends ActionBarActivity
 			fragment = TestFragment.newInstance("qwe", "asd");
 			break;
 		case 0:
-			fragment = TrackFragment.newInstance("zxc", "mnb");
+			fragment = TrackFragment.newInstance();
 			break;
 		case 2:
 			fragment = PlaceholderFragment.newInstance(position + 1);

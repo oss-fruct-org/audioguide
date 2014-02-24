@@ -1,20 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:orientation="vertical"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent">
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:tools="http://schemas.android.com/tools"
+                android:orientation="vertical"
+                android:minHeight="32dp"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
 
-    <TextView
-        android:id="@android:id/text1"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:minHeight="32dp"
-        />
+    <LinearLayout
+        android:layout_alignParentLeft="true"
+        android:layout_toLeftOf="@+id/imageButton"
+        android:orientation="vertical"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent">
+        <TextView
+            android:id="@android:id/text1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="24sp"
+            tools:text="Hello world Hello world"
+            />
 
-    <Button
-        android:focusable="false"
+        <TextView
+            android:id="@android:id/text2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            tools:text="Hello world qweqweqwe qwewww"
+            />
+    </LinearLayout>
+
+    <ImageButton
+        android:src="@drawable/ic_drawer"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="QWEQWEQWE"/>
-</LinearLayout>
+        android:id="@id/imageButton"
+        android:layout_alignParentRight="true"
+        android:contentDescription="Download"
+        />
+</RelativeLayout>

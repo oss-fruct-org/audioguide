@@ -110,4 +110,16 @@ public class TrackManager {
 		if (!isInitialized)
 			throw new IllegalStateException("TrackManager not initialized");
 	}
+
+	private static TrackManager instance;
+	public static TrackManager getInstance() {
+		if (instance != null)
+			return instance;
+
+		ILocalStorage localStorage = new ArrayStorage();
+		IStorage remoteStorage = new ArrayStorage().insert(new Track("AAA", "BBB", "CCC"))
+				.insert(new Track("CCC", "DDD", "EEE"));
+		return instance = new TrackManager(localStorage, remoteStorage);
+
+	}
 }

@@ -4,13 +4,16 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 import org.fruct.oss.audioguide.R;
-import org.fruct.oss.audioguide.fragments.dummy.DummyContent;
+import org.fruct.oss.audioguide.adapters.TrackAdapter;
+import org.fruct.oss.audioguide.track.Track;
+import org.fruct.oss.audioguide.track.TrackManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 /**
  * A fragment representing a list of Items.
@@ -19,28 +22,16 @@ import org.slf4j.LoggerFactory;
  * Activities containing this fragment MUST implement the {@link OnFragmentInteractionListener}
  * interface.
  */
-public class TrackFragment extends ListFragment {
+public class TrackFragment extends ListFragment implements TrackManager.Listener {
 	private final static Logger log = LoggerFactory.getLogger(TrackFragment.class);
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
-
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
-
     private OnFragmentInteractionListener mListener;
+	private TrackManager trackManager;
 
-    // TODO: Rename and change types of parameters
-    public static TrackFragment newInstance(String param1, String param2) {
-        TrackFragment fragment = new TrackFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
+	private TrackAdapter trackAdapter;
+
+    public static TrackFragment newInstance() {
+		return new TrackFragment();
     }
 
     /**
@@ -54,18 +45,25 @@ public class TrackFragment extends ListFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
+		trackManager = TrackManager.getInstance();
 
-        // TODO: Change Adapter to display your content
-        setListAdapter(new ArrayAdapter<DummyContent.DummyItem>(getActivity(),
-				R.layout.list_track_item, android.R.id.text1, DummyContent.ITEMS));
-    }
+		trackManager.addListener(this);
+		trackManager.initialize();
 
+		trackAdapter = new TrackAdapter(getActivity(), R.layout.list_track_item, trackManager.getTracks());
 
-    @Override
+		setListAdapter(trackAdapter);
+		trackManager.loadRemoteTracks();
+	}
+
+	@Override
+	public void onDestroy() {
+		trackManager.removeListener(this);
+
+		super.onDestroy();
+	}
+
+	@Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         try {
@@ -85,17 +83,20 @@ public class TrackFragment extends ListFragment {
 
     @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
-        super.onListItemClick(l, v, position, id);
-
-        if (null != mListener) {
-            // Notify the active callbacks interface (the activity, if the
-            // fragment is attached to one) that an item has been selected.
-            mListener.onFragmentInteraction(DummyContent.ITEMS.get(position).id);
-			log.debug("Id {}", DummyContent.ITEMS.get(position).id);
-        }
+        log.debug("List item {} clicked", position);
     }
 
-    /**
+	@Override
+	public void tracksUpdated() {
+		List<Track> tracks = trackManager.getTracks();
+		log.debug("Tracks updated. Size = {}", tracks.size());
+
+		trackAdapter.clear();
+		for (Track track : tracks)
+			trackAdapter.add(track);
+	}
+
+	/**
     * This interface must be implemented by activities that contain this
     * fragment to allow an interaction in this fragment to be communicated
     * to the activity and potentially other fragments contained in that
