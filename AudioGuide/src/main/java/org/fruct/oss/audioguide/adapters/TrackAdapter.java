@@ -70,6 +70,7 @@ public class TrackAdapter extends ArrayAdapter<Track> implements View.OnClickLis
 			holder.button1.setVisibility(View.GONE);
 		else
 			holder.button1.setVisibility(View.VISIBLE);
+
 		holder.button1.setFocusable(false);
 		holder.button1.setClickable(true);
 

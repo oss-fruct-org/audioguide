@@ -1,5 +1,7 @@
 package org.fruct.oss.audioguide.track;
 
+import org.fruct.oss.audioguide.App;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -35,6 +37,7 @@ public class TrackManager {
 		localStorage.initialize();
 		remoteStorage.initialize();
 
+		// TODO: storages should be closed
 		localStorage.load();
 
 		for (Track track : localStorage.getTracks()) {
@@ -94,7 +97,8 @@ public class TrackManager {
 		List<Track> tracks = remoteStorage.getTracks();
 		synchronized (allTracks) {
 			for (Track track : tracks) {
-				allTracks.put(track.getName(), track);
+				if (!allTracks.containsKey(track.getName()))
+					allTracks.put(track.getName(), track);
 			}
 		}
 
@@ -116,10 +120,11 @@ public class TrackManager {
 		if (instance != null)
 			return instance;
 
-		ILocalStorage localStorage = new ArrayStorage();
+		ILocalStorage localStorage = new DatabaseStorage(App.getContext());
 		IStorage remoteStorage = new ArrayStorage().insert(new Track("AAA", "BBB", "CCC"))
 				.insert(new Track("CCC", "DDD", "EEE"));
-		return instance = new TrackManager(localStorage, remoteStorage);
-
+		instance = new TrackManager(localStorage, remoteStorage);
+		instance.initialize();
+		return instance;
 	}
 }

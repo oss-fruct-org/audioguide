@@ -48,7 +48,6 @@ public class TrackFragment extends ListFragment implements TrackManager.Listener
 		trackManager = TrackManager.getInstance();
 
 		trackManager.addListener(this);
-		trackManager.initialize();
 
 		trackAdapter = new TrackAdapter(getActivity(), R.layout.list_track_item, trackManager.getTracks());
 		trackAdapter.setListener(this);
