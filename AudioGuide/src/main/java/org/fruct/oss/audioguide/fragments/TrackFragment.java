@@ -6,6 +6,7 @@ import android.support.v4.app.ListFragment;
 import android.view.View;
 import android.widget.ListView;
 
+import org.fruct.oss.audioguide.MultiPanel;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.adapters.TrackAdapter;
 import org.fruct.oss.audioguide.track.Track;
@@ -19,13 +20,13 @@ import java.util.List;
  * A fragment representing a list of Items.
  * <p />
  * <p />
- * Activities containing this fragment MUST implement the {@link OnFragmentInteractionListener}
+ * Activities containing this fragment MUST implement the {@link MultiPanel}
  * interface.
  */
 public class TrackFragment extends ListFragment implements TrackManager.Listener, TrackAdapter.Listener {
 	private final static Logger log = LoggerFactory.getLogger(TrackFragment.class);
 
-    private OnFragmentInteractionListener mListener;
+	private MultiPanel multiPanel;
 	private TrackManager trackManager;
 
 	private TrackAdapter trackAdapter;
@@ -59,25 +60,27 @@ public class TrackFragment extends ListFragment implements TrackManager.Listener
 	@Override
 	public void onDestroy() {
 		trackManager.removeListener(this);
+		trackAdapter.setListener(null);
 
 		super.onDestroy();
 	}
 
 	@Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        try {
-            mListener = (OnFragmentInteractionListener) activity;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString()
-                + " must implement OnFragmentInteractionListener");
-        }
-    }
+	public void onAttach(Activity activity) {
+		super.onAttach(activity);
+		try {
+			multiPanel = (MultiPanel) activity;
+		} catch (ClassCastException e) {
+			throw new ClassCastException(activity.toString()
+					+ " must implement MultiFragment");
+		}
+
+	}
 
     @Override
     public void onDetach() {
         super.onDetach();
-        mListener = null;
+		multiPanel = null;
     }
 
 
@@ -107,21 +110,7 @@ public class TrackFragment extends ListFragment implements TrackManager.Listener
 
 	public void trackClicked(Track track) {
 		log.info("Track clicked {}", track.getName());
+
+		multiPanel.pushFragment(TrackDetailFragment.newInstance(track));
 	}
-
-	/**
-    * This interface must be implemented by activities that contain this
-    * fragment to allow an interaction in this fragment to be communicated
-    * to the activity and potentially other fragments contained in that
-    * activity.
-    * <p>
-    * See the Android Training lesson <a href=
-    * "http://developer.android.com/training/basics/fragments/communicating.html"
-    * >Communicating with Other Fragments</a> for more information.
-    */
-    public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        public void onFragmentInteraction(String id);
-    }
-
 }

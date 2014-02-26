@@ -52,6 +52,11 @@ public class TrackManager {
 		isInitialized = true;
 	}
 
+	public void destroy() {
+		localStorage.close();
+		remoteStorage.close();
+	}
+
 	/**
 	 * Method starts loading tracks from remote storage and immediately returns without blocking
 	 */
@@ -91,6 +96,10 @@ public class TrackManager {
 		}
 	}
 
+	public void storePoints(Track track, List<Point> points) {
+		localStorage.storeLocalPoints(track, points);
+	}
+
 	private void startTask(Runnable runnable) {
 		executor.execute(runnable);
 	}
@@ -101,7 +110,7 @@ public class TrackManager {
 		List<Track> tracks = remoteStorage.getTracks();
 		synchronized (allTracks) {
 			for (Track track : tracks) {
-				if (!allTracks.containsKey(track.getName()))
+				if (!allTracks.containsKey(track))
 					allTracks.put(track, track);
 			}
 		}

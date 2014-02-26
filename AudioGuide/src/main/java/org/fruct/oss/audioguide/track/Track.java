@@ -1,13 +1,17 @@
 package org.fruct.oss.audioguide.track;
 
-public class Track {
+import android.os.Parcel;
+import android.os.Parcelable;
+
+public class Track implements Parcelable {
 	private String name;
 	private String description;
 	private String url;
 
-	private int localId;
 	private boolean isLocal;
 	private boolean isActive;
+
+	private long localId;
 
 	public Track(String name, String description, String url) {
 		this.name = name;
@@ -35,9 +39,6 @@ public class Track {
 		return isActive;
 	}
 
-	public int getLocalId() {
-		return localId;
-	}
 
 	public void setName(String name) {
 		this.name = name;
@@ -59,6 +60,16 @@ public class Track {
 		this.isActive = isActive;
 	}
 
+
+	public long getLocalId() {
+		return localId;
+	}
+
+	public void setLocalId(long localId) {
+		this.localId = localId;
+	}
+
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
@@ -75,4 +86,40 @@ public class Track {
 	public int hashCode() {
 		return name != null ? name.hashCode() : 0;
 	}
+
+	@Override
+	public int describeContents() {
+		return 0;
+	}
+
+	@Override
+	public void writeToParcel(Parcel parcel, int i) {
+		parcel.writeString(name);
+		parcel.writeString(description);
+		parcel.writeString(url);
+		parcel.writeInt(isActive ? 1 : 0);
+		parcel.writeInt(isLocal ? 1 : 0);
+		parcel.writeLong(localId);
+	}
+
+	public static final Creator<Track> CREATOR = new Creator<Track>() {
+		@Override
+		public Track createFromParcel(Parcel parcel) {
+			final String name = parcel.readString();
+			final String description = parcel.readString();
+			final String url = parcel.readString();
+
+			Track track = new Track(name, description, url);
+			track.setActive(parcel.readInt() != 0);
+			track.setLocal(parcel.readInt() != 0);
+			track.localId = parcel.readLong();
+
+			return track;
+		}
+
+		@Override
+		public Track[] newArray(int i) {
+			return new Track[i];
+		}
+	};
 }

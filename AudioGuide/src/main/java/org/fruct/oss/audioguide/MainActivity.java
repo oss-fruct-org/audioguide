@@ -24,7 +24,7 @@ import java.util.ArrayList;
 
 public class MainActivity extends ActionBarActivity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks, MultiPanel,
-		TestFragment.OnFragmentInteractionListener, TrackFragment.OnFragmentInteractionListener {
+		TestFragment.OnFragmentInteractionListener {
 	private int[] panelIds = {R.id.panel1, R.id.panel2/*, R.id.panel3*/};
 
 	private static final String STATE_PANELS_COUNT = "panels-count";
@@ -145,7 +145,15 @@ public class MainActivity extends ActionBarActivity
         }
     }
 
-    public void restoreActionBar() {
+	@Override
+	public void onBackPressed() {
+		if (fragmentStack.size() > panelsCount)
+			popFragment();
+		else
+			super.onBackPressed();
+	}
+
+	public void restoreActionBar() {
         ActionBar actionBar = getSupportActionBar();
         actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
         actionBar.setDisplayShowTitleEnabled(true);
@@ -262,11 +270,6 @@ public class MainActivity extends ActionBarActivity
 
 	@Override
 	public void onFragmentInteraction(Uri uri) {
-
-	}
-
-	@Override
-	public void onFragmentInteraction(String id) {
 
 	}
 

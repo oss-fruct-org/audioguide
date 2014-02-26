@@ -24,4 +24,10 @@ public interface IStorage extends Closeable {
 	 * @return list of tracks
 	 */
 	List<Track> getTracks();
+
+	/**
+	 * Get content of track
+	 * @param track Track
+	 */
+	List<Point> getPoints(Track track);
 }

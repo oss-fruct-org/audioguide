@@ -3,9 +3,11 @@ package org.fruct.oss.audioguide.test;
 import android.test.AndroidTestCase;
 
 import org.fruct.oss.audioguide.track.ArrayStorage;
+import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.Track;
 import org.fruct.oss.audioguide.track.TrackManager;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -19,13 +21,16 @@ public class TrackManagerTest extends AndroidTestCase implements TrackManager.Li
 	private ArrayStorage remoteStorage;
 	private ArrayStorage localStorage;
 
+	private Track track1;
+	private Track track2;
+
 	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
 
 		remoteStorage = new ArrayStorage()
-				.insert(new Track("aaa", "AAA", "uaaa"))
-				.insert(new Track("bbb", "BBB", "ubbb"));
+				.insert(track1 = new Track("aaa", "AAA", "uaaa"))
+				.insert(track2 = new Track("bbb", "BBB", "ubbb"));
 
 		localStorage = new ArrayStorage();
 
@@ -91,6 +96,23 @@ public class TrackManagerTest extends AndroidTestCase implements TrackManager.Li
 		assertEquals("uccc", tracks.get(2).getUrl());
 
 		assertEquals(0, localStorage.getTracks().size());
+	}
+
+	public void testAddPoints() {
+		trackManager.initialize();
+		trackManager.loadRemoteTracks();
+
+		Point point1, point2;
+		ArrayList<Point> spoints = new ArrayList<Point>();
+		spoints.add(point1 = new Point("name", "description", "audioUrl", 10, 11));
+		spoints.add(point2 = new Point("name2", "description2", "audioUrl2", 20, 21));
+
+		trackManager.storePoints(track1, spoints);
+
+		List<Point> points = localStorage.getPoints(track1);
+
+		assertTrue(points.contains(point1));
+		assertTrue(points.contains(point2));
 	}
 
 	@Override
