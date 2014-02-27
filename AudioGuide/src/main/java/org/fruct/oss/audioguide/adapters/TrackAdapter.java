@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import org.fruct.oss.audioguide.R;
@@ -15,14 +16,13 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-public class TrackAdapter extends ArrayAdapter<Track> implements View.OnClickListener {
+public class TrackAdapter extends ArrayAdapter<Track> {
 	private final static Logger log = LoggerFactory.getLogger(TrackAdapter.class);
 
 	private final Context context;
 	private final int resource;
 	private final List<Track> items;
 
-	private Listener listener;
 
 	public TrackAdapter(Context context, int resource, List<Track> items) {
 		super(context, resource, items);
@@ -30,10 +30,6 @@ public class TrackAdapter extends ArrayAdapter<Track> implements View.OnClickLis
 		this.context = context;
 		this.resource = resource;
 		this.items = items;
-	}
-
-	public void setListener(Listener listener) {
-		this.listener = listener;
 	}
 
 	@Override
@@ -52,13 +48,11 @@ public class TrackAdapter extends ArrayAdapter<Track> implements View.OnClickLis
 			holder.text1 = (TextView) view.findViewById(android.R.id.text1);
 			holder.text2 = (TextView) view.findViewById(android.R.id.text2);
 
-			holder.downloadButton = (ImageButton) view.findViewById(R.id.downloadButton);
-			holder.downloadButton.setTag(holder);
-			holder.downloadButton.setOnClickListener(this);
+			holder.localImage = (ImageView) view.findViewById(R.id.localImage);
+			holder.localImage.setTag(holder);
 
-			holder.activateButton = (ImageButton) view.findViewById(R.id.activateButton);
-			holder.activateButton.setTag(holder);
-			holder.activateButton.setOnClickListener(this);
+			holder.activeImage = (ImageView) view.findViewById(R.id.activeImage);
+			holder.activeImage.setTag(holder);
 
 			view.setTag(holder);
 		}
@@ -69,47 +63,25 @@ public class TrackAdapter extends ArrayAdapter<Track> implements View.OnClickLis
 		holder.text1.setText(track.getName());
 		holder.text2.setText(track.getDescription());
 
-		setupButton(holder.downloadButton, holder.track.isLocal());
-		setupButton(holder.activateButton, holder.track.isActive());
+		setupButton(holder.localImage, holder.track.isLocal());
+		setupButton(holder.activeImage, holder.track.isActive());
 
 		return view;
 	}
 
-	private void setupButton(ImageButton button, boolean isHighlighted) {
+	private void setupButton(ImageView button, boolean isHighlighted) {
 		if (isHighlighted)
 			button.setColorFilter(0xff999911);
 		else
 			button.setColorFilter(0xff000000);
-
-		button.setFocusable(false);
-		button.setClickable(true);
-
-	}
-
-	@Override
-	public void onClick(View view) {
-		TrackHolder holder = (TrackHolder) view.getTag();
-
-		if (view == holder.downloadButton) {
-			if (listener != null)
-				listener.downloadButtonClicked(holder.track);
-		} else if (view == holder.activateButton) {
-			if (listener != null)
-				listener.activateButtonClicked(holder.track);
-		}
 	}
 
 	private static class TrackHolder {
 		Track track;
 		TextView text1;
 		TextView text2;
-		ImageButton downloadButton;
-		ImageButton activateButton;
+		ImageView localImage;
+		ImageView activeImage;
 
-	}
-
-	public static interface Listener {
-		void downloadButtonClicked(Track track);
-		void activateButtonClicked(Track track);
 	}
 }

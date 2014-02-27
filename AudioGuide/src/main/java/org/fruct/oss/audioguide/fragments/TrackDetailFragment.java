@@ -78,7 +78,7 @@ public class TrackDetailFragment extends Fragment {
 		final TextView text = (TextView) view.findViewById(android.R.id.text1);
 		text.setText(track.getDescription());
 
-		final Button downloadButton = (Button) view.findViewById(R.id.downloadButton);
+		final Button downloadButton = (Button) view.findViewById(R.id.localImage);
 		downloadButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View view) {
@@ -86,7 +86,7 @@ public class TrackDetailFragment extends Fragment {
 			}
 		});
 
-		final Button activateButton = (Button) view.findViewById(R.id.activateButton);
+		final Button activateButton = (Button) view.findViewById(R.id.activeImage);
 		activateButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View view) {

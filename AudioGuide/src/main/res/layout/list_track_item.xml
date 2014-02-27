@@ -37,20 +37,20 @@
         android:layout_alignParentRight="true"
         android:gravity="center_vertical"
         android:orientation="horizontal">
-        <ImageButton
+        <ImageView
             android:src="@drawable/ic_drawer"
             android:layout_width="16dp"
             android:layout_height="match_parent"
-            android:id="@+id/downloadButton"
+            android:id="@+id/localImage"
             android:contentDescription="Download"
             android:background="@null"
             android:layout_margin="8dp"
             />
-        <ImageButton
+        <ImageView
             android:src="@drawable/ic_action_accept"
             android:layout_width="16dp"
             android:layout_height="match_parent"
-            android:id="@+id/activateButton"
+            android:id="@+id/activeImage"
             android:contentDescription="Activate"
             android:background="@null"
             android:layout_margin="8dp"

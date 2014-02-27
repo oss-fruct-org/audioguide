@@ -29,7 +29,7 @@
         android:layout_height="wrap_content">
 
         <Button
-            android:id="@+id/downloadButton"
+            android:id="@+id/localImage"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@null"
@@ -39,7 +39,7 @@
             android:drawableLeft="@drawable/ic_action_accept"
             android:paddingBottom="16dp"/>
         <Button
-            android:id="@+id/activateButton"
+            android:id="@+id/activeImage"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@null"

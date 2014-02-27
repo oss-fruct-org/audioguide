@@ -23,7 +23,7 @@ import java.util.List;
  * Activities containing this fragment MUST implement the {@link MultiPanel}
  * interface.
  */
-public class TrackFragment extends ListFragment implements TrackManager.Listener, TrackAdapter.Listener {
+public class TrackFragment extends ListFragment implements TrackManager.Listener {
 	private final static Logger log = LoggerFactory.getLogger(TrackFragment.class);
 
 	private MultiPanel multiPanel;
@@ -51,7 +51,6 @@ public class TrackFragment extends ListFragment implements TrackManager.Listener
 		trackManager.addListener(this);
 
 		trackAdapter = new TrackAdapter(getActivity(), R.layout.list_track_item, trackManager.getTracks());
-		trackAdapter.setListener(this);
 
 		setListAdapter(trackAdapter);
 		trackManager.loadRemoteTracks();
@@ -60,7 +59,6 @@ public class TrackFragment extends ListFragment implements TrackManager.Listener
 	@Override
 	public void onDestroy() {
 		trackManager.removeListener(this);
-		trackAdapter.setListener(null);
 
 		super.onDestroy();
 	}
@@ -102,22 +100,6 @@ public class TrackFragment extends ListFragment implements TrackManager.Listener
 
 	@Override
 	public void trackUpdated(Track track) {
-		trackAdapter.notifyDataSetChanged();
-	}
-
-	@Override
-	public void downloadButtonClicked(Track track) {
-		log.info("Download button clicked {}", track.getName());
-
-		trackManager.storeLocal(track);
-		trackAdapter.notifyDataSetChanged();
-	}
-
-	@Override
-	public void activateButtonClicked(Track track) {
-		log.info("Activate button clicked {}", track.getName());
-
-		trackManager.activateTrack(track);
 		trackAdapter.notifyDataSetChanged();
 	}
 
