@@ -124,6 +124,6 @@ public class TrackFragment extends ListFragment implements TrackManager.Listener
 	public void trackClicked(Track track) {
 		log.info("Track clicked {}", track.getName());
 
-		multiPanel.pushFragment(TrackDetailFragment.newInstance(track));
+		multiPanel.replaceFragment(TrackDetailFragment.newInstance(track), this);
 	}
 }

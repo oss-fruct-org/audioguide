@@ -19,12 +19,18 @@ import android.support.v4.widget.DrawerLayout;
 import android.widget.TextView;
 
 import org.fruct.oss.audioguide.fragments.TrackFragment;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 
 public class MainActivity extends ActionBarActivity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks, MultiPanel,
 		TestFragment.OnFragmentInteractionListener {
+	private final static Logger log = LoggerFactory.getLogger(MainActivity.class);
 	private int[] panelIds = {R.id.panel1, R.id.panel2/*, R.id.panel3*/};
 
 	private static final String STATE_PANELS_COUNT = "panels-count";
@@ -233,6 +239,38 @@ public class MainActivity extends ActionBarActivity
 			removeFragments(trans);
 			recreateFragmentStack(trans);
 			trans.commit();
+		}
+	}
+
+	@Override
+	public void replaceFragment(Fragment fragment, Fragment firstFragment) {
+		int size = fragmentStack.size();
+		log.debug("QWE {}", size);
+
+		FragmentStorage lastFragmentStorage = fragmentStack.get(size - 1);
+		if (!lastFragmentStorage.isStored() && lastFragmentStorage.getFragment() == firstFragment) {
+			pushFragment(fragment);
+			return;
+		}
+
+		if (size <= panelsCount) {
+			FragmentTransaction trans = fragmentManager.beginTransaction();
+			for (int i = size - 1; i >= 0; i--) {
+				FragmentStorage storage = fragmentStack.get(i);
+				if (!storage.isStored() && storage.getFragment() != firstFragment) {
+					trans.remove(storage.getFragment());
+					fragmentStack.remove(i);
+				} else {
+					break;
+				}
+			}
+
+			trans.add(panelIds[size - 1], fragment, TAG_PANEL_FRAGMENT);
+			fragmentStack.add(new FragmentStorage(fragment).setFragmentManager(fragmentManager));
+			trans.commit();
+		} else {
+			// TODO: implement shifting fragments
+			throw new UnsupportedOperationException("Not implemented yet");
 		}
 	}
 
