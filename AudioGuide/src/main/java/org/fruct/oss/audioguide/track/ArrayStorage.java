@@ -73,6 +73,9 @@ public class ArrayStorage implements ILocalStorage {
 
 	@Override
 	public List<Point> getPoints(Track track) {
-		return new ArrayList<Point>(points.get(track));
+		if (points.containsKey(track))
+			return new ArrayList<Point>(points.get(track));
+		else
+			return new ArrayList<Point>();
 	}
 }

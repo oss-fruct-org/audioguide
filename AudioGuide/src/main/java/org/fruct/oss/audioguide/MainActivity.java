@@ -18,6 +18,7 @@ import android.view.ViewGroup;
 import android.support.v4.widget.DrawerLayout;
 import android.widget.TextView;
 
+import org.fruct.oss.audioguide.fragments.NavigateFragment;
 import org.fruct.oss.audioguide.fragments.TrackFragment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -115,7 +116,7 @@ public class MainActivity extends ActionBarActivity
 		Fragment fragment = null;
 		switch (position) {
 		case 1:
-			fragment = TestFragment.newInstance("qwe", "asd");
+			fragment = NavigateFragment.newInstance();
 			break;
 		case 0:
 			fragment = TrackFragment.newInstance();

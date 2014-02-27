@@ -148,6 +148,10 @@ public class TrackManagerTest extends AndroidTestCase implements TrackManager.Li
 		}
 	}
 
+	@Override
+	public void pointsUpdated(Track track) {
+	}
+
 	private void waitTracksUpdated() {
 		synchronized (waiter) {
 			if (isTracksReceived) {

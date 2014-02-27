@@ -105,8 +105,6 @@ public class Track implements Parcelable, Comparable<Track> {
 		return 0;
 	}
 
-
-
 	@Override
 	public void writeToParcel(Parcel parcel, int i) {
 		parcel.writeString(name);

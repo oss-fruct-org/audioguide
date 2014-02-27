@@ -2,6 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="org.fruct.oss.audioguide" >
 
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
     <application
         android:name=".App"
         android:allowBackup="true"
@@ -18,5 +21,4 @@
             </intent-filter>
         </activity>
     </application>
-
 </manifest>

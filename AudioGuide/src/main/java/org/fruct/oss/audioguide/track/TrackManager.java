@@ -1,8 +1,10 @@
 package org.fruct.oss.audioguide.track;
 
 import org.fruct.oss.audioguide.App;
+import org.fruct.oss.audioguide.Utils;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -14,6 +16,7 @@ public class TrackManager {
 	public static interface Listener {
 		void tracksUpdated();
 		void trackUpdated(Track track);
+		void pointsUpdated(Track track);
 	}
 
 	private final ILocalStorage localStorage;
@@ -83,7 +86,23 @@ public class TrackManager {
 		return tracks;
 	}
 
-	public void storeLocal(Track track) {
+	public List<Track> getActiveTracks() {
+		Collection<Track> allTracks = this.allTracks.values();
+		List<Track> tracks = Utils.select(allTracks, new Utils.Predicate<Track>() {
+			@Override
+			public boolean apply(Track track) {
+				return track.isActive();
+			}
+		});
+		Collections.sort(tracks);
+		return tracks;
+	}
+
+	public List<Point> getPoints(Track track) {
+		return new ArrayList<Point>(localStorage.getPoints(track));
+	}
+
+	public void storeLocal(final Track track) {
 		checkInitialized();
 
 		synchronized (localStorage) {
@@ -93,6 +112,13 @@ public class TrackManager {
 		synchronized (allTracks) {
 			track.setLocal(true);
 			allTracks.put(track, track);
+
+			executor.execute(new Runnable() {
+				@Override
+				public void run() {
+					doLoadRemotePoints(track);
+				}
+			});
 		}
 
 		notifyTrackUpdated(track);
@@ -120,10 +146,6 @@ public class TrackManager {
 		localStorage.storeLocalPoints(track, points);
 	}
 
-	private void startTask(Runnable runnable) {
-		executor.execute(runnable);
-	}
-
 	private void doLoadRemoteTracks() {
 		remoteStorage.load();
 
@@ -136,6 +158,20 @@ public class TrackManager {
 		}
 
 		notifyTracksUpdated();
+	}
+
+	private void doLoadRemotePoints(final Track track) {
+		List<Point> points = remoteStorage.getPoints(track);
+		if (points == null || points.isEmpty())
+			return;
+
+		localStorage.storeLocalPoints(track, points);
+		notifyPointsUpdated(track);
+	}
+
+	private synchronized void notifyPointsUpdated(Track track) {
+		for (Listener listener : listeners)
+			listener.pointsUpdated(track);
 	}
 
 	private synchronized void notifyTracksUpdated() {
@@ -159,8 +195,15 @@ public class TrackManager {
 			return instance;
 
 		ILocalStorage localStorage = new DatabaseStorage(App.getContext());
-		IStorage remoteStorage = new ArrayStorage().insert(new Track("AAA", "BBB", "CCC"))
-				.insert(new Track("CCC", "DDD", "EEE"));
+		Track track1 = new Track("AAA", "BBB", "CCC");
+		Track track2 = new Track("CCC", "DDD", "EEE");
+		IStorage remoteStorage = new ArrayStorage()
+				.insert(track1)
+				.insert(track2)
+				.insert(new Point("Point1", "Point1 desc", "http://example.com/1.ogg", 61, 34), track1)
+				.insert(new Point("Point2", "Point2 desc", "http://example.com/2.ogg", 62, 35), track1);
+
+
 		instance = new TrackManager(localStorage, remoteStorage);
 		instance.initialize();
 		return instance;
