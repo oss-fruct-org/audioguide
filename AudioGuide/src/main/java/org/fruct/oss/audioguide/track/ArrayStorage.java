@@ -35,6 +35,19 @@ public class ArrayStorage implements ILocalStorage {
 	}
 
 	@Override
+	public void updateLocalTrack(Track track, String field, Object value) {
+		if (!track.isLocal()) {
+			throw new IllegalArgumentException("Trying to update field on local track");
+		}
+
+		try {
+			track.setField(field, value);
+		} catch (NoSuchFieldException e) {
+			throw new IllegalArgumentException("Cannot set field");
+		}
+	}
+
+	@Override
 	public void storeLocalPoints(Track track, List<Point> points) {
 		for (Point point : points) {
 			insert(point, track);

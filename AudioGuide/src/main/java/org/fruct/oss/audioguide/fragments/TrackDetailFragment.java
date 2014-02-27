@@ -78,15 +78,36 @@ public class TrackDetailFragment extends Fragment {
 		final TextView text = (TextView) view.findViewById(android.R.id.text1);
 		text.setText(track.getDescription());
 
-		final Button activateButton = (Button) view.findViewById(R.id.downloadButton);
-		activateButton.setOnClickListener(new View.OnClickListener() {
+		final Button downloadButton = (Button) view.findViewById(R.id.downloadButton);
+		downloadButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View view) {
 				trackManager.storeLocal(track);
 			}
 		});
 
+		final Button activateButton = (Button) view.findViewById(R.id.activateButton);
+		activateButton.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				if (track.isActive())
+					trackManager.deactivateTrack(track);
+				else
+					trackManager.activateTrack(track);
+				setActivateButtonText(activateButton);
+			}
+		});
+
+		setActivateButtonText(activateButton);
+
 		return view;
+	}
+
+	private void setActivateButtonText(Button button) {
+		if (track.isActive())
+			button.setText("Deactivate");
+		else
+			button.setText("Activate");
 	}
 
 	@Override

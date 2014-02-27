@@ -21,7 +21,8 @@ public class DatabaseStorage implements ILocalStorage {
 			"(id INTEGER PRIMARY KEY AUTOINCREMENT," +
 			"name TEXT," +
 			"description TEXT," +
-			"url TEXT);";
+			"url TEXT," +
+			"active INTEGER);";
 
 	public static final String CREATE_POINTS_SQL = "CREATE TABLE points " +
 			"(id INTEGER PRIMARY KEY AUTOINCREMENT," +
@@ -34,7 +35,7 @@ public class DatabaseStorage implements ILocalStorage {
 			"FOREIGN KEY(trackId) REFERENCES tracks(id) ON DELETE CASCADE);";
 
 	public static final String[] SELECT_TRACK_COLUMNS = {
-			"id", "name", "description", "url"
+			"id", "name", "description", "url", "active"
 	};
 
 	public static final String[] SELECT_POINT_COLUMNS = {
@@ -58,6 +59,7 @@ public class DatabaseStorage implements ILocalStorage {
 		cv.put("name", track.getName());
 		cv.put("description", track.getDescription());
 		cv.put("url", track.getUrl());
+		cv.put("active", track.isActive());
 
 		if (tracks.contains(track)) {
 			tracks.remove(track);
@@ -70,6 +72,29 @@ public class DatabaseStorage implements ILocalStorage {
 			track.setLocalId(localId);
 			track.setLocal(true);
 			tracks.add(track);
+		}
+	}
+
+	@Override
+	public void updateLocalTrack(Track track, String field, Object value) {
+		if (!track.isLocal()) {
+			throw new IllegalArgumentException("Trying update non-local track");
+		}
+
+		ContentValues cv;
+		if (field.equals("isActive")) {
+			cv = new ContentValues(1);
+			cv.put("active", (Boolean) value);
+		} else {
+			throw new IllegalArgumentException("Field " + field + " not supported");
+		}
+
+		db.update("tracks", cv, "id=?", new String[] {String.valueOf(track.getLocalId())});
+
+		try {
+			track.setField(field, value);
+		} catch (NoSuchFieldException e) {
+			throw new IllegalArgumentException("Wrong field " + field);
 		}
 	}
 
@@ -128,6 +153,7 @@ public class DatabaseStorage implements ILocalStorage {
 			Track track = new Track(cursor.getString(1), cursor.getString(2), cursor.getString(3));
 			track.setLocal(true);
 			track.setLocalId(cursor.getLong(0));
+			track.setActive(cursor.getInt(4) != 0);
 			tracks.add(track);
 		} while (cursor.moveToNext());
 

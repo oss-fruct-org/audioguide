@@ -38,6 +38,16 @@
             android:text="Download"
             android:drawableLeft="@drawable/ic_action_accept"
             android:paddingBottom="16dp"/>
+        <Button
+            android:id="@+id/activateButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@null"
+            android:textColor="@color/button_selector"
+            android:textSize="24sp"
+            android:text="Activate"
+            android:drawableLeft="@drawable/ic_action_accept"
+            android:paddingBottom="16dp"/>
     </LinearLayout>
 
 

@@ -3,7 +3,9 @@ package org.fruct.oss.audioguide.track;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-public class Track implements Parcelable {
+import java.lang.reflect.Field;
+
+public class Track implements Parcelable, Comparable<Track> {
 	private String name;
 	private String description;
 	private String url;
@@ -70,6 +72,17 @@ public class Track implements Parcelable {
 	}
 
 
+	public void setField(String field, Object value) throws NoSuchFieldException {
+		// TODO: use annonations or if..else if... otherwise it will break proguard
+
+		Field rField = Track.class.getDeclaredField(field);
+		try {
+			rField.set(this, value);
+		} catch (IllegalAccessException e) {
+			throw new NoSuchFieldException("Trying to access illegal field");
+		}
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
@@ -91,6 +104,8 @@ public class Track implements Parcelable {
 	public int describeContents() {
 		return 0;
 	}
+
+
 
 	@Override
 	public void writeToParcel(Parcel parcel, int i) {
@@ -122,4 +137,9 @@ public class Track implements Parcelable {
 			return new Track[i];
 		}
 	};
+
+	@Override
+	public int compareTo(Track track) {
+		return this.getName().compareTo(track.getName());
+	}
 }

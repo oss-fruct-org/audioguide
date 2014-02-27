@@ -36,15 +36,24 @@
         android:layout_height="match_parent"
         android:layout_alignParentRight="true"
         android:gravity="center_vertical"
-        android:orientation="vertical">
+        android:orientation="horizontal">
         <ImageButton
             android:src="@drawable/ic_drawer"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/imageButton"
+            android:layout_width="16dp"
+            android:layout_height="match_parent"
+            android:id="@+id/downloadButton"
             android:contentDescription="Download"
             android:background="@null"
-            android:padding="4dp"
+            android:layout_margin="8dp"
+            />
+        <ImageButton
+            android:src="@drawable/ic_action_accept"
+            android:layout_width="16dp"
+            android:layout_height="match_parent"
+            android:id="@+id/activateButton"
+            android:contentDescription="Activate"
+            android:background="@null"
+            android:layout_margin="8dp"
             />
     </LinearLayout>
 </RelativeLayout>

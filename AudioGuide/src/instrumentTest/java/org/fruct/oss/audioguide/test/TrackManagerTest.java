@@ -101,6 +101,7 @@ public class TrackManagerTest extends AndroidTestCase implements TrackManager.Li
 	public void testAddPoints() {
 		trackManager.initialize();
 		trackManager.loadRemoteTracks();
+		waitTracksUpdated();
 
 		Point point1, point2;
 		ArrayList<Point> spoints = new ArrayList<Point>();
@@ -115,8 +116,32 @@ public class TrackManagerTest extends AndroidTestCase implements TrackManager.Li
 		assertTrue(points.contains(point2));
 	}
 
+	public void testActivate() {
+		trackManager.initialize();
+		trackManager.loadRemoteTracks();
+		waitTracksUpdated();
+
+		trackManager.storeLocal(track1);
+		trackManager.activateTrack(track1);
+		waitTracksUpdated();
+
+		List<Track> tracks = trackManager.getTracks();
+		sortTracks(tracks);
+
+		assertFalse(tracks.get(1).isActive());
+		assertTrue(tracks.get(0).isActive());
+	}
+
 	@Override
 	public void tracksUpdated() {
+		synchronized (waiter) {
+			isTracksReceived = true;
+			waiter.notifyAll();
+		}
+	}
+
+	@Override
+	public void trackUpdated(Track track) {
 		synchronized (waiter) {
 			isTracksReceived = true;
 			waiter.notifyAll();

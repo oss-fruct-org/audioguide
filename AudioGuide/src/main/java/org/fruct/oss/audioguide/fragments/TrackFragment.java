@@ -101,10 +101,23 @@ public class TrackFragment extends ListFragment implements TrackManager.Listener
 	}
 
 	@Override
-	public void buttonClicked(Track track) {
-		log.info("Image button clicked {}", track.getName());
+	public void trackUpdated(Track track) {
+		trackAdapter.notifyDataSetChanged();
+	}
+
+	@Override
+	public void downloadButtonClicked(Track track) {
+		log.info("Download button clicked {}", track.getName());
 
 		trackManager.storeLocal(track);
+		trackAdapter.notifyDataSetChanged();
+	}
+
+	@Override
+	public void activateButtonClicked(Track track) {
+		log.info("Activate button clicked {}", track.getName());
+
+		trackManager.activateTrack(track);
 		trackAdapter.notifyDataSetChanged();
 	}
 
