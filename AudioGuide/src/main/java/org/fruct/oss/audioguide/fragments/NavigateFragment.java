@@ -28,6 +28,7 @@ public class NavigateFragment extends ListFragment implements TrackManager.Liste
 
 	private TrackManager trackManager;
 	private MultiPanel multiPanel;
+
 	private TrackAdapter trackAdapter;
 
 	private LocationReceiver locationReceiver;
@@ -45,8 +46,6 @@ public class NavigateFragment extends ListFragment implements TrackManager.Liste
 
 		trackManager = TrackManager.getInstance();
 		trackManager.addListener(this);
-		trackAdapter = new TrackAdapter(getActivity(), R.layout.list_track_item, trackManager.getActiveTracks());
-		setListAdapter(trackAdapter);
 		trackManager.loadRemoteTracks();
 
 		// Setup location receiver
@@ -99,8 +98,19 @@ public class NavigateFragment extends ListFragment implements TrackManager.Liste
 		multiPanel.replaceFragment(PointFragment.newInstance(track), this);
     }
 
+	private void updateTracksAdapter() {
+		trackAdapter = new TrackAdapter(getActivity(), R.layout.list_track_item, trackManager.getActiveTracks());
+		setListAdapter(trackAdapter);
+	}
+
 	@Override
 	public void tracksUpdated() {
+		getActivity().runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				updateTracksAdapter();
+			}
+		});
 	}
 
 	@Override
@@ -109,7 +119,6 @@ public class NavigateFragment extends ListFragment implements TrackManager.Liste
 
 	@Override
 	public void pointsUpdated(Track track) {
-
 	}
 
 	@Override

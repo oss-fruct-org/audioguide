@@ -127,8 +127,8 @@ public class LocationReceiver implements LocationListener {
 		if (accDiff < 0) {
 			lastReason = "Accuracy better";
 			return true;
-		} else if (timeDiff > 0 && accDiff <= 0) {
-			lastReason = "Newer and not worse";
+		} else if (timeDiff >= 0 && accDiff <= 0) {
+			lastReason = "Not older and not worse";
 			return true;
 		} else if (timeDiff > 0
 				&& accDiff < ACC_LIMIT

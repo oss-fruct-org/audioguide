@@ -35,6 +35,10 @@ public class TrackManager {
 		this.remoteStorage = remoteStorage;
 	}
 
+	public void setExecutor(ExecutorService executor) {
+		this.executor = executor;
+	}
+
 	public void initialize() {
 		if (isInitialized)
 			throw new IllegalStateException("TrackManager already initialized");

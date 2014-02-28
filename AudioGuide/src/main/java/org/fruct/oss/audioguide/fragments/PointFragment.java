@@ -8,6 +8,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 import org.fruct.oss.audioguide.MultiPanel;
+import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.adapters.PointAdapter;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.Track;
@@ -66,7 +67,7 @@ public class PointFragment extends ListFragment {
 	private void setTrack() {
 		List<Point> points = trackManager.getPoints(track);
 
-		PointAdapter pointAdapter = new PointAdapter(getActivity(), android.R.layout.simple_list_item_2, points);
+		PointAdapter pointAdapter = new PointAdapter(getActivity(), R.layout.list_point_item, points);
 		setListAdapter(pointAdapter);
 		log.debug("Loaded {} points", points.size());
 	}
@@ -100,5 +101,4 @@ public class PointFragment extends ListFragment {
     public void onListItemClick(ListView l, View v, int position, long id) {
         super.onListItemClick(l, v, position, id);
     }
-
 }

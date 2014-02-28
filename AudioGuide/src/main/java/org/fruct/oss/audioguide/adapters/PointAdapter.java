@@ -5,8 +5,10 @@ import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
 
+import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.track.Point;
 
 import java.util.List;
@@ -41,6 +43,7 @@ public class PointAdapter extends ArrayAdapter<Point> {
 
 			holder.text1 = (TextView) view.findViewById(android.R.id.text1);
 			holder.text2 = (TextView) view.findViewById(android.R.id.text2);
+			holder.audioImage = (ImageView) view.findViewById(R.id.audioImage);
 		}
 
 		Point point = points.get(position);
@@ -48,6 +51,7 @@ public class PointAdapter extends ArrayAdapter<Point> {
 
 		holder.text1.setText(point.getName());
 		holder.text2.setText(point.getDescription());
+		holder.audioImage.setVisibility(point.hasAudio() ? View.VISIBLE : View.GONE);
 
 		return view;
 	}
@@ -56,5 +60,7 @@ public class PointAdapter extends ArrayAdapter<Point> {
 		Point point;
 		TextView text1;
 		TextView text2;
+
+		ImageView audioImage;
 	}
 }
