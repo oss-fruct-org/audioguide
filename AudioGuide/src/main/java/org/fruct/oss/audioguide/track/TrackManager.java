@@ -204,7 +204,7 @@ public class TrackManager {
 		IStorage remoteStorage = new ArrayStorage()
 				.insert(track1)
 				.insert(track2)
-				.insert(new Point("PetrSu", "Petrosavodsk state university", "http://example.com/1.ogg", 61.786616, 34.352004), track2)
+				.insert(new Point("PetrSu", "Petrosavodsk state university", "http://kappa.cs.karelia.ru/~ivashov/torvalds-says-linux.ogg", 61.786616, 34.352004), track2)
 				.insert(new Point("Vokzal", "Petrosavodsk vokzal", "http://example.com/2.ogg", 61.784699,34.345883), track2)
 				.insert(new Point("Neglinlka", "River neglinka", "http://example.com/3.ogg", 61.777575, 34.355340), track2);
 

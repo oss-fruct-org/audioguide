@@ -1,104 +1,142 @@
 package org.fruct.oss.audioguide.track;
 
 import android.app.Service;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
-import android.location.Location;
-import android.os.Binder;
+import android.content.IntentFilter;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.IBinder;
+import android.support.v4.content.LocalBroadcastManager;
 
-import org.fruct.oss.audioguide.LocationReceiver;
+import org.fruct.oss.audioguide.BuildConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class AudioService extends Service implements TrackManager.Listener, DistanceTracker.Listener {
+import java.io.IOException;
+
+public class AudioService extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener {
 	private final static Logger log = LoggerFactory.getLogger(AudioService.class);
 
-	private DistanceTracker distanceTracker;
-	private LocationReceiver locationReceiver;
-	private TrackManager trackManager;
+	private BroadcastReceiver inReceiver;
+	private BroadcastReceiver outReceiver;
 
-	private boolean isStarted = false;
+	private String currentAudioUrl;
+	private MediaPlayer player;
 
-    public AudioService() {
-    }
-
-    @Override
-    public IBinder onBind(Intent intent) {
-		return binder;
+	public AudioService() {
     }
 
 	@Override
 	public void onCreate() {
 		super.onCreate();
-		log.info("AudioService onCreate");
 
-		locationReceiver = new LocationReceiver(this);
-		trackManager = TrackManager.getInstance();
+		inReceiver = new BroadcastReceiver() {
+			@Override
+			public void onReceive(Context context, Intent intent) {
+				pointInRange(getPointFromIntent(intent));
+			}
+		};
+		LocalBroadcastManager.getInstance(this).registerReceiver(inReceiver, new IntentFilter(TrackingService.BC_ACTION_POINT_IN_RANGE));
 
-		trackManager.addListener(this);
-
-		distanceTracker = new DistanceTracker(trackManager, locationReceiver);
-
-		distanceTracker.addListener(this);
+		outReceiver = new BroadcastReceiver() {
+			@Override
+			public void onReceive(Context context, Intent intent) {
+				pointOutRange(getPointFromIntent(intent));
+			}
+		};
+		LocalBroadcastManager.getInstance(this).registerReceiver(outReceiver, new IntentFilter(TrackingService.BC_ACTION_POINT_OUT_RANGE));
 	}
 
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
 
-		trackManager.removeListener(this);
-		stopTracking();
-
-		log.info("AudioService onDestroy");
-	}
-
-	public boolean isTrackingStarted() {
-		return isStarted;
-	}
-
-	public void startTracking() {
-		if (!isStarted) {
-			isStarted = true;
-			distanceTracker.start();
+		if (player != null) {
+			if (player.isPlaying()) {
+				player.stop();
+			}
 		}
+
+		LocalBroadcastManager.getInstance(this).unregisterReceiver(inReceiver);
+		LocalBroadcastManager.getInstance(this).unregisterReceiver(outReceiver);
 	}
 
-	public void stopTracking() {
-		if (isStarted) {
-			distanceTracker.stop();
-			isStarted = false;
+	private void startAudioTrack(String url) {
+		if (currentAudioUrl != null) {
+			log.info("Trying play another audio track while {} already playing", url);
+			return;
 		}
+
+		currentAudioUrl = url;
+		player = new MediaPlayer();
+		player.setAudioStreamType(AudioManager.STREAM_MUSIC);
+		try {
+			player.setDataSource(this, Uri.parse(url));
+		} catch (IOException e) {
+			log.warn("Cannot set data source for player with url = '{}'", url);
+			return;
+		}
+
+		player.setOnCompletionListener(this);
+		player.setOnPreparedListener(this);
+		player.setOnErrorListener(this);
+		player.prepareAsync();
 	}
 
-	private AudioServiceBinder binder = new AudioServiceBinder();
-
 	@Override
-	public void tracksUpdated() {
-		distanceTracker.setTracks(trackManager.getActiveTracks());
+	public void onPrepared(MediaPlayer mediaPlayer) {
+		log.info("Starting playing track {}", currentAudioUrl);
+		mediaPlayer.start();
 	}
 
 	@Override
-	public void trackUpdated(Track track) {
+	public void onCompletion(MediaPlayer mediaPlayer) {
+		mediaPlayer.release();
+		currentAudioUrl = null;
+		player = null;
 	}
 
 	@Override
-	public void pointsUpdated(Track track) {
+	public boolean onError(MediaPlayer mediaPlayer, int what, int extra) {
+		log.warn("Player error with url" + currentAudioUrl + " " + what + " " + extra);
+		return false;
 	}
 
+	private void stopAudioTrack(String url) {
 
-	@Override
-	public void pointInRange(Point point) {
+	}
+
+	private void pointInRange(Point point) {
 		log.debug("pointInRange");
+
+		String audioUrl = point.getAudioUrl();
+		if (audioUrl == null || audioUrl.isEmpty())
+			return;
+
+		startAudioTrack(audioUrl);
+	}
+
+	private void pointOutRange(Point point) {
+		log.debug("pointOutRange");
+
+		String audioUrl = point.getAudioUrl();
+		if (audioUrl == null || audioUrl.isEmpty())
+			return;
+
+		stopAudioTrack(audioUrl);
+
+	}
+
+	private Point getPointFromIntent(Intent intent) {
+		return intent.getParcelableExtra(TrackingService.ARG_POINT);
 	}
 
 	@Override
-	public void pointOutRange(Point point) {
-		log.debug("pointOutRange");
-	}
+    public IBinder onBind(Intent intent) {
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
 
-	public class AudioServiceBinder extends Binder {
-		public AudioService getService() {
-			return AudioService.this;
-		}
-	}
 }

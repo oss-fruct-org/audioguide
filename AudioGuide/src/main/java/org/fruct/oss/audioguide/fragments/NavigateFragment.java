@@ -5,7 +5,6 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.location.Location;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.app.ListFragment;
@@ -15,11 +14,11 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ListView;
 
-import org.fruct.oss.audioguide.LocationReceiver;
 import org.fruct.oss.audioguide.MultiPanel;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.adapters.TrackAdapter;
 import org.fruct.oss.audioguide.track.AudioService;
+import org.fruct.oss.audioguide.track.TrackingService;
 import org.fruct.oss.audioguide.track.Track;
 import org.fruct.oss.audioguide.track.TrackManager;
 import org.slf4j.Logger;
@@ -41,7 +40,7 @@ public class NavigateFragment extends ListFragment implements TrackManager.Liste
 	private TrackAdapter trackAdapter;
 	private ServiceConnection audioServiceConnection;
 
-	private AudioService audioService;
+	private TrackingService trackingService;
 
 	private MenuItem navigateAction;
 
@@ -77,14 +76,16 @@ public class NavigateFragment extends ListFragment implements TrackManager.Liste
 	public void onStart() {
 		super.onStart();
 
-		getActivity().bindService(new Intent(getActivity(), AudioService.class),
+		getActivity().bindService(new Intent(getActivity(), TrackingService.class),
 				audioServiceConnection, Context.BIND_AUTO_CREATE);
+		getActivity().startService(new Intent(getActivity(), AudioService.class));
 	}
 
 	@Override
 	public void onStop() {
 		super.onStop();
 
+		getActivity().stopService(new Intent(getActivity(), AudioService.class));
 		getActivity().unbindService(audioServiceConnection);
 	}
 
@@ -116,11 +117,11 @@ public class NavigateFragment extends ListFragment implements TrackManager.Liste
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case R.id.action_navigate:
-			if (audioService != null) {
-				if (audioService.isTrackingStarted())
-					audioService.stopTracking();
+			if (trackingService != null) {
+				if (trackingService.isTrackingStarted())
+					trackingService.stopTracking();
 				else
-					audioService.startTracking();
+					trackingService.startTracking();
 
 				updateMenuIcon();
 			}
@@ -131,7 +132,7 @@ public class NavigateFragment extends ListFragment implements TrackManager.Liste
 	}
 
 	private void updateMenuIcon() {
-		if (audioService.isTrackingStarted()) {
+		if (trackingService.isTrackingStarted()) {
 			navigateAction.setTitle("Unfollow");
 		} else {
 			navigateAction.setTitle("Follow");
@@ -170,12 +171,12 @@ public class NavigateFragment extends ListFragment implements TrackManager.Liste
 	private class AudioServiceConnection implements ServiceConnection {
 		@Override
 		public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
-			audioService = ((AudioService.AudioServiceBinder) iBinder).getService();
+			trackingService = ((TrackingService.AudioServiceBinder) iBinder).getService();
 		}
 
 		@Override
 		public void onServiceDisconnected(ComponentName componentName) {
-			audioService = null;
+			trackingService = null;
 		}
 	}
 }
