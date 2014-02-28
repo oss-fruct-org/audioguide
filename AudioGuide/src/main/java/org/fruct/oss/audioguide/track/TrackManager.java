@@ -27,7 +27,7 @@ public class TrackManager {
 	private ExecutorService executor = Executors.newSingleThreadExecutor();
 
 	// All known tracks from local and remote storage
-	private final Map<Track, Track> allTracks = new HashMap<Track, Track>();
+	private final Map<String, Track> allTracks = new HashMap<String, Track>();
 	private List<Listener> listeners = new ArrayList<Listener>();
 
 	public TrackManager(ILocalStorage localStorage, IStorage remoteStorage) {
@@ -47,7 +47,7 @@ public class TrackManager {
 
 		for (Track track : localStorage.getTracks()) {
 			track.setLocal(true);
-			allTracks.put(track, track);
+			allTracks.put(track.getId(), track);
 		}
 
 		isInitialized = true;
@@ -111,7 +111,7 @@ public class TrackManager {
 
 		synchronized (allTracks) {
 			track.setLocal(true);
-			allTracks.put(track, track);
+			allTracks.put(track.getId(), track);
 
 			executor.execute(new Runnable() {
 				@Override
@@ -126,18 +126,18 @@ public class TrackManager {
 
 	public void activateTrack(Track track) {
 		if (track.isLocal()) {
-			allTracks.get(track).setActive(true);
-
-			localStorage.updateLocalTrack(track, "isActive", true);
+			track.setActive(true);
+			allTracks.put(track.getId(), track);
+			localStorage.storeLocalTrack(track);
 			notifyTrackUpdated(track);
 		}
 	}
 
 	public void deactivateTrack(Track track) {
 		if (track.isLocal()) {
-			allTracks.get(track).setActive(true);
-
-			localStorage.updateLocalTrack(track, "isActive", false);
+			track.setActive(false);
+			allTracks.put(track.getId(), track);
+			localStorage.storeLocalTrack(track);
 			notifyTrackUpdated(track);
 		}
 	}
@@ -152,8 +152,8 @@ public class TrackManager {
 		List<Track> tracks = remoteStorage.getTracks();
 		synchronized (allTracks) {
 			for (Track track : tracks) {
-				if (!allTracks.containsKey(track))
-					allTracks.put(track, track);
+				if (!allTracks.containsKey(track.getId()))
+					allTracks.put(track.getId(), track);
 			}
 		}
 

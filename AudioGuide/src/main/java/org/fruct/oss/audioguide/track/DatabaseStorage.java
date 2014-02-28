@@ -55,7 +55,7 @@ public class DatabaseStorage implements ILocalStorage {
 
 	@Override
 	public void storeLocalTrack(Track track) {
-		ContentValues cv = new ContentValues(3);
+		ContentValues cv = new ContentValues(4);
 		cv.put("name", track.getName());
 		cv.put("description", track.getDescription());
 		cv.put("url", track.getUrl());
@@ -72,29 +72,6 @@ public class DatabaseStorage implements ILocalStorage {
 			track.setLocalId(localId);
 			track.setLocal(true);
 			tracks.add(track);
-		}
-	}
-
-	@Override
-	public void updateLocalTrack(Track track, String field, Object value) {
-		if (!track.isLocal()) {
-			throw new IllegalArgumentException("Trying update non-local track");
-		}
-
-		ContentValues cv;
-		if (field.equals("isActive")) {
-			cv = new ContentValues(1);
-			cv.put("active", (Boolean) value);
-		} else {
-			throw new IllegalArgumentException("Field " + field + " not supported");
-		}
-
-		db.update("tracks", cv, "id=?", new String[] {String.valueOf(track.getLocalId())});
-
-		try {
-			track.setField(field, value);
-		} catch (NoSuchFieldException e) {
-			throw new IllegalArgumentException("Wrong field " + field);
 		}
 	}
 

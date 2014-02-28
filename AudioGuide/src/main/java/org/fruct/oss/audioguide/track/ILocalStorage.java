@@ -9,8 +9,6 @@ public interface ILocalStorage extends IStorage {
 	 */
 	void storeLocalTrack(Track track);
 
-	void updateLocalTrack(Track track, String field, Object value);
-
 	/**
 	 * Store points to storage
 	 * @param track

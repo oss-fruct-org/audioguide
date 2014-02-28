@@ -72,6 +72,11 @@ public class Track implements Parcelable, Comparable<Track> {
 	}
 
 
+	public String getId() {
+		return name;
+	}
+
+
 	public void setField(String field, Object value) throws NoSuchFieldException {
 		// TODO: use annonations or if..else if... otherwise it will break proguard
 
@@ -90,14 +95,14 @@ public class Track implements Parcelable, Comparable<Track> {
 
 		Track track = (Track) o;
 
-		if (name != null ? !name.equals(track.name) : track.name != null) return false;
+		if (getId() != null ? !getId().equals(track.getId()) : track.getId() != null) return false;
 
 		return true;
 	}
 
 	@Override
 	public int hashCode() {
-		return name != null ? name.hashCode() : 0;
+		return getId() != null ? getId().hashCode() : 0;
 	}
 
 	@Override
