@@ -22,6 +22,10 @@ public class Point implements Parcelable {
 		this.lonE6 = lonE6;
 	}
 
+	public Point(String name, String description, String audioUrl, double lat, double lon) {
+		this(name, description, audioUrl, (int)(lat * 1e6), (int)(lon * 1e6));
+	}
+
 	public String getName() {
 		return name;
 	}

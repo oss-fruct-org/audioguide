@@ -1,11 +1,17 @@
 package org.fruct.oss.audioguide.fragments;
 
 import android.app.Activity;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.v4.app.ListFragment;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ListView;
 
@@ -13,6 +19,7 @@ import org.fruct.oss.audioguide.LocationReceiver;
 import org.fruct.oss.audioguide.MultiPanel;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.adapters.TrackAdapter;
+import org.fruct.oss.audioguide.track.AudioService;
 import org.fruct.oss.audioguide.track.Track;
 import org.fruct.oss.audioguide.track.TrackManager;
 import org.slf4j.Logger;
@@ -25,17 +32,20 @@ import org.slf4j.LoggerFactory;
  * Activities containing this fragment MUST implement the {@link org.fruct.oss.audioguide.MultiPanel}
  * interface.
  */
-public class NavigateFragment extends ListFragment implements TrackManager.Listener, LocationReceiver.Listener {
+public class NavigateFragment extends ListFragment implements TrackManager.Listener {
 	private final static Logger log = LoggerFactory.getLogger(NavigateFragment.class);
 
 	private TrackManager trackManager;
 	private MultiPanel multiPanel;
 
 	private TrackAdapter trackAdapter;
+	private ServiceConnection audioServiceConnection;
 
-	private LocationReceiver locationReceiver;
+	private AudioService audioService;
 
-    public static NavigateFragment newInstance() {
+	private MenuItem navigateAction;
+
+	public static NavigateFragment newInstance() {
 		return new NavigateFragment();
     }
 
@@ -50,11 +60,9 @@ public class NavigateFragment extends ListFragment implements TrackManager.Liste
 		trackManager.addListener(this);
 		trackManager.loadRemoteTracks();
 
-		// Setup location receiver
-		locationReceiver = new LocationReceiver(getActivity());
-		locationReceiver.setListener(this);
-
 		setHasOptionsMenu(true);
+
+		audioServiceConnection = new AudioServiceConnection();
     }
 
 	@Override
@@ -69,14 +77,15 @@ public class NavigateFragment extends ListFragment implements TrackManager.Liste
 	public void onStart() {
 		super.onStart();
 
-		locationReceiver.start();
+		getActivity().bindService(new Intent(getActivity(), AudioService.class),
+				audioServiceConnection, Context.BIND_AUTO_CREATE);
 	}
 
 	@Override
 	public void onStop() {
 		super.onStop();
 
-		locationReceiver.stop();
+		getActivity().unbindService(audioServiceConnection);
 	}
 
 	@Override
@@ -100,6 +109,33 @@ public class NavigateFragment extends ListFragment implements TrackManager.Liste
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
 		super.onCreateOptionsMenu(menu, inflater);
 		inflater.inflate(R.menu.navigate, menu);
+		navigateAction = menu.findItem(R.id.action_navigate);
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+		case R.id.action_navigate:
+			if (audioService != null) {
+				if (audioService.isTrackingStarted())
+					audioService.stopTracking();
+				else
+					audioService.startTracking();
+
+				updateMenuIcon();
+			}
+			return true;
+		}
+
+		return super.onOptionsItemSelected(item);
+	}
+
+	private void updateMenuIcon() {
+		if (audioService.isTrackingStarted()) {
+			navigateAction.setTitle("Unfollow");
+		} else {
+			navigateAction.setTitle("Follow");
+		}
 	}
 
 	@Override
@@ -131,8 +167,15 @@ public class NavigateFragment extends ListFragment implements TrackManager.Liste
 	public void pointsUpdated(Track track) {
 	}
 
-	@Override
-	public void newLocation(Location location) {
-		log.debug("New location {}", location);
+	private class AudioServiceConnection implements ServiceConnection {
+		@Override
+		public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+			audioService = ((AudioService.AudioServiceBinder) iBinder).getService();
+		}
+
+		@Override
+		public void onServiceDisconnected(ComponentName componentName) {
+			audioService = null;
+		}
 	}
 }

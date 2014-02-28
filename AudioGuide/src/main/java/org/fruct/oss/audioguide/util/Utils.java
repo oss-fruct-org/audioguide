@@ -1,4 +1,4 @@
-package org.fruct.oss.audioguide;
+package org.fruct.oss.audioguide.util;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,6 +13,8 @@ import java.util.List;
 
 import android.util.Pair;
 import android.util.TypedValue;
+
+import org.fruct.oss.audioguide.App;
 
 @SuppressWarnings("unused")
 public class Utils {

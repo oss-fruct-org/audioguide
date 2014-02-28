@@ -1,7 +1,7 @@
 package org.fruct.oss.audioguide.track;
 
 import org.fruct.oss.audioguide.App;
-import org.fruct.oss.audioguide.Utils;
+import org.fruct.oss.audioguide.util.Utils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -199,15 +199,14 @@ public class TrackManager {
 			return instance;
 
 		ILocalStorage localStorage = new DatabaseStorage(App.getContext());
-		Track track1 = new Track("AAA", "BBB", "CCC");
-		Track track2 = new Track("CCC", "DDD", "EEE");
+		Track track1 = new Track("Empty track", "Empty track description", "CCC");
+		Track track2 = new Track("Simple track", "Simple track description", "EEE");
 		IStorage remoteStorage = new ArrayStorage()
 				.insert(track1)
 				.insert(track2)
-				.insert(new Point("Point1", "Point1 desc", "http://example.com/1.ogg", 61, 34), track1)
-				.insert(new Point("Point2", "Point2 desc", "http://example.com/2.ogg", 62, 35), track1)
-				.insert(new Point("Point3", "Point3 desc", "", 63, 36), track1);
-
+				.insert(new Point("PetrSu", "Petrosavodsk state university", "http://example.com/1.ogg", 61.786616, 34.352004), track2)
+				.insert(new Point("Vokzal", "Petrosavodsk vokzal", "http://example.com/2.ogg", 61.784699,34.345883), track2)
+				.insert(new Point("Neglinlka", "River neglinka", "http://example.com/3.ogg", 61.777575, 34.355340), track2);
 
 		instance = new TrackManager(localStorage, remoteStorage);
 		instance.initialize();
