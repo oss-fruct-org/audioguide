@@ -205,7 +205,8 @@ public class TrackManager {
 				.insert(track1)
 				.insert(track2)
 				.insert(new Point("Point1", "Point1 desc", "http://example.com/1.ogg", 61, 34), track1)
-				.insert(new Point("Point2", "Point2 desc", "http://example.com/2.ogg", 62, 35), track1);
+				.insert(new Point("Point2", "Point2 desc", "http://example.com/2.ogg", 62, 35), track1)
+				.insert(new Point("Point3", "Point3 desc", "", 63, 36), track1);
 
 
 		instance = new TrackManager(localStorage, remoteStorage);

@@ -76,18 +76,6 @@ public class Track implements Parcelable, Comparable<Track> {
 		return name;
 	}
 
-
-	public void setField(String field, Object value) throws NoSuchFieldException {
-		// TODO: use annonations or if..else if... otherwise it will break proguard
-
-		Field rField = Track.class.getDeclaredField(field);
-		try {
-			rField.set(this, value);
-		} catch (IllegalAccessException e) {
-			throw new NoSuchFieldException("Trying to access illegal field");
-		}
-	}
-
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;

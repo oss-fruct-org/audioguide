@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
 import android.widget.ListView;
 
@@ -51,6 +53,8 @@ public class NavigateFragment extends ListFragment implements TrackManager.Liste
 		// Setup location receiver
 		locationReceiver = new LocationReceiver(getActivity());
 		locationReceiver.setListener(this);
+
+		setHasOptionsMenu(true);
     }
 
 	@Override
@@ -92,7 +96,13 @@ public class NavigateFragment extends ListFragment implements TrackManager.Liste
 		multiPanel = null;
 	}
 
-    @Override
+	@Override
+	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+		super.onCreateOptionsMenu(menu, inflater);
+		inflater.inflate(R.menu.navigate, menu);
+	}
+
+	@Override
     public void onListItemClick(ListView l, View v, int position, long id) {
 		Track track = trackAdapter.getItem(position);
 		multiPanel.replaceFragment(PointFragment.newInstance(track), this);
