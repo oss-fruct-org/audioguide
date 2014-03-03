@@ -38,7 +38,7 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
 		inReceiver = new BroadcastReceiver() {
 			@Override
 			public void onReceive(Context context, Intent intent) {
-				pointInRange(getPointFromIntent(intent));
+				pointInRange(TrackingService.getPointFromIntent(intent));
 			}
 		};
 		LocalBroadcastManager.getInstance(this).registerReceiver(inReceiver, new IntentFilter(TrackingService.BC_ACTION_POINT_IN_RANGE));
@@ -46,7 +46,7 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
 		outReceiver = new BroadcastReceiver() {
 			@Override
 			public void onReceive(Context context, Intent intent) {
-				pointOutRange(getPointFromIntent(intent));
+				pointOutRange(TrackingService.getPointFromIntent(intent));
 			}
 		};
 		LocalBroadcastManager.getInstance(this).registerReceiver(outReceiver, new IntentFilter(TrackingService.BC_ACTION_POINT_OUT_RANGE));
@@ -109,6 +109,8 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
 	}
 
 	private void stopAudioTrack(String url) {
+		if (currentAudioUrl.equals(url) && player.isPlaying())
+			player.stop();
 
 	}
 
@@ -130,11 +132,6 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
 			return;
 
 		stopAudioTrack(audioUrl);
-
-	}
-
-	private Point getPointFromIntent(Intent intent) {
-		return intent.getParcelableExtra(TrackingService.ARG_POINT);
 	}
 
 	public static boolean isRunning(Context context) {

@@ -10,13 +10,18 @@ import android.widget.TextView;
 
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.track.Point;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
 public class PointAdapter extends ArrayAdapter<Point> {
+	private final static Logger log = LoggerFactory.getLogger(PointAdapter.class);
+
 	private Context context;
 	private int resource;
 	private List<Point> points;
+	private Point highlightedItem;
 
 	public PointAdapter(Context context, int resource, List<Point> points) {
 		super(context, resource, points);
@@ -53,7 +58,20 @@ public class PointAdapter extends ArrayAdapter<Point> {
 		holder.text2.setText(point.getDescription());
 		holder.audioImage.setVisibility(point.hasAudio() ? View.VISIBLE : View.GONE);
 
+		if (point.equals(highlightedItem)) {
+			view.setBackgroundColor(0xffffd700);
+		} else {
+			view.setBackgroundColor(0xffffffff);
+		}
+
 		return view;
+	}
+
+	public void setHighlightedItem(Point point) {
+		log.debug("Sethigh");
+
+		this.highlightedItem = point;
+		notifyDataSetChanged();
 	}
 
 	private static class PointHolder {

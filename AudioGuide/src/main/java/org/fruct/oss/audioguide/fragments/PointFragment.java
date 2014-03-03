@@ -1,8 +1,13 @@
 package org.fruct.oss.audioguide.fragments;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
+import android.support.v4.content.LocalBroadcastManager;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
@@ -13,6 +18,7 @@ import org.fruct.oss.audioguide.adapters.PointAdapter;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.Track;
 import org.fruct.oss.audioguide.track.TrackManager;
+import org.fruct.oss.audioguide.track.TrackingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,8 +40,11 @@ public class PointFragment extends ListFragment {
 	private TrackManager trackManager;
 
 	private Track track;
+	private BroadcastReceiver inReceiver;
+	private BroadcastReceiver outReceiver;
+	private PointAdapter pointAdapter;
 
-    public static PointFragment newInstance(Track track) {
+	public static PointFragment newInstance(Track track) {
 		Bundle args = new Bundle(1);
 		args.putParcelable(ARG_TRACK, track);
 		PointFragment fragment = new PointFragment();
@@ -62,12 +71,42 @@ public class PointFragment extends ListFragment {
 			setTrack();
 		}
 
+		setupAudioReceiver();
     }
+
+	private void setupAudioReceiver() {
+		inReceiver = new BroadcastReceiver() {
+			@Override
+			public void onReceive(Context context, Intent intent) {
+				pointInRange(TrackingService.getPointFromIntent(intent));
+			}
+		};
+		LocalBroadcastManager.getInstance(getActivity()).registerReceiver(inReceiver, new IntentFilter(TrackingService.BC_ACTION_POINT_IN_RANGE));
+
+		outReceiver = new BroadcastReceiver() {
+			@Override
+			public void onReceive(Context context, Intent intent) {
+				pointOutRange(TrackingService.getPointFromIntent(intent));
+			}
+		};
+		LocalBroadcastManager.getInstance(getActivity()).registerReceiver(outReceiver, new IntentFilter(TrackingService.BC_ACTION_POINT_OUT_RANGE));
+
+	}
+
+	private void pointInRange(Point point) {
+		if (pointAdapter != null)
+			pointAdapter.setHighlightedItem(point);
+	}
+
+	private void pointOutRange(Point point) {
+		if (pointAdapter != null)
+			pointAdapter.setHighlightedItem(null);
+	}
 
 	private void setTrack() {
 		List<Point> points = trackManager.getPoints(track);
 
-		PointAdapter pointAdapter = new PointAdapter(getActivity(), R.layout.list_point_item, points);
+		pointAdapter = new PointAdapter(getActivity(), R.layout.list_point_item, points);
 		setListAdapter(pointAdapter);
 		log.debug("Loaded {} points", points.size());
 	}
@@ -77,6 +116,9 @@ public class PointFragment extends ListFragment {
 	public void onDestroy() {
 		super.onDestroy();
 		trackManager = null;
+
+		LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(inReceiver);
+		LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(outReceiver);
 	}
 
 	@Override

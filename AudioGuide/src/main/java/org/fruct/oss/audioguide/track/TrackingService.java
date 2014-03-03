@@ -111,6 +111,10 @@ public class TrackingService extends Service implements TrackManager.Listener, D
 
 	}
 
+	public static Point getPointFromIntent(Intent intent) {
+		return intent.getParcelableExtra(ARG_POINT);
+	}
+
 	public class TrackingServiceBinder extends Binder {
 		public TrackingService getService() {
 			return TrackingService.this;
