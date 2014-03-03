@@ -18,6 +18,7 @@ import android.view.ViewGroup;
 import android.support.v4.widget.DrawerLayout;
 import android.widget.TextView;
 
+import org.fruct.oss.audioguide.fragments.CommonFragment;
 import org.fruct.oss.audioguide.fragments.MapFragment;
 import org.fruct.oss.audioguide.fragments.NavigateFragment;
 import org.fruct.oss.audioguide.fragments.TrackFragment;
@@ -58,6 +59,8 @@ public class MainActivity extends ActionBarActivity
         super.onCreate(savedInstanceState);
 
 		fragmentManager = getSupportFragmentManager();
+
+		fragmentManager.beginTransaction().add(CommonFragment.newInstance(), "common-fragment").commit();
 
 		if (savedInstanceState != null) {
 			suppressDrawerItemSelect = true;

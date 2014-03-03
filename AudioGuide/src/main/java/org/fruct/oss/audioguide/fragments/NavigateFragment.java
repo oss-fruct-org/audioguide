@@ -59,8 +59,6 @@ public class NavigateFragment extends ListFragment implements TrackManager.Liste
 		trackManager.addListener(this);
 		trackManager.loadRemoteTracks();
 
-		setHasOptionsMenu(true);
-
 		audioServiceConnection = new TrackingServiceConnection();
     }
 
@@ -102,42 +100,6 @@ public class NavigateFragment extends ListFragment implements TrackManager.Liste
     public void onDetach() {
         super.onDetach();
 		multiPanel = null;
-	}
-
-	@Override
-	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-		super.onCreateOptionsMenu(menu, inflater);
-		inflater.inflate(R.menu.navigate, menu);
-		navigateAction = menu.findItem(R.id.action_navigate);
-
-		updateMenuIcon();
-	}
-
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		switch (item.getItemId()) {
-		case R.id.action_navigate:
-			if (AudioService.isRunning(getActivity()))
-				getActivity().stopService(new Intent(getActivity(), AudioService.class));
-			else
-				getActivity().startService(new Intent(getActivity(), AudioService.class));
-
-			updateMenuIcon();
-
-			return true;
-		}
-
-		return super.onOptionsItemSelected(item);
-	}
-
-	private void updateMenuIcon() {
-		if (AudioService.isRunning(getActivity())) {
-			navigateAction.setTitle("Unfollow");
-			navigateAction.setIcon(R.drawable.ic_action_volume_muted);
-		} else {
-			navigateAction.setTitle("Follow");
-			navigateAction.setIcon(R.drawable.ic_action_volume_on);
-		}
 	}
 
 	@Override
