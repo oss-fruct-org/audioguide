@@ -90,7 +90,6 @@ public class PointFragment extends ListFragment {
 			}
 		};
 		LocalBroadcastManager.getInstance(getActivity()).registerReceiver(outReceiver, new IntentFilter(TrackingService.BC_ACTION_POINT_OUT_RANGE));
-
 	}
 
 	private void pointInRange(Point point) {

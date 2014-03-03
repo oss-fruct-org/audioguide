@@ -60,7 +60,8 @@ public class MainActivity extends ActionBarActivity
 
 		fragmentManager = getSupportFragmentManager();
 
-		fragmentManager.beginTransaction().add(CommonFragment.newInstance(), "common-fragment").commit();
+		if (fragmentManager.findFragmentByTag("common-fragment") == null)
+			fragmentManager.beginTransaction().add(CommonFragment.newInstance(), "common-fragment").commit();
 
 		if (savedInstanceState != null) {
 			suppressDrawerItemSelect = true;

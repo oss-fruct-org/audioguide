@@ -42,8 +42,6 @@ public class NavigateFragment extends ListFragment implements TrackManager.Liste
 
 	private TrackingService trackingService;
 
-	private MenuItem navigateAction;
-
 	public static NavigateFragment newInstance() {
 		return new NavigateFragment();
     }
