@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="osmdroid-android-4.1">
+    <CLASSES>
+      <root url="jar:///tmp/android-all/gradle/caches/modules-2/files-2.1/org.osmdroid/osmdroid-android/4.1/60913edd9f91f63a5106e3bfc06b2fddda657303/osmdroid-android-4.1.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar:///tmp/android-all/gradle/caches/modules-2/files-2.1/org.osmdroid/osmdroid-android/4.1/d097e71052215b40391f2cdece2c1fa77f3ac801/osmdroid-android-4.1-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

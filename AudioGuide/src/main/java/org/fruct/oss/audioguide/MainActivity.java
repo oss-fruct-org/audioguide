@@ -18,6 +18,7 @@ import android.view.ViewGroup;
 import android.support.v4.widget.DrawerLayout;
 import android.widget.TextView;
 
+import org.fruct.oss.audioguide.fragments.MapFragment;
 import org.fruct.oss.audioguide.fragments.NavigateFragment;
 import org.fruct.oss.audioguide.fragments.TrackFragment;
 import org.slf4j.Logger;
@@ -122,7 +123,7 @@ public class MainActivity extends ActionBarActivity
 			fragment = TrackFragment.newInstance();
 			break;
 		case 2:
-			fragment = PlaceholderFragment.newInstance(position + 1);
+			fragment = MapFragment.newInstance();
 			break;
 		}
 
