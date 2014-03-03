@@ -1,37 +1,33 @@
 package org.fruct.oss.audioguide.fragments;
 
 
-
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.Point;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.text.Layout;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.RelativeLayout;
 
 import org.fruct.oss.audioguide.R;
-import org.osmdroid.tileprovider.IRegisterReceiver;
-import org.osmdroid.tileprovider.MapTileProviderArray;
-import org.osmdroid.tileprovider.modules.MapTileDownloader;
-import org.osmdroid.tileprovider.modules.MapTileFilesystemProvider;
-import org.osmdroid.tileprovider.modules.MapTileModuleProviderBase;
-import org.osmdroid.tileprovider.modules.NetworkAvailabliltyCheck;
-import org.osmdroid.tileprovider.modules.TileWriter;
-import org.osmdroid.tileprovider.tilesource.OnlineTileSourceBase;
-import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
-import org.osmdroid.tileprovider.util.SimpleRegisterReceiver;
+import org.fruct.oss.audioguide.track.Point;
+import org.fruct.oss.audioguide.track.Track;
+import org.fruct.oss.audioguide.track.TrackManager;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.util.ResourceProxyImpl;
 import org.osmdroid.views.MapView;
+import org.osmdroid.views.overlay.ItemizedIconOverlay;
 import org.osmdroid.views.overlay.Overlay;
+import org.osmdroid.views.overlay.OverlayItem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static android.view.ViewGroup.LayoutParams;
 
@@ -42,9 +38,12 @@ import static android.view.ViewGroup.LayoutParams;
  * create an instance of this fragment.
  *
  */
-public class MapFragment extends Fragment {
+public class MapFragment extends Fragment implements TrackManager.Listener {
+	private final static Logger log = LoggerFactory.getLogger(MapFragment.class);
+
 	private MapView mapView;
-	private Overlay trackOverlay;
+	private ItemizedIconOverlay<OverlayItem> trackOverlay;
+	private TrackManager trackManager;
 
     /**
      * Use this factory method to create a new instance of
@@ -62,6 +61,9 @@ public class MapFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+		trackManager = TrackManager.getInstance();
+		trackManager.addListener(this);
     }
 
     @Override
@@ -72,8 +74,17 @@ public class MapFragment extends Fragment {
 
 		createMapView(view);
 		createCenterOverlay();
+		updatePointsOverlay();
 
 		return view;
+	}
+
+	@Override
+	public void onDestroy() {
+		super.onDestroy();
+
+		trackManager.removeListener(this);
+		trackManager = null;
 	}
 
 	private void createMapView(View view) {
@@ -102,8 +113,7 @@ public class MapFragment extends Fragment {
 
 		mapView.setMultiTouchControls(true);
 		mapView.getController().setZoom(15);
-		mapView.getController().setCenter(new GeoPoint(61., 34.));
-
+		mapView.getController().setCenter(new GeoPoint(61.783333, 34.35));
 
 		layout.addView(mapView);
 
@@ -126,7 +136,7 @@ public class MapFragment extends Fragment {
 					return;
 
 				MapView.Projection proj = mapView.getProjection();
-				Point mapCenter = proj.toMapPixels(mapView.getMapCenter(), null);
+				android.graphics.Point mapCenter = proj.toMapPixels(mapView.getMapCenter(), null);
 				canvas.drawCircle(mapCenter.x, mapCenter.y, 5, paint);
 			}
 		};
@@ -135,12 +145,57 @@ public class MapFragment extends Fragment {
 	}
 
 	private void updatePointsOverlay() {
+		if (trackOverlay != null)
+			mapView.getOverlays().remove(trackOverlay);
 
+		ArrayList<OverlayItem> overlayItems = new ArrayList<OverlayItem>();
+
+		List<Track> tracks = trackManager.getActiveTracks();
+		for (Track track : tracks) {
+			List<Point> points = trackManager.getPoints(track);
+
+			for (Point point : points) {
+				overlayItems.add(
+						new OverlayItem(point.getName(), point.getDescription(),
+								new GeoPoint(point.getLatE6(), point.getLonE6())));
+			}
+		}
+
+		trackOverlay = new ItemizedIconOverlay<OverlayItem>(getActivity(), overlayItems, new ItemizedIconOverlay.OnItemGestureListener<OverlayItem>() {
+			@Override
+			public boolean onItemSingleTapUp(int index, OverlayItem item) {
+				log.debug("onItemSingleTapUp");
+				return false;
+			}
+
+			@Override
+			public boolean onItemLongPress(int index, OverlayItem item) {
+				return false;
+			}
+		});
+
+		mapView.getOverlays().add(trackOverlay);
 	}
 
 	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 	private void setHardwareAccelerationOff() {
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
 			mapView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+	}
+
+	// TrackManager.Listener methods
+	@Override
+	public void tracksUpdated() {
+
+	}
+
+	@Override
+	public void trackUpdated(Track track) {
+
+	}
+
+	@Override
+	public void pointsUpdated(Track track) {
+
 	}
 }
