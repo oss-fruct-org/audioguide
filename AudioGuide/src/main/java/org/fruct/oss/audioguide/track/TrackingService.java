@@ -78,7 +78,7 @@ public class TrackingService extends Service implements TrackManager.Listener, D
 		}
 	}
 
-	private AudioServiceBinder binder = new AudioServiceBinder();
+	private TrackingServiceBinder binder = new TrackingServiceBinder();
 
 	@Override
 	public void tracksUpdated() {
@@ -111,7 +111,7 @@ public class TrackingService extends Service implements TrackManager.Listener, D
 
 	}
 
-	public class AudioServiceBinder extends Binder {
+	public class TrackingServiceBinder extends Binder {
 		public TrackingService getService() {
 			return TrackingService.this;
 		}

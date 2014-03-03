@@ -61,7 +61,7 @@ public class NavigateFragment extends ListFragment implements TrackManager.Liste
 
 		setHasOptionsMenu(true);
 
-		audioServiceConnection = new AudioServiceConnection();
+		audioServiceConnection = new TrackingServiceConnection();
     }
 
 	@Override
@@ -78,14 +78,12 @@ public class NavigateFragment extends ListFragment implements TrackManager.Liste
 
 		getActivity().bindService(new Intent(getActivity(), TrackingService.class),
 				audioServiceConnection, Context.BIND_AUTO_CREATE);
-		getActivity().startService(new Intent(getActivity(), AudioService.class));
 	}
 
 	@Override
 	public void onStop() {
 		super.onStop();
 
-		getActivity().stopService(new Intent(getActivity(), AudioService.class));
 		getActivity().unbindService(audioServiceConnection);
 	}
 
@@ -111,20 +109,21 @@ public class NavigateFragment extends ListFragment implements TrackManager.Liste
 		super.onCreateOptionsMenu(menu, inflater);
 		inflater.inflate(R.menu.navigate, menu);
 		navigateAction = menu.findItem(R.id.action_navigate);
+
+		updateMenuIcon();
 	}
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case R.id.action_navigate:
-			if (trackingService != null) {
-				if (trackingService.isTrackingStarted())
-					trackingService.stopTracking();
-				else
-					trackingService.startTracking();
+			if (AudioService.isRunning(getActivity()))
+				getActivity().stopService(new Intent(getActivity(), AudioService.class));
+			else
+				getActivity().startService(new Intent(getActivity(), AudioService.class));
 
-				updateMenuIcon();
-			}
+			updateMenuIcon();
+
 			return true;
 		}
 
@@ -132,10 +131,12 @@ public class NavigateFragment extends ListFragment implements TrackManager.Liste
 	}
 
 	private void updateMenuIcon() {
-		if (trackingService.isTrackingStarted()) {
+		if (AudioService.isRunning(getActivity())) {
 			navigateAction.setTitle("Unfollow");
+			navigateAction.setIcon(R.drawable.ic_action_volume_muted);
 		} else {
 			navigateAction.setTitle("Follow");
+			navigateAction.setIcon(R.drawable.ic_action_volume_on);
 		}
 	}
 
@@ -168,10 +169,11 @@ public class NavigateFragment extends ListFragment implements TrackManager.Liste
 	public void pointsUpdated(Track track) {
 	}
 
-	private class AudioServiceConnection implements ServiceConnection {
+	private class TrackingServiceConnection implements ServiceConnection {
 		@Override
 		public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
-			trackingService = ((TrackingService.AudioServiceBinder) iBinder).getService();
+			trackingService = ((TrackingService.TrackingServiceBinder) iBinder).getService();
+			trackingService.startTracking();
 		}
 
 		@Override

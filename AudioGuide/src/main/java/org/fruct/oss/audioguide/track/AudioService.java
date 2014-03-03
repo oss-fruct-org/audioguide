@@ -1,5 +1,6 @@
 package org.fruct.oss.audioguide.track;
 
+import android.app.ActivityManager;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -32,6 +33,7 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
 	@Override
 	public void onCreate() {
 		super.onCreate();
+		log.info("AudioService onCreate");
 
 		inReceiver = new BroadcastReceiver() {
 			@Override
@@ -53,6 +55,7 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
+		log.info("AudioService onDestroy");
 
 		if (player != null) {
 			if (player.isPlaying()) {
@@ -132,6 +135,16 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
 
 	private Point getPointFromIntent(Intent intent) {
 		return intent.getParcelableExtra(TrackingService.ARG_POINT);
+	}
+
+	public static boolean isRunning(Context context) {
+		ActivityManager manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+		for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+			if (AudioService.class.getName().equals(service.service.getClassName())) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	@Override
