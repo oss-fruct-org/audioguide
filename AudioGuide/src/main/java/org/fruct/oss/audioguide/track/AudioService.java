@@ -109,9 +109,10 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
 	}
 
 	private void stopAudioTrack(String url) {
-		if (currentAudioUrl.equals(url) && player.isPlaying())
+		if (currentAudioUrl != null && currentAudioUrl.equals(url) && player.isPlaying()) {
+			currentAudioUrl = null;
 			player.stop();
-
+		}
 	}
 
 	private void pointInRange(Point point) {

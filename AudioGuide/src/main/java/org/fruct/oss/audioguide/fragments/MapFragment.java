@@ -2,14 +2,21 @@ package org.fruct.oss.audioguide.fragments;
 
 
 import android.annotation.TargetApi;
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -17,6 +24,8 @@ import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.Track;
 import org.fruct.oss.audioguide.track.TrackManager;
+import org.fruct.oss.audioguide.track.TrackingService;
+import org.osmdroid.api.IGeoPoint;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.util.ResourceProxyImpl;
 import org.osmdroid.views.MapView;
@@ -44,8 +53,10 @@ public class MapFragment extends Fragment implements TrackManager.Listener {
 	private MapView mapView;
 	private ItemizedIconOverlay<OverlayItem> trackOverlay;
 	private TrackManager trackManager;
+	private TrackingService trackingService;
+	private TrackingServiceConnection serviceConnection = new TrackingServiceConnection();
 
-    /**
+	/**
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
      *
@@ -64,9 +75,29 @@ public class MapFragment extends Fragment implements TrackManager.Listener {
 
 		trackManager = TrackManager.getInstance();
 		trackManager.addListener(this);
+		setHasOptionsMenu(true);
     }
 
-    @Override
+	@Override
+	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+		super.onCreateOptionsMenu(menu, inflater);
+		inflater.inflate(R.menu.map_menu, menu);
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+			case R.id.action_place:
+				if (trackingService != null) {
+					IGeoPoint mapCenter = mapView.getMapCenter();
+					trackingService.mockLocation(mapCenter.getLatitude(), mapCenter.getLongitude());
+				}
+				break;
+		}
+		return super.onOptionsItemSelected(item);
+	}
+
+	@Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 		// Inflate the layout for this fragment
@@ -77,6 +108,21 @@ public class MapFragment extends Fragment implements TrackManager.Listener {
 		updatePointsOverlay();
 
 		return view;
+	}
+
+	@Override
+	public void onStart() {
+		super.onStart();
+
+		getActivity().bindService(new Intent(getActivity(), TrackingService.class),
+				serviceConnection, Context.BIND_AUTO_CREATE);
+	}
+
+	@Override
+	public void onStop() {
+		super.onStop();
+
+		getActivity().unbindService(serviceConnection);
 	}
 
 	@Override
@@ -197,5 +243,17 @@ public class MapFragment extends Fragment implements TrackManager.Listener {
 	@Override
 	public void pointsUpdated(Track track) {
 
+	}
+
+	private class TrackingServiceConnection implements ServiceConnection {
+		@Override
+		public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+			trackingService = ((TrackingService.TrackingServiceBinder) iBinder).getService();
+		}
+
+		@Override
+		public void onServiceDisconnected(ComponentName componentName) {
+			trackingService = null;
+		}
 	}
 }

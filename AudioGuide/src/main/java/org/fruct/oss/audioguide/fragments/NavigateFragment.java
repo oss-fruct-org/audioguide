@@ -129,8 +129,6 @@ public class NavigateFragment extends ListFragment implements TrackManager.Liste
 		@Override
 		public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
 			trackingService = ((TrackingService.TrackingServiceBinder) iBinder).getService();
-
-
 		}
 
 		@Override

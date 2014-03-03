@@ -2,6 +2,7 @@ package org.fruct.oss.audioguide.track;
 
 import android.app.Service;
 import android.content.Intent;
+import android.location.Location;
 import android.os.Binder;
 import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
@@ -22,8 +23,9 @@ public class TrackingService extends Service implements TrackManager.Listener, D
 
 	private DistanceTracker distanceTracker;
 	private TrackManager trackManager;
+	private LocationReceiver locationReceiver;
 
-    public TrackingService() {
+	public TrackingService() {
     }
 
     @Override
@@ -36,13 +38,13 @@ public class TrackingService extends Service implements TrackManager.Listener, D
 		super.onCreate();
 		log.info("TrackingService onCreate");
 
-		LocationReceiver locationReceiver = new LocationReceiver(this);
+		locationReceiver = new LocationReceiver(this);
 		trackManager = TrackManager.getInstance();
 
 		trackManager.addListener(this);
 
 		distanceTracker = new DistanceTracker(trackManager, locationReceiver);
-		distanceTracker.setRadius(500);
+		distanceTracker.setRadius(50);
 		distanceTracker.addListener(this);
 		distanceTracker.start();
 
@@ -100,6 +102,16 @@ public class TrackingService extends Service implements TrackManager.Listener, D
 
 	public static Point getPointFromIntent(Intent intent) {
 		return intent.getParcelableExtra(ARG_POINT);
+	}
+
+	public void mockLocation(double latitude, double longitude) {
+		Location location = new Location("mock-provider");
+		location.setAccuracy(0);
+		location.setLatitude(latitude);
+		location.setLongitude(longitude);
+		location.setTime(System.currentTimeMillis());
+
+		locationReceiver.mockLocation(location);
 	}
 
 	public class TrackingServiceBinder extends Binder {
