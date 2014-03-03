@@ -10,6 +10,8 @@ import org.fruct.oss.audioguide.LocationReceiver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
+
 public class TrackingService extends Service implements TrackManager.Listener, DistanceTracker.Listener {
 	private final static Logger log = LoggerFactory.getLogger(TrackingService.class);
 
@@ -19,10 +21,7 @@ public class TrackingService extends Service implements TrackManager.Listener, D
 	public static final String ARG_POINT = "ARG_POINT";
 
 	private DistanceTracker distanceTracker;
-	private LocationReceiver locationReceiver;
 	private TrackManager trackManager;
-
-	private boolean isStarted = false;
 
     public TrackingService() {
     }
@@ -37,7 +36,7 @@ public class TrackingService extends Service implements TrackManager.Listener, D
 		super.onCreate();
 		log.info("TrackingService onCreate");
 
-		locationReceiver = new LocationReceiver(this);
+		LocationReceiver locationReceiver = new LocationReceiver(this);
 		trackManager = TrackManager.getInstance();
 
 		trackManager.addListener(this);
@@ -45,6 +44,7 @@ public class TrackingService extends Service implements TrackManager.Listener, D
 		distanceTracker = new DistanceTracker(trackManager, locationReceiver);
 		distanceTracker.setRadius(500);
 		distanceTracker.addListener(this);
+		distanceTracker.start();
 
 		// Insert points into distanceTracker
 		tracksUpdated();
@@ -55,28 +55,11 @@ public class TrackingService extends Service implements TrackManager.Listener, D
 		super.onDestroy();
 
 		trackManager.removeListener(this);
-		stopTracking();
+		distanceTracker.stop();
 
 		log.info("TrackingService onDestroy");
 	}
 
-	public boolean isTrackingStarted() {
-		return isStarted;
-	}
-
-	public void startTracking() {
-		if (!isStarted) {
-			isStarted = true;
-			distanceTracker.start();
-		}
-	}
-
-	public void stopTracking() {
-		if (isStarted) {
-			distanceTracker.stop();
-			isStarted = false;
-		}
-	}
 
 	private TrackingServiceBinder binder = new TrackingServiceBinder();
 
@@ -108,7 +91,11 @@ public class TrackingService extends Service implements TrackManager.Listener, D
 		intent.putExtra(ARG_POINT, point);
 
 		LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+	}
 
+
+	public List<Point> getPointsInRange() {
+		return distanceTracker.getPointsInRange();
 	}
 
 	public static Point getPointFromIntent(Intent intent) {

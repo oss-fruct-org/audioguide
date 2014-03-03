@@ -13,7 +13,9 @@ import org.fruct.oss.audioguide.track.Point;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class PointAdapter extends ArrayAdapter<Point> {
 	private final static Logger log = LoggerFactory.getLogger(PointAdapter.class);
@@ -21,7 +23,7 @@ public class PointAdapter extends ArrayAdapter<Point> {
 	private Context context;
 	private int resource;
 	private List<Point> points;
-	private Point highlightedItem;
+	private Set<Point> highlightedItems = new HashSet<Point>();
 
 	public PointAdapter(Context context, int resource, List<Point> points) {
 		super(context, resource, points);
@@ -58,7 +60,7 @@ public class PointAdapter extends ArrayAdapter<Point> {
 		holder.text2.setText(point.getDescription());
 		holder.audioImage.setVisibility(point.hasAudio() ? View.VISIBLE : View.GONE);
 
-		if (point.equals(highlightedItem)) {
+		if (highlightedItems.contains(point)) {
 			view.setBackgroundColor(0xffffd700);
 		} else {
 			view.setBackgroundColor(0xffffffff);
@@ -67,11 +69,18 @@ public class PointAdapter extends ArrayAdapter<Point> {
 		return view;
 	}
 
-	public void setHighlightedItem(Point point) {
-		log.debug("Sethigh");
 
-		this.highlightedItem = point;
+	public void setHighlightedItems(List<Point> pointsInRange) {
+		this.highlightedItems = new HashSet<Point>(pointsInRange);
 		notifyDataSetChanged();
+	}
+
+	public void addHighlightedItem(Point point) {
+		highlightedItems.add(point);
+	}
+
+	public void removeHighlightedItem(Point point) {
+		highlightedItems.remove(point);
 	}
 
 	private static class PointHolder {

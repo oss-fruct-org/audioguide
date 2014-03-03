@@ -87,6 +87,10 @@ public class DistanceTracker implements LocationReceiver.Listener {
 		this.radius = radius;
 	}
 
+	public List<Point> getPointsInRange() {
+		return new ArrayList<Point>(pointsInRange);
+	}
+
 	public interface Listener {
 		void pointInRange(Point point);
 		void pointOutRange(Point point);

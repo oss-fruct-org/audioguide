@@ -16,6 +16,7 @@ import android.widget.TextView;
 
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.track.AudioService;
+import org.fruct.oss.audioguide.track.TrackingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,12 +50,15 @@ public class CommonFragment extends Fragment {
 
 		setHasOptionsMenu(true);
 		setRetainInstance(true);
-    }
+
+		getActivity().startService(new Intent(getActivity(), TrackingService.class));
+	}
 
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
 
+		getActivity().stopService(new Intent(getActivity(), TrackingService.class));
 		getActivity().stopService(new Intent(getActivity(), AudioService.class));
 	}
 

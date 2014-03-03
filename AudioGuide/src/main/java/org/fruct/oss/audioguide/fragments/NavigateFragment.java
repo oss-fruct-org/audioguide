@@ -8,16 +8,12 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.app.ListFragment;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.ListView;
 
 import org.fruct.oss.audioguide.MultiPanel;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.adapters.TrackAdapter;
-import org.fruct.oss.audioguide.track.AudioService;
 import org.fruct.oss.audioguide.track.TrackingService;
 import org.fruct.oss.audioguide.track.Track;
 import org.fruct.oss.audioguide.track.TrackManager;
@@ -38,7 +34,7 @@ public class NavigateFragment extends ListFragment implements TrackManager.Liste
 	private MultiPanel multiPanel;
 
 	private TrackAdapter trackAdapter;
-	private ServiceConnection audioServiceConnection;
+	private ServiceConnection serviceConnection;
 
 	private TrackingService trackingService;
 
@@ -57,7 +53,7 @@ public class NavigateFragment extends ListFragment implements TrackManager.Liste
 		trackManager.addListener(this);
 		trackManager.loadRemoteTracks();
 
-		audioServiceConnection = new TrackingServiceConnection();
+		serviceConnection = new TrackingServiceConnection();
     }
 
 	@Override
@@ -73,14 +69,14 @@ public class NavigateFragment extends ListFragment implements TrackManager.Liste
 		super.onStart();
 
 		getActivity().bindService(new Intent(getActivity(), TrackingService.class),
-				audioServiceConnection, Context.BIND_AUTO_CREATE);
+				serviceConnection, Context.BIND_AUTO_CREATE);
 	}
 
 	@Override
 	public void onStop() {
 		super.onStop();
 
-		getActivity().unbindService(audioServiceConnection);
+		getActivity().unbindService(serviceConnection);
 	}
 
 	@Override
@@ -133,7 +129,8 @@ public class NavigateFragment extends ListFragment implements TrackManager.Liste
 		@Override
 		public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
 			trackingService = ((TrackingService.TrackingServiceBinder) iBinder).getService();
-			trackingService.startTracking();
+
+
 		}
 
 		@Override

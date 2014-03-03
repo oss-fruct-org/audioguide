@@ -2,10 +2,13 @@ package org.fruct.oss.audioguide.fragments;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.v4.app.ListFragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.view.View;
@@ -43,6 +46,10 @@ public class PointFragment extends ListFragment {
 	private BroadcastReceiver inReceiver;
 	private BroadcastReceiver outReceiver;
 	private PointAdapter pointAdapter;
+	private TrackingService trackingService;
+
+	private TrackingServiceConnection serviceConnection = new TrackingServiceConnection();
+
 
 	public static PointFragment newInstance(Track track) {
 		Bundle args = new Bundle(1);
@@ -74,6 +81,19 @@ public class PointFragment extends ListFragment {
 		setupAudioReceiver();
     }
 
+	@Override
+	public void onStart() {
+		super.onStart();
+		getActivity().bindService(new Intent(getActivity(), TrackingService.class),
+				serviceConnection, Context.BIND_AUTO_CREATE);
+	}
+
+	@Override
+	public void onStop() {
+		super.onStop();
+		getActivity().unbindService(serviceConnection);
+	}
+
 	private void setupAudioReceiver() {
 		inReceiver = new BroadcastReceiver() {
 			@Override
@@ -94,12 +114,12 @@ public class PointFragment extends ListFragment {
 
 	private void pointInRange(Point point) {
 		if (pointAdapter != null)
-			pointAdapter.setHighlightedItem(point);
+			pointAdapter.addHighlightedItem(point);
 	}
 
 	private void pointOutRange(Point point) {
 		if (pointAdapter != null)
-			pointAdapter.setHighlightedItem(null);
+			pointAdapter.removeHighlightedItem(null);
 	}
 
 	private void setTrack() {
@@ -137,9 +157,22 @@ public class PointFragment extends ListFragment {
         multiPanel = null;
     }
 
-
     @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
         super.onListItemClick(l, v, position, id);
     }
+
+	private class TrackingServiceConnection implements ServiceConnection {
+		@Override
+		public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+			trackingService = ((TrackingService.TrackingServiceBinder) iBinder).getService();
+			List<Point> pointsInRange = trackingService.getPointsInRange();
+			pointAdapter.setHighlightedItems(pointsInRange);
+		}
+
+		@Override
+		public void onServiceDisconnected(ComponentName componentName) {
+			trackingService = null;
+		}
+	}
 }
