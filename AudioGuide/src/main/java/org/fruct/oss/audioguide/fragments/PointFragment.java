@@ -37,6 +37,8 @@ import java.util.List;
 public class PointFragment extends ListFragment {
 	private final static Logger log = LoggerFactory.getLogger(PointFragment.class);
 
+	private static final String STATE_TRACK = "track";
+
 	public static final String ARG_TRACK = "arg_point";
 
 	private MultiPanel multiPanel;
@@ -75,8 +77,14 @@ public class PointFragment extends ListFragment {
 		Bundle arguments = getArguments();
 		if (arguments != null) {
 			track = arguments.getParcelable(ARG_TRACK);
-			setTrack();
 		}
+
+		if (savedInstanceState != null) {
+			track = savedInstanceState.getParcelable(STATE_TRACK);
+		}
+
+		setTrack();
+
 
 		setupAudioReceiver();
 	}
@@ -160,6 +168,13 @@ public class PointFragment extends ListFragment {
 	@Override
 	public void onListItemClick(ListView l, View v, int position, long id) {
 		super.onListItemClick(l, v, position, id);
+	}
+
+	@Override
+	public void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
+
+		outState.putParcelable(STATE_TRACK, track);
 	}
 
 	private class TrackingServiceConnection implements ServiceConnection {
