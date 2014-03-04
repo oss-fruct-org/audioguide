@@ -32,19 +32,19 @@ public class CommonFragment extends Fragment {
 	private MenuItem navigateAction;
 
 	/**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     * @return A new instance of fragment CommonFragment.
-     */
-    public static CommonFragment newInstance() {
+	 * Use this factory method to create a new instance of
+	 * this fragment using the provided parameters.
+	 * @return A new instance of fragment CommonFragment.
+	 */
+	public static CommonFragment newInstance() {
 		return new CommonFragment();
-    }
-    public CommonFragment() {
-    }
+	}
+	public CommonFragment() {
+	}
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
 
 		log.debug("onCreate");
 
@@ -63,10 +63,10 @@ public class CommonFragment extends Fragment {
 	}
 
 	@Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+	public View onCreateView(LayoutInflater inflater, ViewGroup container,
+							 Bundle savedInstanceState) {
 		return null;
-    }
+	}
 
 	@Override
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {

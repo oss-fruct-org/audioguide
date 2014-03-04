@@ -57,26 +57,26 @@ public class MapFragment extends Fragment implements TrackManager.Listener {
 	private TrackingServiceConnection serviceConnection = new TrackingServiceConnection();
 
 	/**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @return A new instance of fragment MapFragment.
-     */
-    public static MapFragment newInstance() {
-        MapFragment fragment = new MapFragment();
-        return fragment;
-    }
-    public MapFragment() {
-    }
+	 * Use this factory method to create a new instance of
+	 * this fragment using the provided parameters.
+	 *
+	 * @return A new instance of fragment MapFragment.
+	 */
+	public static MapFragment newInstance() {
+		MapFragment fragment = new MapFragment();
+		return fragment;
+	}
+	public MapFragment() {
+	}
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
 
 		trackManager = TrackManager.getInstance();
 		trackManager.addListener(this);
 		setHasOptionsMenu(true);
-    }
+	}
 
 	@Override
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
@@ -87,19 +87,19 @@ public class MapFragment extends Fragment implements TrackManager.Listener {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-			case R.id.action_place:
-				if (trackingService != null) {
-					IGeoPoint mapCenter = mapView.getMapCenter();
-					trackingService.mockLocation(mapCenter.getLatitude(), mapCenter.getLongitude());
-				}
-				break;
+		case R.id.action_place:
+			if (trackingService != null) {
+				IGeoPoint mapCenter = mapView.getMapCenter();
+				trackingService.mockLocation(mapCenter.getLatitude(), mapCenter.getLongitude());
+			}
+			break;
 		}
 		return super.onOptionsItemSelected(item);
 	}
 
 	@Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+	public View onCreateView(LayoutInflater inflater, ViewGroup container,
+							 Bundle savedInstanceState) {
 		// Inflate the layout for this fragment
 		View view = inflater.inflate(R.layout.fragment_map, container, false);
 

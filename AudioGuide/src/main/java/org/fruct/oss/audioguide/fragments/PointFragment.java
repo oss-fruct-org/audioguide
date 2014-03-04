@@ -57,18 +57,18 @@ public class PointFragment extends ListFragment {
 		PointFragment fragment = new PointFragment();
 		fragment.setArguments(args);
 		return fragment;
-    }
+	}
 
-    /**
-     * Mandatory empty constructor for the fragment manager to instantiate the
-     * fragment (e.g. upon screen orientation changes).
-     */
-    public PointFragment() {
-    }
+	/**
+	 * Mandatory empty constructor for the fragment manager to instantiate the
+	 * fragment (e.g. upon screen orientation changes).
+	 */
+	public PointFragment() {
+	}
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
 
 		trackManager = TrackManager.getInstance();
 
@@ -79,7 +79,7 @@ public class PointFragment extends ListFragment {
 		}
 
 		setupAudioReceiver();
-    }
+	}
 
 	@Override
 	public void onStart() {
@@ -141,26 +141,26 @@ public class PointFragment extends ListFragment {
 	}
 
 	@Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        try {
+	public void onAttach(Activity activity) {
+		super.onAttach(activity);
+		try {
 			multiPanel = (MultiPanel) activity;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString()
-                + " must implement OnFragmentInteractionListener");
-        }
-    }
+		} catch (ClassCastException e) {
+			throw new ClassCastException(activity.toString()
+					+ " must implement OnFragmentInteractionListener");
+		}
+	}
 
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        multiPanel = null;
-    }
+	@Override
+	public void onDetach() {
+		super.onDetach();
+		multiPanel = null;
+	}
 
-    @Override
-    public void onListItemClick(ListView l, View v, int position, long id) {
-        super.onListItemClick(l, v, position, id);
-    }
+	@Override
+	public void onListItemClick(ListView l, View v, int position, long id) {
+		super.onListItemClick(l, v, position, id);
+	}
 
 	private class TrackingServiceConnection implements ServiceConnection {
 		@Override

@@ -31,20 +31,20 @@ public class TrackFragment extends ListFragment implements TrackManager.Listener
 
 	private TrackAdapter trackAdapter;
 
-    public static TrackFragment newInstance() {
+	public static TrackFragment newInstance() {
 		return new TrackFragment();
-    }
+	}
 
-    /**
-     * Mandatory empty constructor for the fragment manager to instantiate the
-     * fragment (e.g. upon screen orientation changes).
-     */
-    public TrackFragment() {
-    }
+	/**
+	 * Mandatory empty constructor for the fragment manager to instantiate the
+	 * fragment (e.g. upon screen orientation changes).
+	 */
+	public TrackFragment() {
+	}
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
 
 		trackManager = TrackManager.getInstance();
 		trackManager.addListener(this);
@@ -72,15 +72,15 @@ public class TrackFragment extends ListFragment implements TrackManager.Listener
 
 	}
 
-    @Override
-    public void onDetach() {
-        super.onDetach();
+	@Override
+	public void onDetach() {
+		super.onDetach();
 		multiPanel = null;
-    }
+	}
 
 
-    @Override
-    public void onListItemClick(ListView l, View v, int position, long id) {
+	@Override
+	public void onListItemClick(ListView l, View v, int position, long id) {
 		Track track = trackAdapter.getItem(position);
 		trackClicked(track);
 	}

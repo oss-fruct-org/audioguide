@@ -26,12 +26,12 @@ public class TrackingService extends Service implements TrackManager.Listener, D
 	private LocationReceiver locationReceiver;
 
 	public TrackingService() {
-    }
+	}
 
-    @Override
-    public IBinder onBind(Intent intent) {
+	@Override
+	public IBinder onBind(Intent intent) {
 		return binder;
-    }
+	}
 
 	@Override
 	public void onCreate() {

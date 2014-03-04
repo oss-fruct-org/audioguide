@@ -28,7 +28,7 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
 	private MediaPlayer player;
 
 	public AudioService() {
-    }
+	}
 
 	@Override
 	public void onCreate() {
@@ -146,8 +146,8 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
 	}
 
 	@Override
-    public IBinder onBind(Intent intent) {
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
+	public IBinder onBind(Intent intent) {
+		throw new UnsupportedOperationException("Not yet implemented");
+	}
 
 }

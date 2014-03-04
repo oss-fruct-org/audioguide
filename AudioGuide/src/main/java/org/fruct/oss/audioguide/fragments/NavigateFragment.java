@@ -40,21 +40,21 @@ public class NavigateFragment extends ListFragment implements TrackManager.Liste
 
 	public static NavigateFragment newInstance() {
 		return new NavigateFragment();
-    }
+	}
 
-    public NavigateFragment() {
-    }
+	public NavigateFragment() {
+	}
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
 
 		trackManager = TrackManager.getInstance();
 		trackManager.addListener(this);
 		trackManager.loadRemoteTracks();
 
 		serviceConnection = new TrackingServiceConnection();
-    }
+	}
 
 	@Override
 	public void onDestroy() {
@@ -80,27 +80,27 @@ public class NavigateFragment extends ListFragment implements TrackManager.Liste
 	}
 
 	@Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        try {
-            multiPanel = (MultiPanel) activity;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString()
-                + " must implement MultiPanel");
-        }
-    }
+	public void onAttach(Activity activity) {
+		super.onAttach(activity);
+		try {
+			multiPanel = (MultiPanel) activity;
+		} catch (ClassCastException e) {
+			throw new ClassCastException(activity.toString()
+					+ " must implement MultiPanel");
+		}
+	}
 
-    @Override
-    public void onDetach() {
-        super.onDetach();
+	@Override
+	public void onDetach() {
+		super.onDetach();
 		multiPanel = null;
 	}
 
 	@Override
-    public void onListItemClick(ListView l, View v, int position, long id) {
+	public void onListItemClick(ListView l, View v, int position, long id) {
 		Track track = trackAdapter.getItem(position);
 		multiPanel.replaceFragment(PointFragment.newInstance(track), this);
-    }
+	}
 
 	private void updateTracksAdapter() {
 		trackAdapter = new TrackAdapter(getActivity(), R.layout.list_track_item, trackManager.getActiveTracks());
