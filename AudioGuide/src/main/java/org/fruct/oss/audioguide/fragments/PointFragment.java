@@ -127,7 +127,7 @@ public class PointFragment extends ListFragment {
 
 	private void pointOutRange(Point point) {
 		if (pointAdapter != null)
-			pointAdapter.removeHighlightedItem(null);
+			pointAdapter.removeHighlightedItem(point);
 	}
 
 	private void setTrack() {

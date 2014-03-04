@@ -88,13 +88,17 @@ public class MapFragment extends Fragment implements TrackManager.Listener {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case R.id.action_place:
-			if (trackingService != null) {
-				IGeoPoint mapCenter = mapView.getMapCenter();
-				trackingService.mockLocation(mapCenter.getLatitude(), mapCenter.getLongitude());
-			}
+			mockLocation();
 			break;
 		}
 		return super.onOptionsItemSelected(item);
+	}
+
+	private void mockLocation() {
+		if (trackingService != null) {
+			IGeoPoint mapCenter = mapView.getMapCenter();
+			trackingService.mockLocation(mapCenter.getLatitude(), mapCenter.getLongitude());
+		}
 	}
 
 	@Override

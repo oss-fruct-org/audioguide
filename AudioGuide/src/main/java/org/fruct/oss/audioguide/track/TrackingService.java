@@ -4,6 +4,7 @@ import android.app.Service;
 import android.content.Intent;
 import android.location.Location;
 import android.os.Binder;
+import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
 
@@ -104,14 +105,21 @@ public class TrackingService extends Service implements TrackManager.Listener, D
 		return intent.getParcelableExtra(ARG_POINT);
 	}
 
-	public void mockLocation(double latitude, double longitude) {
-		Location location = new Location("mock-provider");
-		location.setAccuracy(0);
-		location.setLatitude(latitude);
-		location.setLongitude(longitude);
-		location.setTime(System.currentTimeMillis());
+	public void mockLocation(final double latitude, final double longitude) {
+		Handler handler = new Handler();
+		handler.postDelayed(new Runnable() {
+			@Override
+			public void run() {
+				Location location = new Location("mock-provider");
+				location.setAccuracy(0);
+				location.setLatitude(latitude);
+				location.setLongitude(longitude);
+				location.setTime(System.currentTimeMillis());
 
-		locationReceiver.mockLocation(location);
+				locationReceiver.mockLocation(location);
+			}
+		}, 4000);
+
 	}
 
 	public class TrackingServiceBinder extends Binder {

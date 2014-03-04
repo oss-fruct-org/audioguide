@@ -77,10 +77,12 @@ public class PointAdapter extends ArrayAdapter<Point> {
 
 	public void addHighlightedItem(Point point) {
 		highlightedItems.add(point);
+		notifyDataSetChanged();
 	}
 
 	public void removeHighlightedItem(Point point) {
 		highlightedItems.remove(point);
+		notifyDataSetChanged();
 	}
 
 	private static class PointHolder {
