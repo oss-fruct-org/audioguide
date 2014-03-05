@@ -32,6 +32,7 @@ public class MainActivity extends ActionBarActivity
 	private final static Logger log = LoggerFactory.getLogger(MainActivity.class);
 	private int[] panelIds = {R.id.panel1, R.id.panel2/*, R.id.panel3*/};
 
+	private static final String STATE_MAX_PANELS_COUNT = "max-panels-count";
 	private static final String STATE_PANELS_COUNT = "panels-count";
 	private static final String STATE_STACK_SIZE = "stack-size";
 	private static final String STATE_STACK = "stack-fragment";
@@ -48,6 +49,7 @@ public class MainActivity extends ActionBarActivity
 	 */
 	private CharSequence mTitle;
 
+	private int maxPanelsCount = -1;
 	private int panelsCount = 0;
 	private ArrayList<FragmentStorage> fragmentStack = new ArrayList<FragmentStorage>();
 
@@ -65,6 +67,7 @@ public class MainActivity extends ActionBarActivity
 
 		if (savedInstanceState != null) {
 			suppressDrawerItemSelect = true;
+			maxPanelsCount = savedInstanceState.getInt(STATE_MAX_PANELS_COUNT);
 			fragmentStack = savedInstanceState.getParcelableArrayList(STATE_STACK);
 			for (FragmentStorage storage : fragmentStack)
 				storage.setFragmentManager(fragmentManager);
@@ -72,7 +75,7 @@ public class MainActivity extends ActionBarActivity
 
 		setContentView(R.layout.activity_main);
 
-		initPanels(-1);
+		initPanels(maxPanelsCount);
 
 		mNavigationDrawerFragment = (NavigationDrawerFragment)
 				fragmentManager.findFragmentById(R.id.navigation_drawer);
@@ -94,6 +97,8 @@ public class MainActivity extends ActionBarActivity
 	private void initPanels(int maxCount) {
 		if (maxCount == -1)
 			maxCount = Integer.MAX_VALUE;
+
+		maxPanelsCount = maxCount;
 
 		boolean found = false;
 		panelsCount = Math.min(maxCount, panelIds.length);
@@ -134,15 +139,16 @@ public class MainActivity extends ActionBarActivity
 			return;
 		}
 
-		initPanels(-1);
 
 		Fragment fragment = null;
 		switch (position) {
 		case 0:
 			fragment = TrackFragment.newInstance();
+			initPanels(-1);
 			break;
 		case 1:
 			fragment = NavigateFragment.newInstance();
+			initPanels(-1);
 			break;
 		case 2:
 			fragment = MapFragment.newInstance();
@@ -313,6 +319,7 @@ public class MainActivity extends ActionBarActivity
 
 	@Override
 	protected void onSaveInstanceState(Bundle outState) {
+		outState.putInt(STATE_MAX_PANELS_COUNT, maxPanelsCount);
 		outState.putInt(STATE_PANELS_COUNT, panelsCount);
 		outState.putInt(STATE_STACK_SIZE, fragmentStack.size());
 
