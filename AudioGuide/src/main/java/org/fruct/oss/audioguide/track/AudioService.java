@@ -24,6 +24,13 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
 	public static final String ACTION_PLAY = "org.fruct.oss.audioguide.ACTION_PLAY";
 	public static final String ACTION_STOP = "org.fruct.oss.audioguide.ACTION_STOP";
 
+	public static final String ACTION_WATCH_POINTS = "org.fruct.oss.audioguide.ACTION_WATCH_POINTS";
+	public static final String ACTION_SEND_STATE = "org.fruct.oss.audioguide.ACTION_SEND_STATE";
+
+	public static final String BC_START_WATCH_POINTS = "org.fruct.oss.audioguide.BC_START_WATCH_POINTS";
+	public static final String BC_STOP_SERVICE = "org.fruct.oss.audioguide.BC_STOP_SERVICE";
+
+
 	private BroadcastReceiver inReceiver;
 	private BroadcastReceiver outReceiver;
 
@@ -40,23 +47,37 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
 		if (intent == null || intent.getAction() == null)
 			return START_STICKY;
 
-		if (intent.getAction().equals(ACTION_PLAY)) {
+		String action = intent.getAction();
+		if (action.equals(ACTION_PLAY)) {
 			Uri uri = intent.getData();
 			startAudioTrack(uri);
-
-		} else if (intent.getAction().equals(ACTION_STOP)) {
+		} else if (action.equals(ACTION_STOP)) {
 			Uri uri = intent.getData();
 			stopAudioTrack(uri);
+		} else if (action.equals(ACTION_WATCH_POINTS)) {
+			watchPoints();
+		} else if (action.equals(ACTION_SEND_STATE)) {
+			sendState();
 		}
 
 		return START_STICKY;
+	}
+
+	private void sendState() {
+		if (inReceiver != null) {
+			assert outReceiver != null;
+
+			LocalBroadcastManager.getInstance(this).sendBroadcast(new Intent(BC_START_WATCH_POINTS));
+		}
 	}
 
 	@Override
 	public void onCreate() {
 		super.onCreate();
 		log.info("AudioService onCreate");
+	}
 
+	private void watchPoints() {
 		inReceiver = new BroadcastReceiver() {
 			@Override
 			public void onReceive(Context context, Intent intent) {
@@ -72,6 +93,8 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
 			}
 		};
 		LocalBroadcastManager.getInstance(this).registerReceiver(outReceiver, new IntentFilter(TrackingService.BC_ACTION_POINT_OUT_RANGE));
+
+		LocalBroadcastManager.getInstance(this).sendBroadcast(new Intent(BC_START_WATCH_POINTS));
 	}
 
 	@Override
@@ -85,6 +108,9 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
 
 		LocalBroadcastManager.getInstance(this).unregisterReceiver(inReceiver);
 		LocalBroadcastManager.getInstance(this).unregisterReceiver(outReceiver);
+
+		LocalBroadcastManager.getInstance(this).sendBroadcast(new Intent(BC_STOP_SERVICE));
+
 	}
 
 	private void startAudioTrack(Uri uri) {
@@ -166,5 +192,4 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
 	public IBinder onBind(Intent intent) {
 		throw new UnsupportedOperationException("Not yet implemented");
 	}
-
 }

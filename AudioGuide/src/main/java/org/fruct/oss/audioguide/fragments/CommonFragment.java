@@ -3,9 +3,13 @@ package org.fruct.oss.audioguide.fragments;
 
 
 import android.app.ActionBar;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.LocalBroadcastManager;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -30,6 +34,9 @@ public class CommonFragment extends Fragment {
 	private final static Logger log = LoggerFactory.getLogger(CommonFragment.class);
 
 	private MenuItem navigateAction;
+	private boolean isWatchActive;
+	private BroadcastReceiver watchReceiver;
+	private BroadcastReceiver audioStopReceiver;
 
 	/**
 	 * Use this factory method to create a new instance of
@@ -52,6 +59,22 @@ public class CommonFragment extends Fragment {
 		setRetainInstance(true);
 
 		getActivity().startService(new Intent(getActivity(), TrackingService.class));
+
+		LocalBroadcastManager.getInstance(getActivity()).registerReceiver(watchReceiver = new BroadcastReceiver() {
+			@Override
+			public void onReceive(Context context, Intent intent) {
+				isWatchActive = true;
+				updateMenuIcon(true);
+			}
+		}, new IntentFilter(AudioService.BC_START_WATCH_POINTS));
+
+		LocalBroadcastManager.getInstance(getActivity()).registerReceiver(audioStopReceiver = new BroadcastReceiver() {
+			@Override
+			public void onReceive(Context context, Intent intent) {
+				isWatchActive = false;
+				updateMenuIcon(false);
+			}
+		}, new IntentFilter(AudioService.BC_STOP_SERVICE));
 	}
 
 	@Override
@@ -60,12 +83,9 @@ public class CommonFragment extends Fragment {
 
 		getActivity().stopService(new Intent(getActivity(), TrackingService.class));
 		getActivity().stopService(new Intent(getActivity(), AudioService.class));
-	}
 
-	@Override
-	public View onCreateView(LayoutInflater inflater, ViewGroup container,
-							 Bundle savedInstanceState) {
-		return null;
+		LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(watchReceiver);
+		LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(audioStopReceiver);
 	}
 
 	@Override
@@ -73,20 +93,21 @@ public class CommonFragment extends Fragment {
 		super.onCreateOptionsMenu(menu, inflater);
 		inflater.inflate(R.menu.navigate, menu);
 		navigateAction = menu.findItem(R.id.action_navigate);
+		updateMenuIcon(isWatchActive);
 
-		updateMenuIcon();
+		getActivity().startService(new Intent(AudioService.ACTION_SEND_STATE, null,
+				getActivity(), AudioService.class));
 	}
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case R.id.action_navigate:
-			if (AudioService.isRunning(getActivity()))
+			if (isWatchActive)
 				getActivity().stopService(new Intent(getActivity(), AudioService.class));
 			else
-				getActivity().startService(new Intent(getActivity(), AudioService.class));
-
-			updateMenuIcon();
+				getActivity().startService(new Intent(AudioService.ACTION_WATCH_POINTS, null,
+						getActivity(), AudioService.class));
 
 			return true;
 		}
@@ -94,13 +115,15 @@ public class CommonFragment extends Fragment {
 		return super.onOptionsItemSelected(item);
 	}
 
-	private void updateMenuIcon() {
-		if (AudioService.isRunning(getActivity())) {
+	private void updateMenuIcon(boolean isWatchActive) {
+		if (isWatchActive) {
 			navigateAction.setTitle("Unfollow");
 			navigateAction.setIcon(R.drawable.ic_action_volume_muted);
 		} else {
 			navigateAction.setTitle("Follow");
 			navigateAction.setIcon(R.drawable.ic_action_volume_on);
 		}
+
+		this.isWatchActive = isWatchActive;
 	}
 }
