@@ -4,7 +4,6 @@
     android:layout_height="match_parent"
     tools:context="org.fruct.oss.audioguide.fragments.MapFragment">
 
-    <!-- TODO: Update blank fragment layout -->
     <FrameLayout
         android:id="@+id/map_layout"
         android:layout_width="match_parent"

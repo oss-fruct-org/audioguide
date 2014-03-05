@@ -14,13 +14,15 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-public class TrackingService extends Service implements TrackManager.Listener, DistanceTracker.Listener {
+public class TrackingService extends Service implements TrackManager.Listener, DistanceTracker.Listener, LocationReceiver.Listener {
 	private final static Logger log = LoggerFactory.getLogger(TrackingService.class);
 
 	public static final String BC_ACTION_POINT_IN_RANGE = "BC_ACTION_POINT_IN_RANGE";
 	public static final String BC_ACTION_POINT_OUT_RANGE = "BC_ACTION_POINT_IOUTN_RANGE";
+	public static final String BC_ACTION_NEW_LOCATION = "BC_ACTION_NEW_LOCATION";
 
 	public static final String ARG_POINT = "ARG_POINT";
+	public static final String ARG_LOCATION = "ARG_LOCATION";
 
 	private DistanceTracker distanceTracker;
 	private TrackManager trackManager;
@@ -48,6 +50,8 @@ public class TrackingService extends Service implements TrackManager.Listener, D
 		distanceTracker.setRadius(50);
 		distanceTracker.addListener(this);
 		distanceTracker.start();
+
+		locationReceiver.addListener(this);
 
 		// Insert points into distanceTracker
 		tracksUpdated();
@@ -120,6 +124,18 @@ public class TrackingService extends Service implements TrackManager.Listener, D
 			}
 		}, 4000);
 
+	}
+
+	@Override
+	public void newLocation(Location location) {
+		Intent intent = new Intent(BC_ACTION_NEW_LOCATION);
+		intent.putExtra(ARG_LOCATION, location);
+
+		LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+	}
+
+	public void sendLastLocation() {
+		locationReceiver.sendLastLocation();
 	}
 
 	public class TrackingServiceBinder extends Binder {

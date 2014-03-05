@@ -2,17 +2,21 @@ package org.fruct.oss.audioguide.fragments;
 
 
 import android.annotation.TargetApi;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.LocalBroadcastManager;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -21,6 +25,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import org.fruct.oss.audioguide.R;
+import org.fruct.oss.audioguide.overlays.MyPositionOverlay;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.Track;
 import org.fruct.oss.audioguide.track.TrackManager;
@@ -55,6 +60,9 @@ public class MapFragment extends Fragment implements TrackManager.Listener {
 	private TrackManager trackManager;
 	private TrackingService trackingService;
 	private TrackingServiceConnection serviceConnection = new TrackingServiceConnection();
+
+	private MyPositionOverlay myPositionOverlay;
+	private BroadcastReceiver locationReceiver;
 
 	/**
 	 * Use this factory method to create a new instance of
@@ -110,6 +118,7 @@ public class MapFragment extends Fragment implements TrackManager.Listener {
 		createMapView(view);
 		createCenterOverlay();
 		updatePointsOverlay();
+		createMyPositionOverlay();
 
 		return view;
 	}
@@ -120,12 +129,24 @@ public class MapFragment extends Fragment implements TrackManager.Listener {
 
 		getActivity().bindService(new Intent(getActivity(), TrackingService.class),
 				serviceConnection, Context.BIND_AUTO_CREATE);
+
+		LocalBroadcastManager.getInstance(getActivity()).registerReceiver(locationReceiver = new BroadcastReceiver() {
+			@Override
+			public void onReceive(Context context, Intent intent) {
+				Location location = intent.getParcelableExtra(TrackingService.ARG_LOCATION);
+				if (myPositionOverlay != null) {
+					myPositionOverlay.setLocation(location);
+					mapView.invalidate();
+				}
+			}
+		}, new IntentFilter(TrackingService.BC_ACTION_NEW_LOCATION));
 	}
 
 	@Override
 	public void onStop() {
 		super.onStop();
 
+		LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(locationReceiver);
 		getActivity().unbindService(serviceConnection);
 	}
 
@@ -227,6 +248,11 @@ public class MapFragment extends Fragment implements TrackManager.Listener {
 		mapView.getOverlays().add(trackOverlay);
 	}
 
+	private void createMyPositionOverlay() {
+		myPositionOverlay = new MyPositionOverlay(getActivity(), mapView);
+		mapView.getOverlays().add(myPositionOverlay);
+	}
+
 	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 	private void setHardwareAccelerationOff() {
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
@@ -253,6 +279,7 @@ public class MapFragment extends Fragment implements TrackManager.Listener {
 		@Override
 		public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
 			trackingService = ((TrackingService.TrackingServiceBinder) iBinder).getService();
+			trackingService.sendLastLocation();
 		}
 
 		@Override

@@ -44,13 +44,13 @@ public class DistanceTracker implements LocationReceiver.Listener {
 	}
 
 	public void start() {
-		locationReceiver.setListener(this);
+		locationReceiver.addListener(this);
 		locationReceiver.start();
 	}
 
 	public void stop() {
 		locationReceiver.stop();
-		locationReceiver.setListener(null);
+		locationReceiver.removeListener(this);
 	}
 
 	@Override
@@ -71,6 +71,7 @@ public class DistanceTracker implements LocationReceiver.Listener {
 			}
 		}
 	}
+
 
 	private void notifyPointInRange(Point point) {
 		for (Listener listener : listeners)
