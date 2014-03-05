@@ -21,13 +21,35 @@ import java.io.IOException;
 public class AudioService extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener {
 	private final static Logger log = LoggerFactory.getLogger(AudioService.class);
 
+	public static final String ACTION_PLAY = "org.fruct.oss.audioguide.ACTION_PLAY";
+	public static final String ACTION_STOP = "org.fruct.oss.audioguide.ACTION_STOP";
+
 	private BroadcastReceiver inReceiver;
 	private BroadcastReceiver outReceiver;
 
-	private String currentAudioUrl;
 	private MediaPlayer player;
 
+	private Uri currentUri;
+
 	public AudioService() {
+	}
+
+	@Override
+	public int onStartCommand(Intent intent, int flags, int startId) {
+		log.info("AudioService onStartCommand");
+		if (intent == null || intent.getAction() == null)
+			return START_STICKY;
+
+		if (intent.getAction().equals(ACTION_PLAY)) {
+			Uri uri = intent.getData();
+			startAudioTrack(uri);
+
+		} else if (intent.getAction().equals(ACTION_STOP)) {
+			Uri uri = intent.getData();
+			stopAudioTrack(uri);
+		}
+
+		return START_STICKY;
 	}
 
 	@Override
@@ -67,22 +89,22 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
 		LocalBroadcastManager.getInstance(this).unregisterReceiver(outReceiver);
 	}
 
-	private void startAudioTrack(String url) {
-		if (currentAudioUrl != null) {
-			log.info("Trying play another audio track while {} already playing", url);
-			return;
+	private void startAudioTrack(Uri uri) {
+		if (player != null && player.isPlaying()) {
+			player.stop();
+			player = null;
 		}
 
-		currentAudioUrl = url;
 		player = new MediaPlayer();
 		player.setAudioStreamType(AudioManager.STREAM_MUSIC);
 		try {
-			player.setDataSource(this, Uri.parse(url));
+			player.setDataSource(this, uri);
 		} catch (IOException e) {
-			log.warn("Cannot set data source for player with url = '{}'", url);
+			log.warn("Cannot set data source for player with url = '{}'", uri);
 			return;
 		}
 
+		currentUri = uri;
 		player.setOnCompletionListener(this);
 		player.setOnPreparedListener(this);
 		player.setOnErrorListener(this);
@@ -91,27 +113,24 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
 
 	@Override
 	public void onPrepared(MediaPlayer mediaPlayer) {
-		log.info("Starting playing track {}", currentAudioUrl);
 		mediaPlayer.start();
 	}
 
 	@Override
 	public void onCompletion(MediaPlayer mediaPlayer) {
 		mediaPlayer.release();
-		currentAudioUrl = null;
-		player = null;
 	}
 
 	@Override
 	public boolean onError(MediaPlayer mediaPlayer, int what, int extra) {
-		log.warn("Player error with url" + currentAudioUrl + " " + what + " " + extra);
+		log.warn("Player error with uri" + currentUri + " " + what + " " + extra);
 		return false;
 	}
 
-	private void stopAudioTrack(String url) {
-		if (currentAudioUrl != null && currentAudioUrl.equals(url) && player.isPlaying()) {
-			currentAudioUrl = null;
+	private void stopAudioTrack(Uri uri) {
+		if (currentUri != null && (uri == null || currentUri.equals(uri)) && player.isPlaying()) {
 			player.stop();
+			currentUri = null;
 		}
 	}
 
@@ -122,7 +141,7 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
 		if (audioUrl == null || audioUrl.isEmpty())
 			return;
 
-		startAudioTrack(audioUrl);
+		startAudioTrack(Uri.parse(audioUrl));
 	}
 
 	private void pointOutRange(Point point) {
@@ -132,7 +151,7 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
 		if (audioUrl == null || audioUrl.isEmpty())
 			return;
 
-		stopAudioTrack(audioUrl);
+		stopAudioTrack(Uri.parse(audioUrl));
 	}
 
 	public static boolean isRunning(Context context) {

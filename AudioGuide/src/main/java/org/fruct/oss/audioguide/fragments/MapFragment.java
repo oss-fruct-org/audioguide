@@ -12,6 +12,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -23,9 +24,13 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.Button;
 
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.overlays.MyPositionOverlay;
+import org.fruct.oss.audioguide.track.AudioService;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.Track;
 import org.fruct.oss.audioguide.track.TrackManager;
@@ -64,6 +69,10 @@ public class MapFragment extends Fragment implements TrackManager.Listener {
 	private MyPositionOverlay myPositionOverlay;
 	private BroadcastReceiver locationReceiver;
 
+	private ViewGroup bottomToolbar;
+
+	private Point selectedPoint;
+
 	/**
 	 * Use this factory method to create a new instance of
 	 * this fragment using the provided parameters.
@@ -71,8 +80,7 @@ public class MapFragment extends Fragment implements TrackManager.Listener {
 	 * @return A new instance of fragment MapFragment.
 	 */
 	public static MapFragment newInstance() {
-		MapFragment fragment = new MapFragment();
-		return fragment;
+		return new MapFragment();
 	}
 	public MapFragment() {
 	}
@@ -114,11 +122,14 @@ public class MapFragment extends Fragment implements TrackManager.Listener {
 							 Bundle savedInstanceState) {
 		// Inflate the layout for this fragment
 		View view = inflater.inflate(R.layout.fragment_map, container, false);
+		assert view != null;
 
 		createMapView(view);
 		createCenterOverlay();
 		updatePointsOverlay();
 		createMyPositionOverlay();
+
+		bottomToolbar = (ViewGroup) view.findViewById(R.id.map_toolbar);
 
 		return view;
 	}
@@ -156,6 +167,50 @@ public class MapFragment extends Fragment implements TrackManager.Listener {
 
 		trackManager.removeListener(this);
 		trackManager = null;
+	}
+
+	private void setupBottomPanel() {
+		final Button buttonPlay = (Button) bottomToolbar.findViewById(R.id.button_play);
+		final Button buttonDetails = (Button) bottomToolbar.findViewById(R.id.button_details);
+		final Button buttonStop = (Button) bottomToolbar.findViewById(R.id.button_stop);
+
+		buttonPlay.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				if (selectedPoint == null)
+					return;
+
+				Intent intent = new Intent(AudioService.ACTION_PLAY,
+						Uri.parse(selectedPoint.getAudioUrl()),
+						getActivity(), AudioService.class);
+				getActivity().startService(intent);
+
+				buttonPlay.setVisibility(View.GONE);
+				buttonStop.setVisibility(View.VISIBLE);
+
+			}
+		});
+
+		buttonStop.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				Intent intent = new Intent(AudioService.ACTION_STOP,
+						null,
+						getActivity(), AudioService.class);
+				getActivity().startService(intent);
+
+				buttonPlay.setVisibility(View.VISIBLE);
+				buttonStop.setVisibility(View.GONE);
+			}
+		});
+
+		if (selectedPoint.hasAudio()) {
+			buttonPlay.setVisibility(View.VISIBLE);
+		} else {
+			buttonPlay.setVisibility(View.GONE);
+		}
+
+		buttonStop.setVisibility(View.GONE);
 	}
 
 	private void createMapView(View view) {
@@ -226,9 +281,8 @@ public class MapFragment extends Fragment implements TrackManager.Listener {
 			List<Point> points = trackManager.getPoints(track);
 
 			for (Point point : points) {
-				overlayItems.add(
-						new OverlayItem(point.getName(), point.getDescription(),
-								new GeoPoint(point.getLatE6(), point.getLonE6())));
+				OverlayItem overlayItem = new PointOverlayItem(point);
+				overlayItems.add(overlayItem);
 			}
 		}
 
@@ -236,6 +290,15 @@ public class MapFragment extends Fragment implements TrackManager.Listener {
 			@Override
 			public boolean onItemSingleTapUp(int index, OverlayItem item) {
 				log.debug("onItemSingleTapUp");
+
+				MapFragment.this.selectedPoint = ((PointOverlayItem) item).getAGPoint();
+
+				setupBottomPanel();
+
+				Animation anim = AnimationUtils.loadAnimation(getActivity(), R.anim.bottom_up);
+				assert anim != null;
+				bottomToolbar.startAnimation(anim);
+				bottomToolbar.setVisibility(View.VISIBLE);
 				return false;
 			}
 
@@ -285,6 +348,21 @@ public class MapFragment extends Fragment implements TrackManager.Listener {
 		@Override
 		public void onServiceDisconnected(ComponentName componentName) {
 			trackingService = null;
+		}
+	}
+
+	private class PointOverlayItem extends OverlayItem {
+		private final Point point;
+
+		public PointOverlayItem(Point point) {
+			super(point.getName(), point.getDescription(),
+					new GeoPoint(point.getLatE6(), point.getLonE6()));
+
+			this.point = point;
+		}
+
+		public Point getAGPoint() {
+			return point;
 		}
 	}
 }
