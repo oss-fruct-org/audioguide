@@ -72,14 +72,7 @@ public class MainActivity extends ActionBarActivity
 
 		setContentView(R.layout.activity_main);
 
-		panelsCount = panelIds.length;
-		for (int i = 0; i < panelIds.length; i++) {
-			View view = findViewById(panelIds[i]);
-			if (view == null) {
-				panelsCount = i;
-				break;
-			}
-		}
+		initPanels(-1);
 
 		mNavigationDrawerFragment = (NavigationDrawerFragment)
 				fragmentManager.findFragmentById(R.id.navigation_drawer);
@@ -95,6 +88,29 @@ public class MainActivity extends ActionBarActivity
 			FragmentTransaction trans = fragmentManager.beginTransaction();
 			recreateFragmentStack(trans);
 			trans.commit();
+		}
+	}
+
+	private void initPanels(int maxCount) {
+		if (maxCount == -1)
+			maxCount = Integer.MAX_VALUE;
+
+		boolean found = false;
+		panelsCount = Math.min(maxCount, panelIds.length);
+		for (int i = 0; i < panelIds.length; i++) {
+			View view = findViewById(panelIds[i]);
+
+			if (!found && (view == null || i >= maxCount)) {
+				panelsCount = i;
+				found = true;
+			}
+
+			if (view != null) {
+				if (i < maxCount)
+					view.setVisibility(View.VISIBLE);
+				else
+					view.setVisibility(View.GONE);
+			}
 		}
 	}
 
@@ -118,16 +134,19 @@ public class MainActivity extends ActionBarActivity
 			return;
 		}
 
+		initPanels(-1);
+
 		Fragment fragment = null;
 		switch (position) {
-		case 1:
-			fragment = NavigateFragment.newInstance();
-			break;
 		case 0:
 			fragment = TrackFragment.newInstance();
 			break;
+		case 1:
+			fragment = NavigateFragment.newInstance();
+			break;
 		case 2:
 			fragment = MapFragment.newInstance();
+			initPanels(1);
 			break;
 		}
 
