@@ -22,6 +22,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
@@ -48,6 +49,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 
+import static android.view.View.VISIBLE;
 import static android.view.ViewGroup.LayoutParams;
 
 
@@ -125,11 +127,16 @@ public class MapFragment extends Fragment implements TrackManager.Listener {
 		assert view != null;
 
 		createMapView(view);
+
+		createClickHandlerOverlay();
+
 		createCenterOverlay();
 		updatePointsOverlay();
 		createMyPositionOverlay();
 
-		bottomToolbar = (ViewGroup) view.findViewById(R.id.map_toolbar);
+		for (Overlay overlay : mapView.getOverlays()) {
+			log.debug("OVERLAY: {}", overlay.getClass().getName());
+		}
 
 		return view;
 	}
@@ -170,6 +177,8 @@ public class MapFragment extends Fragment implements TrackManager.Listener {
 	}
 
 	private void setupBottomPanel() {
+		bottomToolbar = (ViewGroup) getView().findViewById(R.id.map_toolbar);
+
 		final Button buttonPlay = (Button) bottomToolbar.findViewById(R.id.button_play);
 		final Button buttonDetails = (Button) bottomToolbar.findViewById(R.id.button_details);
 		final Button buttonStop = (Button) bottomToolbar.findViewById(R.id.button_stop);
@@ -295,11 +304,14 @@ public class MapFragment extends Fragment implements TrackManager.Listener {
 
 				setupBottomPanel();
 
-				Animation anim = AnimationUtils.loadAnimation(getActivity(), R.anim.bottom_up);
-				assert anim != null;
-				bottomToolbar.startAnimation(anim);
-				bottomToolbar.setVisibility(View.VISIBLE);
-				return false;
+				if (bottomToolbar.getVisibility() != VISIBLE) {
+					Animation anim = AnimationUtils.loadAnimation(getActivity(), R.anim.bottom_up);
+					assert anim != null;
+					bottomToolbar.startAnimation(anim);
+					bottomToolbar.setVisibility(View.VISIBLE);
+				}
+
+				return true;
 			}
 
 			@Override
@@ -314,6 +326,29 @@ public class MapFragment extends Fragment implements TrackManager.Listener {
 	private void createMyPositionOverlay() {
 		myPositionOverlay = new MyPositionOverlay(getActivity(), mapView);
 		mapView.getOverlays().add(myPositionOverlay);
+	}
+
+	private void createClickHandlerOverlay() {
+		Overlay clickHandlerOverlay = new Overlay(getActivity()) {
+			@Override
+			protected void draw(Canvas c, MapView mapView, boolean shadow) {
+			}
+
+			@Override
+			public boolean onSingleTapConfirmed(MotionEvent e, MapView mapView) {
+				if (bottomToolbar != null) {
+					Animation anim = AnimationUtils.loadAnimation(getActivity(), R.anim.bottom_down);
+					assert anim != null;
+					bottomToolbar.startAnimation(anim);
+					bottomToolbar.setVisibility(View.GONE);
+					bottomToolbar = null;
+				}
+
+				return false;
+			}
+		};
+
+		mapView.getOverlays().add(clickHandlerOverlay);
 	}
 
 	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
@@ -337,6 +372,8 @@ public class MapFragment extends Fragment implements TrackManager.Listener {
 	public void pointsUpdated(Track track) {
 
 	}
+
+
 
 	private class TrackingServiceConnection implements ServiceConnection {
 		@Override

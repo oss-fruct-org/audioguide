@@ -80,9 +80,7 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
 		log.info("AudioService onDestroy");
 
 		if (player != null) {
-			if (player.isPlaying()) {
-				player.stop();
-			}
+			player.stop();
 		}
 
 		LocalBroadcastManager.getInstance(this).unregisterReceiver(inReceiver);
