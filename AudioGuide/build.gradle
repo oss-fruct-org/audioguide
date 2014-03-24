@@ -12,8 +12,8 @@ android {
     }
 
     sourceSets {
-        instrumentTest {
-            java.srcDirs = ['src/instrumentTest/java']
+        androidTest {
+            java.srcDirs = ['src/androidTest/java']
         }
     }
 
@@ -40,5 +40,5 @@ dependencies {
     
 
     compile fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
-    instrumentTestCompile 'com.jayway.android.robotium:robotium-solo:5.0.1'
+    androidTestCompile 'com.jayway.android.robotium:robotium-solo:5.0.1'
 }
