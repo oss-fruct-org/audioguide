@@ -1,23 +1,31 @@
 package org.fruct.oss.audioguide.util;
 
+import android.util.Pair;
+import android.util.TypedValue;
+
+import org.fruct.oss.audioguide.App;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.Reader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import android.util.Pair;
-import android.util.TypedValue;
-
-import org.fruct.oss.audioguide.App;
-
 @SuppressWarnings("unused")
 public class Utils {
+	private final static Logger log = LoggerFactory.getLogger(Utils.class);
 
 	private Utils() {
 	}
@@ -98,6 +106,17 @@ public class Utils {
 		}
 
 		return builder.toString();
+	}
+
+	public static void copyStream(InputStream input, OutputStream output) throws IOException {
+		int bufferSize = 4096;
+
+
+		byte[] buf = new byte[bufferSize];
+		int read;
+		while ((read = input.read(buf)) > 0) {
+			output.write(buf, 0, read);
+		}
 	}
 
 	public static <T> void select(Collection<T> source, Collection<T> target, Predicate<T> pred) {
@@ -208,4 +227,45 @@ public class Utils {
 
 		dir.delete();
 	}
+
+	public static String downloadUrl(String urlString, String postQuery) throws IOException {
+		HttpURLConnection conn = null;
+		InputStream responseStream = null;
+
+		try {
+			URL url = new URL(urlString);
+			conn = (HttpURLConnection) url.openConnection();
+			conn.setReadTimeout(10000);
+			conn.setConnectTimeout(10000);
+			conn.setRequestMethod(postQuery == null ? "GET" : "POST");
+			conn.setDoInput(true);
+			conn.setDoOutput(postQuery != null);
+			conn.setRequestProperty("User-Agent", "RoadSigns/0.2 (http://oss.fruct.org/projects/roadsigns/)");
+
+			if (postQuery != null) {
+				BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(conn.getOutputStream(), "UTF-8"));
+				writer.write(postQuery);
+				writer.flush();
+				writer.close();
+			}
+
+			conn.connect();
+
+			int responseCode = conn.getResponseCode();
+			responseStream = conn.getInputStream();
+			String response = Utils.inputStreamToString(responseStream);
+
+			log.trace("Request url {} data {}", urlString, postQuery);
+			log.trace("Response code {}, response {}", responseCode, response);
+
+			return response;
+		} finally {
+			if (conn != null)
+				conn.disconnect();
+
+			if (responseStream != null)
+				responseStream.close();
+		}
+	}
+
 }

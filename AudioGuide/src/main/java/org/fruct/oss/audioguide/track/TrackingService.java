@@ -6,6 +6,7 @@ import android.location.Location;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.support.v4.content.LocalBroadcastManager;
 
 import org.fruct.oss.audioguide.LocationReceiver;
@@ -36,6 +37,33 @@ public class TrackingService extends Service implements TrackManager.Listener, D
 		return binder;
 	}
 
+	private void startLocationTrack() {
+		new Thread() {
+			@Override
+			public void run() {
+				double[][] arr
+						= {
+						{61.788009,34.356433},
+						{61.787410,34.354308},
+						{61.786719,34.352334},
+						{61.786100,34.350339},
+						{61.784941,34.346605},
+						{61.780592,34.352454}};
+
+				for (double[] point : arr) {
+					try {
+						sleep(5000);
+					} catch (InterruptedException e) {
+						return;
+					}
+
+					mockLocation(point[0], point[1]);
+				}
+
+			}
+		}.start();
+	}
+
 	@Override
 	public void onCreate() {
 		super.onCreate();
@@ -55,6 +83,8 @@ public class TrackingService extends Service implements TrackManager.Listener, D
 
 		// Insert points into distanceTracker
 		tracksUpdated();
+
+		//startLocationTrack();
 	}
 
 	@Override
@@ -110,7 +140,7 @@ public class TrackingService extends Service implements TrackManager.Listener, D
 	}
 
 	public void mockLocation(final double latitude, final double longitude) {
-		Handler handler = new Handler();
+		Handler handler = new Handler(Looper.getMainLooper());
 		handler.postDelayed(new Runnable() {
 			@Override
 			public void run() {

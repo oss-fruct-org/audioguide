@@ -196,7 +196,6 @@ public class MapFragment extends Fragment implements TrackManager.Listener {
 
 				buttonPlay.setVisibility(View.GONE);
 				buttonStop.setVisibility(View.VISIBLE);
-
 			}
 		});
 

@@ -2,9 +2,11 @@ package org.fruct.oss.audioguide.track;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.net.Uri;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,6 +87,13 @@ public class DatabaseStorage implements ILocalStorage {
 		cv.put("trackId", track.getLocalId());
 
 		db.insert("points", null, cv);
+
+		// Send track's uri to AudioService to caching
+		if (point.hasAudio()) {
+			Intent intent = new Intent(AudioService.ACTION_CACHE,
+					Uri.parse(point.getAudioUrl()), context, AudioService.class);
+			context.startService(intent);
+		}
 	}
 
 	@Override
