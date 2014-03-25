@@ -135,13 +135,7 @@ public class TrackManager {
 	}
 
 	public List<Point> getPoints(Track track) {
-		ArrayList<Point> points = new ArrayList<Point>(localStorage.getPoints(track));
-		for (Point point : points) {
-			if (point.hasPhoto()) {
-				iconDownloader.insertUri(Uri.parse(point.getPhotoUrl()));
-			}
-		}
-		return points;
+		return new ArrayList<Point>(localStorage.getPoints(track));
 	}
 
 	public Bitmap getPointIconBitmap(Point point) {
@@ -229,6 +223,11 @@ public class TrackManager {
 			return;
 
 		localStorage.storeLocalPoints(track, points);
+		for (Point point : points) {
+			if (point.hasPhoto()) {
+				iconDownloader.insertUri(Uri.parse(point.getPhotoUrl()));
+			}
+		}
 		notifyPointsUpdated(track);
 	}
 
@@ -267,7 +266,7 @@ public class TrackManager {
 						"http://kappa.cs.karelia.ru/~ivashov/audioguide/DescenteInfinie.ogg",
 						"http://kappa.cs.karelia.ru/~ivashov/audioguide/petrsu.png",
 						61.786616, 34.352004), track2)
-				.insert(new Point("Vokzal", "Petrosavodsk vokzal", "", 61.784699,34.345883), track2)
+				.insert(new Point("Vokzal", "Petrosavodsk vokzal", "", 61.784699, 34.345883), track2)
 				.insert(new Point("Neglinlka", "River neglinka", "", 61.777575, 34.355340), track2);
 
 
