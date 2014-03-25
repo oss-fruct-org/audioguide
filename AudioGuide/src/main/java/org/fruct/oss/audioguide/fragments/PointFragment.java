@@ -168,6 +168,9 @@ public class PointFragment extends ListFragment {
 	@Override
 	public void onListItemClick(ListView l, View v, int position, long id) {
 		super.onListItemClick(l, v, position, id);
+
+		Point point = pointAdapter.getItem(position);
+		multiPanel.replaceFragment(PointDetailFragment.newInstance(point), this);
 	}
 
 	@Override

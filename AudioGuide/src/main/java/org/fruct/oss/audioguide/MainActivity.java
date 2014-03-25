@@ -272,7 +272,6 @@ public class MainActivity extends ActionBarActivity
 	@Override
 	public void replaceFragment(Fragment fragment, Fragment firstFragment) {
 		int size = fragmentStack.size();
-		log.debug("QWE {}", size);
 
 		FragmentStorage lastFragmentStorage = fragmentStack.get(size - 1);
 		if (!lastFragmentStorage.isStored() && lastFragmentStorage.getFragment() == firstFragment) {
