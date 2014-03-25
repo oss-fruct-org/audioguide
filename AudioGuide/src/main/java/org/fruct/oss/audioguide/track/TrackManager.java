@@ -9,8 +9,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeoutException;
 
 public class TrackManager {
 	public static interface Listener {
@@ -117,12 +119,14 @@ public class TrackManager {
 			track.setLocal(true);
 			allTracks.put(track.getId(), track);
 
-			executor.execute(new Runnable() {
-				@Override
-				public void run() {
-					doLoadRemotePoints(track);
-				}
-			});
+			if (localStorage.getPoints(track).isEmpty()) {
+				executor.execute(new Runnable() {
+					@Override
+					public void run() {
+						doLoadRemotePoints(track);
+					}
+				});
+			}
 		}
 
 		notifyTrackUpdated(track);
@@ -211,5 +215,24 @@ public class TrackManager {
 		instance = new TrackManager(localStorage, remoteStorage);
 		instance.initialize();
 		return instance;
+	}
+
+	public void waitTasks() {
+		final Object lock = new Object();
+		synchronized (lock) {
+			executor.execute(new Runnable() {
+				@Override
+				public void run() {
+					synchronized (lock) {
+						lock.notify();
+					}
+				}
+			});
+			try {
+				lock.wait(5000);
+			} catch (InterruptedException e) {
+				throw new RuntimeException("Timeout");
+			}
+		}
 	}
 }

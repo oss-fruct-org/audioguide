@@ -12,11 +12,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-public class TrackManagerTest extends AndroidTestCase implements TrackManager.Listener {
+public class TrackManagerTest extends AndroidTestCase {
 	private TrackManager trackManager;
-
-	private boolean isTracksReceived;
-	private final Object waiter = new Object();
 
 	private ArrayStorage remoteStorage;
 	private ArrayStorage localStorage;
@@ -30,13 +27,12 @@ public class TrackManagerTest extends AndroidTestCase implements TrackManager.Li
 
 		remoteStorage = new ArrayStorage()
 				.insert(track1 = new Track("aaa", "AAA", "uaaa"))
-				.insert(track2 = new Track("bbb", "BBB", "ubbb"));
+				.insert(track2 = new Track("bbb", "BBB", "ubbb"))
+				.insert(new Point("qwe", "asd", "", 64, 31), track1);
 
 		localStorage = new ArrayStorage();
 
 		trackManager = new TrackManager(localStorage, remoteStorage);
-		trackManager.addListener(this);
-		isTracksReceived = false;
 	}
 
 	public void testEmptyLocalStorage() {
@@ -48,7 +44,7 @@ public class TrackManagerTest extends AndroidTestCase implements TrackManager.Li
 		trackManager.initialize();
 		trackManager.loadRemoteTracks();
 
-		waitTracksUpdated();
+		trackManager.waitTasks();
 		List<Track> tracks = trackManager.getTracks();
 		sortTracks(tracks);
 		assertEquals(2, tracks.size());
@@ -61,7 +57,7 @@ public class TrackManagerTest extends AndroidTestCase implements TrackManager.Li
 	public void testUpdateLocalTrack() {
 		trackManager.initialize();
 		trackManager.loadRemoteTracks();
-		waitTracksUpdated();
+		trackManager.waitTasks();
 
 		Track newTrack = new Track("aaa", "AaA", "url");
 		trackManager.storeLocal(newTrack);
@@ -87,7 +83,7 @@ public class TrackManagerTest extends AndroidTestCase implements TrackManager.Li
 		remoteStorage.insert(new Track("ccc", "CCC", "uccc"));
 		trackManager.loadRemoteTracks();
 
-		waitTracksUpdated();
+		trackManager.waitTasks();
 		List<Track> tracks = trackManager.getTracks();
 		sortTracks(tracks);
 		assertEquals(3, tracks.size());
@@ -101,7 +97,7 @@ public class TrackManagerTest extends AndroidTestCase implements TrackManager.Li
 	public void testAddPoints() {
 		trackManager.initialize();
 		trackManager.loadRemoteTracks();
-		waitTracksUpdated();
+		trackManager.waitTasks();
 
 		Point point1, point2;
 		ArrayList<Point> spoints = new ArrayList<Point>();
@@ -119,11 +115,11 @@ public class TrackManagerTest extends AndroidTestCase implements TrackManager.Li
 	public void testActivate() {
 		trackManager.initialize();
 		trackManager.loadRemoteTracks();
-		waitTracksUpdated();
+		trackManager.waitTasks();
 
 		trackManager.storeLocal(track1);
 		trackManager.activateTrack(track1);
-		waitTracksUpdated();
+		trackManager.waitTasks();
 
 		List<Track> tracks = trackManager.getTracks();
 		sortTracks(tracks);
@@ -132,42 +128,19 @@ public class TrackManagerTest extends AndroidTestCase implements TrackManager.Li
 		assertTrue(tracks.get(0).isActive());
 	}
 
-	@Override
-	public void tracksUpdated() {
-		synchronized (waiter) {
-			isTracksReceived = true;
-			waiter.notifyAll();
-		}
-	}
+	public void testDoubleStorage() {
+		trackManager.initialize();
+		trackManager.loadRemoteTracks();
+		trackManager.waitTasks();
 
-	@Override
-	public void trackUpdated(Track track) {
-		synchronized (waiter) {
-			isTracksReceived = true;
-			waiter.notifyAll();
-		}
-	}
+		trackManager.storeLocal(track1);
+		trackManager.waitTasks();
 
-	@Override
-	public void pointsUpdated(Track track) {
-	}
+		trackManager.storeLocal(track1);
+		trackManager.waitTasks();
 
-	private void waitTracksUpdated() {
-		synchronized (waiter) {
-			if (isTracksReceived) {
-				isTracksReceived = false;
-				return;
-			}
-
-			try {
-				waiter.wait(5000);
-			} catch (InterruptedException e) {
-			}
-
-			if (!isTracksReceived)
-				throw new RuntimeException("Track manager timeout exceeded");
-			isTracksReceived = false;
-		}
+		List<Point> points = trackManager.getPoints(track1);
+		assertEquals(1, points.size());
 	}
 
 	private void sortTracks(List<Track> tracks) {
