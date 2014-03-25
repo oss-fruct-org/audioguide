@@ -33,6 +33,7 @@ public class DatabaseStorage implements ILocalStorage {
 			"lat INTEGER," +
 			"lon INTEGER," +
 			"audioUrl TEXT," +
+			"photoUrl TEXT," +
 			"trackId INTEGER," +
 			"FOREIGN KEY(trackId) REFERENCES tracks(id) ON DELETE CASCADE);";
 
@@ -41,7 +42,7 @@ public class DatabaseStorage implements ILocalStorage {
 	};
 
 	public static final String[] SELECT_POINT_COLUMNS = {
-			"id", "name", "description", "lat", "lon", "audioUrl", "trackId"
+			"id", "name", "description", "lat", "lon", "audioUrl", "trackId", "photoUrl"
 	};
 
 	private final Context context;
@@ -84,6 +85,7 @@ public class DatabaseStorage implements ILocalStorage {
 		cv.put("lat", point.getLatE6());
 		cv.put("lon", point.getLonE6());
 		cv.put("audioUrl", point.getAudioUrl());
+		cv.put("photoUrl", point.getPhotoUrl());
 		cv.put("trackId", track.getLocalId());
 
 		db.insert("points", null, cv);
@@ -165,7 +167,7 @@ public class DatabaseStorage implements ILocalStorage {
 			return points;
 
 		do {
-			Point point = new Point(cursor.getString(1), cursor.getString(2), cursor.getString(5),
+			Point point = new Point(cursor.getString(1), cursor.getString(2), cursor.getString(5), cursor.getString(7),
 					cursor.getInt(3), cursor.getInt(4));
 			points.add(point);
 		} while (cursor.moveToNext());

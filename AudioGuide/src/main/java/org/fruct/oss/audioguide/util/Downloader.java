@@ -63,7 +63,7 @@ public class Downloader {
 
 	/**
 	 * Search uri in local storage and return local uri with file content if exists
-	 * Otherwise returns same uri and enqueues it to download queue
+	 * Otherwise returns same uri and enqueue it to download queue
 	 * @param uri HTTP or HTTPS uri
 	 * @return ready for use uri(cached or remote)
 	 */
@@ -97,7 +97,7 @@ public class Downloader {
 					log.trace("Adding file to list {}", uriHash);
 					files.add(uriHash);
 				} catch (IOException ex) {
-					log.warn("Error while downloading file" + uri, ex);
+					log.warn("Error downloading file " + uri, ex);
 					if (!new File(tmpFilePath).delete()) {
 						log.warn("Can't delete incomplete file {}", tmpFilePath);
 					}

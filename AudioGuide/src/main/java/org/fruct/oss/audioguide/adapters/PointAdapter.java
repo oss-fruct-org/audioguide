@@ -2,6 +2,8 @@ package org.fruct.oss.audioguide.adapters;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -10,6 +12,7 @@ import android.widget.TextView;
 
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.track.Point;
+import org.fruct.oss.audioguide.track.TrackManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,6 +22,8 @@ import java.util.Set;
 
 public class PointAdapter extends ArrayAdapter<Point> {
 	private final static Logger log = LoggerFactory.getLogger(PointAdapter.class);
+
+	private final TrackManager trackManager;
 
 	private Context context;
 	private int resource;
@@ -31,6 +36,7 @@ public class PointAdapter extends ArrayAdapter<Point> {
 		this.context = context;
 		this.resource = resource;
 		this.points = points;
+		this.trackManager = TrackManager.getInstance();
 	}
 
 	@Override
@@ -51,6 +57,7 @@ public class PointAdapter extends ArrayAdapter<Point> {
 			holder.text1 = (TextView) view.findViewById(android.R.id.text1);
 			holder.text2 = (TextView) view.findViewById(android.R.id.text2);
 			holder.audioImage = (ImageView) view.findViewById(R.id.audioImage);
+			holder.icon = (ImageView) view.findViewById(android.R.id.icon);
 		}
 
 		Point point = points.get(position);
@@ -59,6 +66,13 @@ public class PointAdapter extends ArrayAdapter<Point> {
 		holder.text1.setText(point.getName());
 		holder.text2.setText(point.getDescription());
 		holder.audioImage.setVisibility(point.hasAudio() ? View.VISIBLE : View.GONE);
+
+		Bitmap iconBitmap = trackManager.getPointIconBitmap(point);
+		if (iconBitmap != null) {
+			holder.icon.setImageDrawable(new BitmapDrawable(getContext().getResources(), iconBitmap));
+		} else {
+			holder.icon.setImageDrawable(null);
+		}
 
 		if (highlightedItems.contains(point)) {
 			view.setBackgroundColor(0xffffd700);
@@ -91,5 +105,6 @@ public class PointAdapter extends ArrayAdapter<Point> {
 		TextView text2;
 
 		ImageView audioImage;
+		ImageView icon;
 	}
 }

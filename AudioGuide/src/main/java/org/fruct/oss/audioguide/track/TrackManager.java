@@ -1,6 +1,14 @@
 package org.fruct.oss.audioguide.track;
 
+import android.annotation.TargetApi;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
+import android.os.Build;
+import android.support.v4.util.LruCache;
+
 import org.fruct.oss.audioguide.App;
+import org.fruct.oss.audioguide.util.Downloader;
 import org.fruct.oss.audioguide.util.Utils;
 
 import java.util.ArrayList;
@@ -14,12 +22,32 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
 
+class IconCache extends LruCache<String, Bitmap> {
+	public IconCache(int maxSize) {
+		super(maxSize);
+	}
+
+	@Override
+	protected int sizeOf(String key, Bitmap value) {
+		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB_MR1)
+			return 32;
+		else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT
+				&& Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR1)
+			return value.getByteCount() / 1024;
+		else
+			return value.getAllocationByteCount() / 1024;
+	}
+}
+
 public class TrackManager {
 	public static interface Listener {
 		void tracksUpdated();
 		void trackUpdated(Track track);
 		void pointsUpdated(Track track);
 	}
+
+	private final Downloader iconDownloader;
+	private final LruCache<String, Bitmap> iconCache;
 
 	private final ILocalStorage localStorage;
 	private final IStorage remoteStorage;
@@ -35,6 +63,8 @@ public class TrackManager {
 	public TrackManager(ILocalStorage localStorage, IStorage remoteStorage) {
 		this.localStorage = localStorage;
 		this.remoteStorage = remoteStorage;
+		this.iconDownloader = new Downloader(App.getContext(), "point-icons");
+		this.iconCache = new IconCache(1024);
 	}
 
 	public void setExecutor(ExecutorService executor) {
@@ -105,7 +135,32 @@ public class TrackManager {
 	}
 
 	public List<Point> getPoints(Track track) {
-		return new ArrayList<Point>(localStorage.getPoints(track));
+		ArrayList<Point> points = new ArrayList<Point>(localStorage.getPoints(track));
+		for (Point point : points) {
+			if (point.hasPhoto()) {
+				iconDownloader.insertUri(Uri.parse(point.getPhotoUrl()));
+			}
+		}
+		return points;
+	}
+
+	public Bitmap getPointIconBitmap(Point point) {
+		if (point.hasPhoto()) {
+			Bitmap bitmap = iconCache.get(point.getPhotoUrl());
+			if (bitmap != null)
+				return bitmap;
+
+			Uri remotePhotoUri = Uri.parse(point.getPhotoUrl());
+			Uri localPhotoUri = iconDownloader.getUri(remotePhotoUri);
+
+			if (localPhotoUri != null && !localPhotoUri.equals(remotePhotoUri)) {
+				String localPhotoPath = localPhotoUri.getPath();
+				Bitmap newBitmap = BitmapFactory.decodeFile(localPhotoPath);
+				iconCache.put(point.getPhotoUrl(), newBitmap);
+				return newBitmap;
+			}
+		}
+		return null;
 	}
 
 	public void storeLocal(final Track track) {
@@ -205,12 +260,26 @@ public class TrackManager {
 		ILocalStorage localStorage = new DatabaseStorage(App.getContext());
 		Track track1 = new Track("Empty track", "Empty track description", "CCC");
 		Track track2 = new Track("Simple track", "Simple track description", "EEE");
-		IStorage remoteStorage = new ArrayStorage()
+		ArrayStorage remoteStorage = new ArrayStorage()
 				.insert(track1)
 				.insert(track2)
-				.insert(new Point("PetrSu", "Petrosavodsk state university", "http://kappa.cs.karelia.ru/~ivashov/DescenteInfinie.ogg", 61.786616, 34.352004), track2)
+				.insert(new Point("PetrSu", "Petrosavodsk state university",
+						"http://kappa.cs.karelia.ru/~ivashov/audioguide/DescenteInfinie.ogg",
+						"http://kappa.cs.karelia.ru/~ivashov/audioguide/petrsu.png",
+						61.786616, 34.352004), track2)
 				.insert(new Point("Vokzal", "Petrosavodsk vokzal", "", 61.784699,34.345883), track2)
 				.insert(new Point("Neglinlka", "River neglinka", "", 61.777575, 34.355340), track2);
+
+
+		for (int i = 0; i < 10; i++) {
+			remoteStorage.insert(new Point("PetrSu " + i, "Petrosavodsk state university",
+					"http://kappa.cs.karelia.ru/~ivashov/audioguide/DescenteInfinie.ogg",
+					"http://kappa.cs.karelia.ru/~ivashov/audioguide/petrsu.png",
+					61.786616, 34.352004), track2)
+					.insert(new Point("Vokzal " + i, "Petrosavodsk vokzal", "", 61.784699,34.345883), track2)
+					.insert(new Point("Neglinlka " + i, "River neglinka", "", "http://kappa.cs.karelia.ru/~ivashov/audioguide/reka1.jpg", 61.777575, 34.355340), track2);
+
+		}
 
 		instance = new TrackManager(localStorage, remoteStorage);
 		instance.initialize();

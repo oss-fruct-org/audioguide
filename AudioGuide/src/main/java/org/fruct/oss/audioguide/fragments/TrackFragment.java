@@ -87,12 +87,17 @@ public class TrackFragment extends ListFragment implements TrackManager.Listener
 
 	@Override
 	public void tracksUpdated() {
-		List<Track> tracks = trackManager.getTracks();
+		final List<Track> tracks = trackManager.getTracks();
 		log.debug("Tracks updated. Size = {}", tracks.size());
 
-		trackAdapter.clear();
-		for (Track track : tracks)
-			trackAdapter.add(track);
+		getActivity().runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				trackAdapter.clear();
+				for (Track track : tracks)
+					trackAdapter.add(track);
+			}
+		});
 	}
 
 	@Override
