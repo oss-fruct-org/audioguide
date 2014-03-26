@@ -4,6 +4,7 @@ package org.fruct.oss.audioguide.test;
 import android.content.Context;
 import android.test.AndroidTestCase;
 
+import org.fruct.oss.audioguide.parsers.AuthRedirectResponse;
 import org.fruct.oss.audioguide.parsers.GetsResponse;
 import org.fruct.oss.audioguide.parsers.Kml;
 import org.fruct.oss.audioguide.parsers.TracksContent;
@@ -85,5 +86,14 @@ public class ParserTest extends AndroidTestCase{
 
 		assertEquals("qwe", tracks.get(1).getName());
 		assertEquals("asd", tracks.get(1).getDescription());
+	}
+
+	public void testAuth1() throws Exception {
+		InputStream stream = testContext.getAssets().open("google-auth-stage1.xml");
+		Serializer serializer = new Persister();
+
+		GetsResponse resp = serializer.read(GetsResponse.class, stream);
+		assertEquals(2, resp.getCode());
+		assertTrue(resp.getContent() instanceof AuthRedirectResponse);
 	}
 }

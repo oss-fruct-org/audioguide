@@ -29,6 +29,7 @@ public class GetsStorage implements IStorage {
 			"</params></request>";
 
 	private List<Track> loadedTracks;
+	private String getsAuthenticationId;
 
 	@Override
 	public void initialize() {
@@ -81,5 +82,9 @@ public class GetsStorage implements IStorage {
 			log.warn("Error: ", e);
 			return Collections.emptyList();
 		}
+	}
+
+	private void authenticate() {
+
 	}
 }

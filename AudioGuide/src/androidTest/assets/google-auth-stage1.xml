@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<response>
+    <status>
+        <code>2</code>
+        <message>redirect</message>
+    </status>
+    <content>
+        <id>somelongid</id>
+        <redirect_url>http://example.com/authentication.php</redirect_url>
+    </content>
+</response>

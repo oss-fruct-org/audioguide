@@ -20,10 +20,10 @@ public class GetsResponse {
 	@Path("content")
 	@ElementUnion({
 		@Element(name = "tracks", type = TracksContent.class),
-		@Element(name = "kml", type = Kml.class)
+		@Element(name = "kml", type = Kml.class),
+		@Element(type = AuthRedirectResponse.class)
 	})
 	private IContent content;
-
 
 	public int getCode() {
 		return code;
