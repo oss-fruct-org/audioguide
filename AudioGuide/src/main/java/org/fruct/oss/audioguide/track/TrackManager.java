@@ -290,6 +290,8 @@ public class TrackManager {
 
 		instance = new TrackManager(localStorage, getsStorage);
 		instance.initialize();
+		instance.loadRemoteTracks();
+
 		return instance;
 	}
 

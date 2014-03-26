@@ -50,7 +50,6 @@ public class TrackFragment extends ListFragment implements TrackManager.Listener
 		trackManager.addListener(this);
 		trackAdapter = new TrackAdapter(getActivity(), R.layout.list_track_item, trackManager.getTracks());
 		setListAdapter(trackAdapter);
-		trackManager.loadRemoteTracks();
 	}
 
 	@Override

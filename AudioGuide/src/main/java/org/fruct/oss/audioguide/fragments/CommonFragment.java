@@ -1,8 +1,6 @@
 package org.fruct.oss.audioguide.fragments;
 
 
-
-import android.app.ActionBar;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -10,13 +8,9 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.TextView;
 
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.track.AudioService;
@@ -24,12 +18,6 @@ import org.fruct.oss.audioguide.track.TrackingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * A simple {@link android.support.v4.app.Fragment} subclass.
- * Use the {@link CommonFragment#newInstance} factory method to
- * create an instance of this fragment.
- *
- */
 public class CommonFragment extends Fragment {
 	private final static Logger log = LoggerFactory.getLogger(CommonFragment.class);
 
@@ -38,11 +26,6 @@ public class CommonFragment extends Fragment {
 	private BroadcastReceiver watchReceiver;
 	private BroadcastReceiver audioStopReceiver;
 
-	/**
-	 * Use this factory method to create a new instance of
-	 * this fragment using the provided parameters.
-	 * @return A new instance of fragment CommonFragment.
-	 */
 	public static CommonFragment newInstance() {
 		return new CommonFragment();
 	}

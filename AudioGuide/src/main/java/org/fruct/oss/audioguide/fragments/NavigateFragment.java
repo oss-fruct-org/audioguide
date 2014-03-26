@@ -51,7 +51,7 @@ public class NavigateFragment extends ListFragment implements TrackManager.Liste
 
 		trackManager = TrackManager.getInstance();
 		trackManager.addListener(this);
-		trackManager.loadRemoteTracks();
+		updateTracksAdapter();
 
 		serviceConnection = new TrackingServiceConnection();
 	}
