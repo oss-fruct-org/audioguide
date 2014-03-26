@@ -15,8 +15,9 @@ import org.fruct.oss.audioguide.track.Point;
 
 public class PointDetailFragment extends Fragment {
     private static final String ARG_POINT = "point";
+	private static final String STATE_POINT = "point";
 
-    private Point point;
+	private Point point;
 
 	private MultiPanel multiPanel;
 
@@ -44,7 +45,11 @@ public class PointDetailFragment extends Fragment {
         if (getArguments() != null) {
             point = getArguments().getParcelable(ARG_POINT);
         }
-    }
+
+		if (savedInstanceState != null) {
+			point = savedInstanceState.getParcelable(STATE_POINT);
+		}
+	}
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -53,7 +58,7 @@ public class PointDetailFragment extends Fragment {
 		assert view != null;
 
 		TextView textView = (TextView) view.findViewById(android.R.id.text1);
-		textView.setText(point.getName());
+		textView.setText(point.getName() + " " + point.getLatE6() + ":" + point.getLonE6());
 
 		return view;
 	}
@@ -75,5 +80,10 @@ public class PointDetailFragment extends Fragment {
 		multiPanel = null;
     }
 
+	@Override
+	public void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
 
+		outState.putParcelable(STATE_POINT, point);
+	}
 }

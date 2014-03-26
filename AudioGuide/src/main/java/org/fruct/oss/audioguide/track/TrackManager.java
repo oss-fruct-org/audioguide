@@ -10,6 +10,8 @@ import android.support.v4.util.LruCache;
 import org.fruct.oss.audioguide.App;
 import org.fruct.oss.audioguide.util.Downloader;
 import org.fruct.oss.audioguide.util.Utils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -40,6 +42,8 @@ class IconCache extends LruCache<String, Bitmap> {
 }
 
 public class TrackManager {
+	private final static Logger log = LoggerFactory.getLogger(TrackManager.class);
+
 	public static interface Listener {
 		void tracksUpdated();
 		void trackUpdated(Track track);
@@ -98,6 +102,7 @@ public class TrackManager {
 	 * Method starts loading tracks from remote storage and immediately returns without blocking
 	 */
 	public void loadRemoteTracks() {
+		log.trace("loadRemoteTracks");
 		checkInitialized();
 
 		executor.execute(new Runnable() {
@@ -204,6 +209,7 @@ public class TrackManager {
 	}
 
 	private void doLoadRemoteTracks() {
+		log.trace("doLoadRemoteTracks");
 		remoteStorage.load();
 
 		List<Track> tracks = remoteStorage.getTracks();
@@ -280,7 +286,9 @@ public class TrackManager {
 
 		}
 
-		instance = new TrackManager(localStorage, remoteStorage);
+		GetsStorage getsStorage = new GetsStorage();
+
+		instance = new TrackManager(localStorage, getsStorage);
 		instance.initialize();
 		return instance;
 	}

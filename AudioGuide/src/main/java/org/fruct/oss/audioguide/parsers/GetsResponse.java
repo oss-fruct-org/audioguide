@@ -4,6 +4,8 @@ import org.simpleframework.xml.Element;
 import org.simpleframework.xml.ElementUnion;
 import org.simpleframework.xml.Path;
 import org.simpleframework.xml.Root;
+import org.simpleframework.xml.Serializer;
+import org.simpleframework.xml.core.Persister;
 
 @Root(name = "response", strict = false)
 public class GetsResponse {
@@ -33,5 +35,14 @@ public class GetsResponse {
 
 	public IContent getContent() {
 		return content;
+	}
+
+	public static GetsResponse parse(String responseXml) throws GetsException {
+		Serializer serializer = new Persister();
+		try {
+			return serializer.read(GetsResponse.class, responseXml);
+		} catch (Exception e) {
+			throw new GetsException(e);
+		}
 	}
 }

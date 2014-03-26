@@ -16,17 +16,20 @@ public interface IStorage extends Closeable {
 
 	/**
 	 * Load or reload track list from storage
+	 * This method can do long asynchronous work
 	 */
 	void load();
 
 	/**
 	 * Get list of tracks
+	 * This method should return immediately
 	 * @return list of tracks
 	 */
 	List<Track> getTracks();
 
 	/**
 	 * Get content of track
+	 * This method can do long asynchronous work
 	 * @param track Track
 	 */
 	List<Point> getPoints(Track track);
