@@ -35,6 +35,8 @@ public class Downloader {
 		// Directory should contain files with names representing md5's of corresponding uri's
 		files = Collections.synchronizedSet(new HashSet<String>());
 		localFileDir = openDir(storageName);
+		if (localFileDir == null)
+			return;
 
 		log.trace("Loading local storage files for directory {}", localFileDir);
 		for (File file : localFileDir.listFiles()) {
@@ -46,6 +48,9 @@ public class Downloader {
 	}
 
 	protected File openDir(String dir) {
+		if (context == null)
+			return null;
+
 		return context.getExternalFilesDir(dir);
 	}
 

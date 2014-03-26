@@ -3,17 +3,29 @@ package org.fruct.oss.audioguide.track;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import org.simpleframework.xml.Element;
+import org.simpleframework.xml.Root;
+
 import java.lang.reflect.Field;
 
+@Root(strict = false)
 public class Track implements Parcelable, Comparable<Track> {
+	@Element(name = "name")
 	private String name;
+
+	@Element(name = "description")
 	private String description;
+
 	private String url;
 
 	private boolean isLocal;
 	private boolean isActive;
 
 	private long localId;
+
+	public Track() {
+		this("", "", "");
+	}
 
 	public Track(String name, String description, String url) {
 		this.name = name;

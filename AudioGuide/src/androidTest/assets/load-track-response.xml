@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<response>
+    <status>
+        <code>0</code>
+        <message>success</message>
+    </status>
+    <content>
+        <kml xmlns="http://www.opengis.net/kml/2.2">
+            <Document>
+                <name>tr_private.kml</name>
+                <open>1</open>
+                <Style id="styleDocument">
+                    <LabelStyle>
+                        <color>ff0000cc</color>
+                    </LabelStyle>
+                </Style>
+                <Placemark>
+                    <name>Test point</name>
+                    <description><![CDATA[Description text]]></description>
+                    <ExtendedData>
+                        <Data name="url">
+                            <value>http://example.com</value>
+                        </Data>
+                        <Data name="description">
+                            <value>Description text</value>
+                        </Data>
+                        <Data name="audio">
+                            <value>http://example.com/DescenteInfinie.ogg</value>
+                        </Data>
+                    </ExtendedData>
+                    <Point>
+                        <coordinates>61.7866,34.3519,0.0</coordinates>
+                    </Point>
+                </Placemark>
+                <Placemark>
+                    <name>qwe</name>
+                    <description><![CDATA[asd]]></description>
+                    <ExtendedData>
+                        <Data name="url">
+                            <value>http://example.com</value>
+                        </Data>
+                    </ExtendedData>
+                    <Point>
+                        <coordinates>61,34,0.0</coordinates>
+                    </Point>
+                </Placemark>
+            </Document>
+        </kml>
+    </content>
+</response>

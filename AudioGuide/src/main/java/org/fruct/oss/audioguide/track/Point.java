@@ -4,8 +4,24 @@ import android.location.Location;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import org.fruct.oss.audioguide.util.Utils;
+import org.simpleframework.xml.Element;
+import org.simpleframework.xml.ElementMap;
+import org.simpleframework.xml.Path;
+import org.simpleframework.xml.Root;
+import org.simpleframework.xml.Text;
+import org.simpleframework.xml.convert.Convert;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.StringTokenizer;
+
+@Root(strict = false)
 public class Point implements Parcelable {
+	@Element(name = "name")
 	private String name;
+
+	@Element(name = "description", data = true)
 	private String description;
 	private int latE6;
 	private int lonE6;
@@ -13,7 +29,48 @@ public class Point implements Parcelable {
 	private String audioUrl;
 	private String photoUrl;
 
+	@ElementMap(name = "ExtendedData", entry = "Data", key = "name", attribute = true, empty = false, value="value", valueType = ExtendedValue.class)
+	private void setExtendedData(Map<String, ExtendedValue> extendedData) {
+		if (extendedData.containsKey("audio"))
+			audioUrl = extendedData.get("audio").value;
+		if (extendedData.containsKey("photo"))
+			photoUrl = extendedData.get("photo").value;
+	}
+
+	@ElementMap(name = "ExtendedData", entry = "Data", key = "name", attribute = true, empty = false, value="value", valueType = ExtendedValue.class)
+	private Map<String, ExtendedValue> getExtendedData() {
+		HashMap<String, ExtendedValue> ret = new HashMap<String, ExtendedValue>();
+
+		if (!Utils.isNullOrEmpty(audioUrl))
+			ret.put("audio", new ExtendedValue(audioUrl));
+
+		if (!Utils.isNullOrEmpty(photoUrl))
+			ret.put("photo", new ExtendedValue(photoUrl));
+
+		return ret;
+	}
+
+	@Element(name="coordinates")
+	@Path("Point")
+	public void setCoordinates(String coordinates) {
+		StringTokenizer tok = new StringTokenizer(coordinates, ",", false);
+
+		double longitude = Double.parseDouble(tok.nextToken());
+		double latitude = Double.parseDouble(tok.nextToken());
+		latE6 = (int) (latitude * 1e6);
+		lonE6 = (int) (longitude * 1e6);
+	}
+
+	@Element(name="coordinates")
+	@Path("Point")
+	public String getCoordinates() {
+		return (latE6 / 1e6) + ", " + (lonE6 / 1e6) + ", 0.0";
+	}
+
 	private transient Location cachedLocation;
+
+	public Point() {
+	}
 
 	public Point(String name, String description, String audioUrl, String photoUrl, int latE6, int lonE6) {
 		this.name = name;
@@ -154,4 +211,17 @@ public class Point implements Parcelable {
 			return new Point[i];
 		}
 	};
+
+	@Root
+	public static class ExtendedValue {
+		public ExtendedValue() {
+		}
+
+		public ExtendedValue(String value) {
+			this.value = value;
+		}
+
+		@Text
+		public String value;
+	}
 }

@@ -22,6 +22,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 @SuppressWarnings("unused")
 public class Utils {
@@ -212,6 +213,10 @@ public class Utils {
 			return null;
 		else
 			return cls.cast(t);
+	}
+
+	public static boolean isNullOrEmpty(String str) {
+		return str == null || str.isEmpty();
 	}
 
 	public static void deleteDir(File dir) {

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<response>
+    <status>
+        <code>0</code>
+        <message>success</message>
+    </status>
+    <content>
+        <tracks>
+            <track>
+                <name>tr_private</name>
+                <description>Private track</description>
+                <category_id>1</category_id>
+            </track>
+            <track>
+                <name>tr_private2</name>
+                <description>Private track 2</description>
+                <category_id>1</category_id>
+            </track>
+
+        </tracks>
+    </content>
+</response>
