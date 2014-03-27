@@ -6,12 +6,12 @@ import android.test.AndroidTestCase;
 
 import org.fruct.oss.audioguide.parsers.AuthRedirectResponse;
 import org.fruct.oss.audioguide.parsers.GetsResponse;
+import org.fruct.oss.audioguide.parsers.IContent;
 import org.fruct.oss.audioguide.parsers.Kml;
 import org.fruct.oss.audioguide.parsers.TracksContent;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.Track;
-import org.simpleframework.xml.Serializer;
-import org.simpleframework.xml.core.Persister;
+import org.fruct.oss.audioguide.util.Utils;
 
 import java.io.InputStream;
 import java.util.List;
@@ -43,9 +43,8 @@ public class ParserTest extends AndroidTestCase{
 
 	public void testErrorResponse() throws Exception {
 		InputStream stream = testContext.getAssets().open("error-response.xml");
-		Serializer serializer = new Persister();
 
-		GetsResponse resp = serializer.read(GetsResponse.class, stream);
+		GetsResponse resp = GetsResponse.parse(Utils.inputStreamToString(stream), IContent.class);
 		assertEquals(1, resp.getCode());
 		assertEquals("Wrong token error", resp.getMessage());
 		assertNull(resp.getContent());
@@ -53,9 +52,8 @@ public class ParserTest extends AndroidTestCase{
 
 	public void testLoadTracksResponse() throws Exception {
 		InputStream stream = testContext.getAssets().open("load-tracks-response.xml");
-		Serializer serializer = new Persister();
 
-		GetsResponse resp = serializer.read(GetsResponse.class, stream);
+		GetsResponse resp = GetsResponse.parse(Utils.inputStreamToString(stream), TracksContent.class);
 		assertEquals(0, resp.getCode());
 		assertEquals("success", resp.getMessage());
 		assertTrue(resp.getContent() instanceof TracksContent);
@@ -71,9 +69,8 @@ public class ParserTest extends AndroidTestCase{
 
 	public void testLoadTrackResponse() throws Exception {
 		InputStream stream = testContext.getAssets().open("load-track-response.xml");
-		Serializer serializer = new Persister();
+		GetsResponse resp = GetsResponse.parse(Utils.inputStreamToString(stream), Kml.class);
 
-		GetsResponse resp = serializer.read(GetsResponse.class, stream);
 		assertEquals(0, resp.getCode());
 		assertEquals("success", resp.getMessage());
 		assertTrue(resp.getContent() instanceof Kml);
@@ -90,10 +87,13 @@ public class ParserTest extends AndroidTestCase{
 
 	public void testAuth1() throws Exception {
 		InputStream stream = testContext.getAssets().open("google-auth-stage1.xml");
-		Serializer serializer = new Persister();
 
-		GetsResponse resp = serializer.read(GetsResponse.class, stream);
+		GetsResponse resp = GetsResponse.parse(Utils.inputStreamToString(stream), AuthRedirectResponse.class);
 		assertEquals(2, resp.getCode());
 		assertTrue(resp.getContent() instanceof AuthRedirectResponse);
+		
+		AuthRedirectResponse content = ((AuthRedirectResponse) resp.getContent());
+		assertEquals("somelongid", content.getSessionId());
+		assertEquals("http://example.com/authentication.php", content.getRedirectUrl());
 	}
 }

@@ -6,6 +6,8 @@ import android.util.TypedValue;
 import org.fruct.oss.audioguide.App;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -29,6 +31,25 @@ public class Utils {
 	private final static Logger log = LoggerFactory.getLogger(Utils.class);
 
 	private Utils() {
+	}
+
+	public static void skip(XmlPullParser parser) throws XmlPullParserException, IOException {
+		int depth = 1;
+
+		if (parser.getEventType() != XmlPullParser.START_TAG) {
+			throw new IllegalStateException("Parser must be on start tag");
+		}
+
+		while (depth > 0) {
+			switch (parser.next()) {
+			case XmlPullParser.START_TAG:
+				depth++;
+				break;
+			case XmlPullParser.END_TAG:
+				depth--;
+				break;
+			}
+		}
 	}
 
 	public static interface Predicate<T> {

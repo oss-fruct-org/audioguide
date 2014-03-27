@@ -4,24 +4,17 @@ import android.location.Location;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import org.fruct.oss.audioguide.parsers.GetsResponse;
 import org.fruct.oss.audioguide.util.Utils;
-import org.simpleframework.xml.Element;
-import org.simpleframework.xml.ElementMap;
-import org.simpleframework.xml.Path;
-import org.simpleframework.xml.Root;
-import org.simpleframework.xml.Text;
-import org.simpleframework.xml.convert.Convert;
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.io.IOException;
 import java.util.StringTokenizer;
 
-@Root(strict = false)
 public class Point implements Parcelable {
-	@Element(name = "name")
 	private String name;
 
-	@Element(name = "description", data = true)
 	private String description;
 	private int latE6;
 	private int lonE6;
@@ -29,29 +22,6 @@ public class Point implements Parcelable {
 	private String audioUrl;
 	private String photoUrl;
 
-	@ElementMap(name = "ExtendedData", entry = "Data", key = "name", attribute = true, empty = false, value="value", valueType = ExtendedValue.class)
-	private void setExtendedData(Map<String, ExtendedValue> extendedData) {
-		if (extendedData.containsKey("audio"))
-			audioUrl = extendedData.get("audio").value;
-		if (extendedData.containsKey("photo"))
-			photoUrl = extendedData.get("photo").value;
-	}
-
-	@ElementMap(name = "ExtendedData", entry = "Data", key = "name", attribute = true, empty = false, value="value", valueType = ExtendedValue.class)
-	private Map<String, ExtendedValue> getExtendedData() {
-		HashMap<String, ExtendedValue> ret = new HashMap<String, ExtendedValue>();
-
-		if (!Utils.isNullOrEmpty(audioUrl))
-			ret.put("audio", new ExtendedValue(audioUrl));
-
-		if (!Utils.isNullOrEmpty(photoUrl))
-			ret.put("photo", new ExtendedValue(photoUrl));
-
-		return ret;
-	}
-
-	@Element(name="coordinates")
-	@Path("Point")
 	public void setCoordinates(String coordinates) {
 		StringTokenizer tok = new StringTokenizer(coordinates, ",", false);
 
@@ -61,8 +31,6 @@ public class Point implements Parcelable {
 		lonE6 = (int) (longitude * 1e6);
 	}
 
-	@Element(name="coordinates")
-	@Path("Point")
 	public String getCoordinates() {
 		return (latE6 / 1e6) + ", " + (lonE6 / 1e6) + ", 0.0";
 	}
@@ -212,16 +180,67 @@ public class Point implements Parcelable {
 		}
 	};
 
-	@Root
-	public static class ExtendedValue {
-		public ExtendedValue() {
+	public static Point parse(XmlPullParser parser) throws IOException, XmlPullParserException {
+		parser.require(XmlPullParser.START_TAG, null, "Placemark");
+		Point point = new Point();
+
+		while (parser.next() != XmlPullParser.END_TAG) {
+			if (parser.getEventType() != XmlPullParser.START_TAG)
+				continue;
+
+			String tagName = parser.getName();
+			if (tagName.equals("name")) {
+				point.name = GetsResponse.readText(parser);
+				parser.require(XmlPullParser.END_TAG, null, "name");
+			} else if (tagName.equals("description")) {
+				point.description = GetsResponse.readText(parser);
+				parser.require(XmlPullParser.END_TAG, null, "description");
+			} else if (tagName.equals("Point")) {
+				parser.nextTag();
+				parser.require(XmlPullParser.START_TAG, null, "coordinates");
+
+				point.setCoordinates(GetsResponse.readText(parser));
+
+				parser.nextTag();
+				parser.require(XmlPullParser.END_TAG, null, "Point");
+			} else if (tagName.equals("ExtendedData")) {
+				readExtendedData(parser, point);
+				parser.require(XmlPullParser.END_TAG, null, "ExtendedData");
+			} else {
+				Utils.skip(parser);
+			}
 		}
 
-		public ExtendedValue(String value) {
-			this.value = value;
-		}
+		return point;
+	}
 
-		@Text
-		public String value;
+	private static void readExtendedData(XmlPullParser parser, Point point) throws IOException, XmlPullParserException {
+		parser.require(XmlPullParser.START_TAG, null, "ExtendedData");
+
+		while (parser.next() != XmlPullParser.END_TAG) {
+			if (parser.getEventType() != XmlPullParser.START_TAG)
+				continue;
+
+			String tagName = parser.getName();
+			if (tagName.equals("Data")) {
+				String key = parser.getAttributeValue(null, "name");
+				if (key == null)
+					throw new XmlPullParserException("Data tag have to have attribute 'name'");
+
+				parser.nextTag();
+				parser.require(XmlPullParser.START_TAG, null, "value");
+				String value = GetsResponse.readText(parser);
+
+				if (key.equals("photo"))
+					point.photoUrl = value;
+				else if (key.equals("audio"))
+					point.audioUrl = value;
+
+				parser.nextTag();
+				parser.require(XmlPullParser.END_TAG, null, "Data");
+			} else {
+				Utils.skip(parser);
+			}
+		}
 	}
 }

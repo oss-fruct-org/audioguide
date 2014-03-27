@@ -46,7 +46,7 @@ public class GetsStorage implements IStorage {
 		try {
 			String responseString = Utils.downloadUrl(GETS_SERVER + "/loadTracks.php",
 					String.format(LOAD_TRACKS_REQUEST, TOKEN));
-			GetsResponse response = GetsResponse.parse(responseString);
+			GetsResponse response = GetsResponse.parse(responseString, TracksContent.class);
 
 			if (response.getCode() != 0) {
 				throw new RuntimeException("NOT IMPLEMENTED YET");
@@ -70,7 +70,7 @@ public class GetsStorage implements IStorage {
 		try {
 			String responseString = Utils.downloadUrl(GETS_SERVER + "/loadTrack.php",
 					String.format(LOAD_TRACK_REQUEST, TOKEN, track.getName()));
-			GetsResponse response = GetsResponse.parse(responseString);
+			GetsResponse response = GetsResponse.parse(responseString, Kml.class);
 
 			if (response.getCode() != 0) {
 				throw new RuntimeException("NOT IMPLEMENTED YET");
