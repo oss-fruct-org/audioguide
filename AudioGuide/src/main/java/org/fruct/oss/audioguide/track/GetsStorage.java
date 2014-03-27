@@ -21,6 +21,8 @@ import java.util.List;
 public class GetsStorage implements IStorage {
 	private final static Logger log = LoggerFactory.getLogger(GetsStorage.class);
 
+	public static final String PREF_AUTH_TOKEN = "pref-auth-token";
+
 	//public static final String GETS_SERVER = "http://172.20.2.217:8000/getslocal";
 	public static final String GETS_SERVER = "http://oss.fruct.org/projects/gets/service";
 	public static final String TOKEN = "66cf0b48817ad7eaa1a4cec102984add";
@@ -35,16 +37,13 @@ public class GetsStorage implements IStorage {
 			"</params></request>";
 
 	public static final String LOGIN_STAGE_1 = "<request><params></params></request>";
-	public static final String LOGIN_STAGE_2 = "<request><params>%s</params></request>";
-
+	public static final String LOGIN_STAGE_2 = "<request><params><id>%s</id></params></request>";
 
 	private List<Track> loadedTracks;
-	private String getsAuthenticationId;
-	private String token;
 
 	@Override
 	public void initialize() {
-		authenticate();
+		//authenticate();
 	}
 
 	@Override
@@ -96,25 +95,6 @@ public class GetsStorage implements IStorage {
 	}
 
 	private void authenticate() {
-		if (getsAuthenticationId == null && token == null) {
-			try {
-				String responseString = Utils.downloadUrl(GETS_SERVER + "/userLogin.php", LOGIN_STAGE_1);
-				GetsResponse response = GetsResponse.parse(responseString, AuthRedirectResponse.class);
 
-				// Redirection code
-				if (response.getCode() != 2)
-					return;
-
-				AuthRedirectResponse redirect = ((AuthRedirectResponse) response.getContent());
-				getsAuthenticationId = redirect.getSessionId();
-				String redirectUrl = redirect.getRedirectUrl();
-
-				Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(redirectUrl));
-				intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-				App.getContext().startActivity(intent);
-			} catch (Exception e) {
-				log.warn("Error: ", e);
-			}
-		}
 	}
 }

@@ -58,6 +58,13 @@ public class GetsResponse {
 				return AuthRedirectResponse.parse(parser);
 			}
 		});
+
+		contentParsers.put(TokenContent.class, new ContentParser() {
+			@Override
+			public IContent parse(XmlPullParser parser) throws IOException, XmlPullParserException {
+				return TokenContent.parse(parser);
+			}
+		});
 	}
 
 

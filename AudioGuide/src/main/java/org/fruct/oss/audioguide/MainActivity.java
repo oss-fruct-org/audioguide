@@ -19,6 +19,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.widget.TextView;
 
 import org.fruct.oss.audioguide.fragments.CommonFragment;
+import org.fruct.oss.audioguide.fragments.GetsFragment;
 import org.fruct.oss.audioguide.fragments.MapFragment;
 import org.fruct.oss.audioguide.fragments.NavigateFragment;
 import org.fruct.oss.audioguide.fragments.TrackFragment;
@@ -154,6 +155,10 @@ public class MainActivity extends ActionBarActivity
 			fragment = MapFragment.newInstance();
 			initPanels(1);
 			break;
+		case 3:
+			fragment = GetsFragment.newInstance();
+			initPanels(-1);
+			break;
 		}
 
 		fragmentStack.clear();
@@ -175,6 +180,8 @@ public class MainActivity extends ActionBarActivity
 		case 3:
 			mTitle = getString(R.string.title_section3);
 			break;
+		case 4:
+			mTitle = getString(R.string.title_section4);
 		}
 	}
 

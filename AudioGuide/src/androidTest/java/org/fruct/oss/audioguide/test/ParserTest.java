@@ -8,6 +8,7 @@ import org.fruct.oss.audioguide.parsers.AuthRedirectResponse;
 import org.fruct.oss.audioguide.parsers.GetsResponse;
 import org.fruct.oss.audioguide.parsers.IContent;
 import org.fruct.oss.audioguide.parsers.Kml;
+import org.fruct.oss.audioguide.parsers.TokenContent;
 import org.fruct.oss.audioguide.parsers.TracksContent;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.Track;
@@ -95,5 +96,16 @@ public class ParserTest extends AndroidTestCase{
 		AuthRedirectResponse content = ((AuthRedirectResponse) resp.getContent());
 		assertEquals("somelongid", content.getSessionId());
 		assertEquals("http://example.com/authentication.php", content.getRedirectUrl());
+	}
+
+	public void testAuth2() throws Exception {
+		InputStream stream = testContext.getAssets().open("auth-token.xml");
+
+		GetsResponse resp = GetsResponse.parse(Utils.inputStreamToString(stream), TokenContent.class);
+		assertEquals(0, resp.getCode());
+		assertTrue(resp.getContent() instanceof TokenContent);
+
+		TokenContent content = ((TokenContent) resp.getContent());
+		assertEquals("74a89174426b40307102e165374ab8ab", content.getAccessToken());
 	}
 }

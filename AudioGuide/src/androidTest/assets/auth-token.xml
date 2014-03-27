@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<response>
+    <status>
+        <code>0</code>
+        <message>success</message>
+    </status>
+    <content>
+        <auth_token>74a89174426b40307102e165374ab8ab</auth_token>
+    </content>
+</response>
