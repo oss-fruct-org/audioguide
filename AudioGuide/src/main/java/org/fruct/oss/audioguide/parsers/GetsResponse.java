@@ -3,8 +3,11 @@ package org.fruct.oss.audioguide.parsers;
 import android.util.Xml;
 
 import org.fruct.oss.audioguide.util.Utils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
+import org.xmlpull.v1.XmlPullParserFactory;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -12,6 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class GetsResponse {
+	private final static Logger log = LoggerFactory.getLogger(GetsResponse.class);
 	private int code;
 	private String message;
 
@@ -59,7 +63,9 @@ public class GetsResponse {
 
 	public static GetsResponse parse(String responseXml, Class<? extends IContent> contentClass) throws GetsException {
 		try {
+			//XmlPullParser parser = XmlPullParserFactory.newInstance().newPullParser();
 			XmlPullParser parser = Xml.newPullParser();
+
 			parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
 			parser.setInput(new StringReader(responseXml));
 			parser.nextTag();
