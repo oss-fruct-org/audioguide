@@ -43,6 +43,11 @@ public class GetsFragment extends Fragment implements WebViewDialog.Listener {
     public GetsFragment() {
     }
 
+	private void setAnonBoxState(Button signInButton, CheckBox anonCheckBox) {
+		signInButton.setEnabled(!anonCheckBox.isChecked());
+		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getActivity());
+		pref.edit().putBoolean(GetsStorage.PREF_AUTH_ANON, anonCheckBox.isChecked()).apply();
+	}
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -55,8 +60,7 @@ public class GetsFragment extends Fragment implements WebViewDialog.Listener {
 		anonCheckBox.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View view) {
-				CheckBox cb = (CheckBox) view;
-				signInButton.setEnabled(!cb.isChecked());
+				setAnonBoxState(signInButton, anonCheckBox);
 			}
 		});
 
@@ -70,6 +74,10 @@ public class GetsFragment extends Fragment implements WebViewDialog.Listener {
 				}
 			}
 		});
+
+		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getActivity());
+		anonCheckBox.setChecked(pref.getBoolean(GetsStorage.PREF_AUTH_ANON, false));
+		setAnonBoxState(signInButton, anonCheckBox);
 
 		return view;
 	}

@@ -14,6 +14,7 @@ import android.view.MenuItem;
 
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.track.AudioService;
+import org.fruct.oss.audioguide.track.TrackManager;
 import org.fruct.oss.audioguide.track.TrackingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -92,6 +93,10 @@ public class CommonFragment extends Fragment {
 				getActivity().startService(new Intent(AudioService.ACTION_WATCH_POINTS, null,
 						getActivity(), AudioService.class));
 
+			return true;
+
+		case R.id.action_refresh:
+			TrackManager.getInstance().refresh();
 			return true;
 		}
 

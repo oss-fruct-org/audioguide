@@ -24,6 +24,7 @@ public class GetsStorage implements IStorage {
 	private final static Logger log = LoggerFactory.getLogger(GetsStorage.class);
 
 	public static final String PREF_AUTH_TOKEN = "pref-auth-token";
+	public static final String PREF_AUTH_ANON = "pref-auth-anon";
 
 	public static final String GETS_SERVER = "http://getsi.no-ip.info/getslocal";
 	//public static final String GETS_SERVER = "http://oss.fruct.org/projects/gets/service";
@@ -105,12 +106,12 @@ public class GetsStorage implements IStorage {
 		return String.format(LOAD_TRACK_REQUEST, createTokenTag(), trackName);
 	}
 
-
 	private String createTokenTag() {
 		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(App.getContext());
 
 		String token = pref.getString(PREF_AUTH_TOKEN, null);
-		if (token == null)
+		boolean anonAccount = pref.getBoolean(PREF_AUTH_ANON, false);
+		if (token == null || anonAccount)
 			return "";
 		else
 			return "<auth_token>" + token + "</auth_token>";

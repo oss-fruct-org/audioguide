@@ -3,6 +3,9 @@ package org.fruct.oss.audioguide.fragments;
 import android.app.Activity;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ListView;
 
@@ -16,13 +19,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-/**
- * A fragment representing a list of Items.
- * <p />
- * <p />
- * Activities containing this fragment MUST implement the {@link org.fruct.oss.audioguide.MultiPanel}
- * interface.
- */
 public class TrackFragment extends ListFragment implements TrackManager.Listener {
 	private final static Logger log = LoggerFactory.getLogger(TrackFragment.class);
 
@@ -35,10 +31,6 @@ public class TrackFragment extends ListFragment implements TrackManager.Listener
 		return new TrackFragment();
 	}
 
-	/**
-	 * Mandatory empty constructor for the fragment manager to instantiate the
-	 * fragment (e.g. upon screen orientation changes).
-	 */
 	public TrackFragment() {
 	}
 
@@ -76,7 +68,6 @@ public class TrackFragment extends ListFragment implements TrackManager.Listener
 		super.onDetach();
 		multiPanel = null;
 	}
-
 
 	@Override
 	public void onListItemClick(ListView l, View v, int position, long id) {

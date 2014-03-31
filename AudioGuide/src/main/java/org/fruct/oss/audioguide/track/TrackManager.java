@@ -17,9 +17,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.lang.Object;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
@@ -111,6 +113,11 @@ public class TrackManager {
 				doLoadRemoteTracks();
 			}
 		});
+	}
+
+
+	public void refresh() {
+		loadRemoteTracks();
 	}
 
 	public synchronized void addListener(Listener listener) {
@@ -214,6 +221,13 @@ public class TrackManager {
 
 		List<Track> tracks = remoteStorage.getTracks();
 		synchronized (allTracks) {
+			for (Iterator<Map.Entry<String, Track>> iter = allTracks.entrySet().iterator(); iter.hasNext();) {
+				Track track = iter.next().getValue();
+				if (!track.isLocal()) {
+					iter.remove();
+				}
+			}
+
 			for (Track track : tracks) {
 				if (!allTracks.containsKey(track.getId()))
 					allTracks.put(track.getId(), track);
