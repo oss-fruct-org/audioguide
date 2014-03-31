@@ -1,7 +1,9 @@
 package org.fruct.oss.audioguide.track;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
+import android.preference.PreferenceManager;
 
 import org.fruct.oss.audioguide.App;
 import org.fruct.oss.audioguide.parsers.AuthRedirectResponse;
@@ -23,16 +25,17 @@ public class GetsStorage implements IStorage {
 
 	public static final String PREF_AUTH_TOKEN = "pref-auth-token";
 
-	//public static final String GETS_SERVER = "http://172.20.2.217:8000/getslocal";
-	public static final String GETS_SERVER = "http://oss.fruct.org/projects/gets/service";
+	public static final String GETS_SERVER = "http://getsi.no-ip.info/getslocal";
+	//public static final String GETS_SERVER = "http://oss.fruct.org/projects/gets/service";
 	public static final String TOKEN = "66cf0b48817ad7eaa1a4cec102984add";
+
 	public static final String LOAD_TRACKS_REQUEST = "<request><params>" +
-			"<auth_token>%s</auth_token>" +
-			"<category_name>audio_tracks</category_name>" +
+			"%s" + // Token may be empty
+			"<!--<category_name>audio_tracks</category_name>-->" +
 			"</params></request>";
 
 	public static final String LOAD_TRACK_REQUEST = "<request><params>" +
-			"<auth_token>%s</auth_token>" +
+			"%s" +
 			"<name>%s</name>" +
 			"</params></request>";
 
@@ -55,7 +58,7 @@ public class GetsStorage implements IStorage {
 	public void load() {
 		try {
 			String responseString = Utils.downloadUrl(GETS_SERVER + "/loadTracks.php",
-					String.format(LOAD_TRACKS_REQUEST, TOKEN));
+					createLoadTracksRequest());
 			GetsResponse response = GetsResponse.parse(responseString, TracksContent.class);
 
 			if (response.getCode() != 0) {
@@ -79,7 +82,7 @@ public class GetsStorage implements IStorage {
 	public List<Point> getPoints(Track track) {
 		try {
 			String responseString = Utils.downloadUrl(GETS_SERVER + "/loadTrack.php",
-					String.format(LOAD_TRACK_REQUEST, TOKEN, track.getName()));
+					createLoadTrackRequest(track.getName()));
 			GetsResponse response = GetsResponse.parse(responseString, Kml.class);
 
 			if (response.getCode() != 0) {
@@ -94,7 +97,22 @@ public class GetsStorage implements IStorage {
 		}
 	}
 
-	private void authenticate() {
+	private String createLoadTracksRequest() {
+		return String.format(LOAD_TRACKS_REQUEST, createTokenTag());
+	}
 
+	private String createLoadTrackRequest(String trackName) {
+		return String.format(LOAD_TRACK_REQUEST, createTokenTag(), trackName);
+	}
+
+
+	private String createTokenTag() {
+		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(App.getContext());
+
+		String token = pref.getString(PREF_AUTH_TOKEN, null);
+		if (token == null)
+			return "";
+		else
+			return "<auth_token>" + token + "</auth_token>";
 	}
 }
