@@ -7,6 +7,7 @@ public class Track implements Parcelable, Comparable<Track> {
 	private String name;
 
 	private String description;
+	private String hname;
 
 	private String url;
 
@@ -25,12 +26,17 @@ public class Track implements Parcelable, Comparable<Track> {
 		this.url = url;
 	}
 
+	// Getters
 	public String getName() {
 		return name;
 	}
 
 	public String getDescription() {
 		return description;
+	}
+
+	public String getHname() {
+		return hname;
 	}
 
 	public String getUrl() {
@@ -46,12 +52,17 @@ public class Track implements Parcelable, Comparable<Track> {
 	}
 
 
+	// Setters
 	public void setName(String name) {
 		this.name = name;
 	}
 
 	public void setDescription(String description) {
 		this.description = description;
+	}
+
+	public void setHname(String hname) {
+		this.hname = hname;
 	}
 
 	public void setUrl(String url) {
@@ -76,6 +87,12 @@ public class Track implements Parcelable, Comparable<Track> {
 	}
 
 
+	public String getHumanReadableHam() {
+		if (hname != null)
+			return hname;
+		else
+			return name;
+	}
 	public String getId() {
 		return name;
 	}

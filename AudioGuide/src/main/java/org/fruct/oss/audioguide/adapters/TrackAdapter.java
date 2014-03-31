@@ -60,7 +60,7 @@ public class TrackAdapter extends ArrayAdapter<Track> {
 		Track track = items.get(position);
 		holder.track = track;
 
-		holder.text1.setText(track.getName());
+		holder.text1.setText(track.getHumanReadableHam());
 		holder.text2.setText(track.getDescription());
 
 		setupButton(holder.localImage, holder.track.isLocal());

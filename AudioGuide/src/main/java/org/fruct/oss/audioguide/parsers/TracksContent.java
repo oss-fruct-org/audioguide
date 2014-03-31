@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TracksContent implements IContent {
+	private static Track track;
 	private List<Track> tracks;
 
 	public List<Track> getTracks() {
@@ -50,6 +51,7 @@ public class TracksContent implements IContent {
 		String name = "";
 		String description = "";
 		String url = "";
+		String hname = null;
 
 		while (parser.next() != XmlPullParser.END_TAG) {
 			if (parser.getEventType() != XmlPullParser.START_TAG)
@@ -57,7 +59,9 @@ public class TracksContent implements IContent {
 
 			String tagName = parser.getName();
 
-			if (tagName.equals("name")) {
+			if (tagName.equals("hname")) {
+				hname = GetsResponse.readText(parser);
+			} else if (tagName.equals("name")) {
 				name = GetsResponse.readText(parser);
 			} else if (tagName.equals("description")) {
 				description = GetsResponse.readText(parser);
@@ -67,6 +71,8 @@ public class TracksContent implements IContent {
 		}
 
 		parser.require(XmlPullParser.END_TAG, null, "track");
-		return new Track(name, description, url);
+		track = new Track(name, description, url);
+		track.setHname(hname);
+		return track;
 	}
 }
