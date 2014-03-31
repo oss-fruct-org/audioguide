@@ -18,7 +18,7 @@ public class DatabaseStorage implements ILocalStorage {
 	private final static Logger log = LoggerFactory.getLogger(DatabaseStorage.class);
 
 	public static final String DB_NAME = "tracksdb";
-	public static final int DB_VERSION = 1;
+	public static final int DB_VERSION = 9;
 	public static final String CREATE_TRACKS_SQL = "CREATE TABLE tracks " +
 			"(id INTEGER PRIMARY KEY AUTOINCREMENT," +
 			"name TEXT," +
@@ -198,7 +198,13 @@ public class DatabaseStorage implements ILocalStorage {
 
 		@Override
 		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+			if (oldVersion == newVersion) {
+				return;
+			}
 
+			db.execSQL("drop table points;");
+			db.execSQL("drop table tracks;");
+			onCreate(db);
 		}
 	}
 }
