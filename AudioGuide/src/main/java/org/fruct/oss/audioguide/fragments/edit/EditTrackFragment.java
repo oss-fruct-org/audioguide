@@ -47,6 +47,12 @@ public class EditTrackFragment extends ListFragment implements TrackManager.List
     }
 
 	@Override
+	public void onDestroy() {
+		trackManager.removeListener(this);
+		super.onDestroy();
+	}
+
+	@Override
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
 		super.onCreateOptionsMenu(menu, inflater);
 		inflater.inflate(R.menu.edit_track_menu, menu);
@@ -96,7 +102,7 @@ public class EditTrackFragment extends ListFragment implements TrackManager.List
 				if (menuItem == editMenuItem) {
 					showEditDialog(track);
 				} else if (menuItem == pointsMenuItem) {
-
+					showPointsFragment(track);
 				}
 
 				return true;
@@ -130,6 +136,11 @@ public class EditTrackFragment extends ListFragment implements TrackManager.List
 	@Override
 	public void pointsUpdated(Track track) {
 
+	}
+
+	private void showPointsFragment(Track track) {
+		EditPointsFragment fragment = EditPointsFragment.newInstance(track);
+		multiPanel.replaceFragment(fragment, this);
 	}
 
 	private void showEditDialog(Track track) {
