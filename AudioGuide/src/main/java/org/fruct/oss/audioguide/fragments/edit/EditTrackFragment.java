@@ -3,6 +3,7 @@ package org.fruct.oss.audioguide.fragments.edit;
 import android.app.Activity;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
+import android.support.v7.widget.PopupMenu;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -82,8 +83,26 @@ public class EditTrackFragment extends ListFragment implements TrackManager.List
 
 	@Override
 	public void onListItemClick(ListView l, View v, int position, long id) {
-		Track track = trackAdapter.getItem(position);
-		showEditDialog(track);
+		final Track track = trackAdapter.getItem(position);
+
+		PopupMenu menu = new PopupMenu(getActivity(), v);
+
+		final MenuItem editMenuItem= menu.getMenu().add("Edit description");
+		final MenuItem pointsMenuItem = menu.getMenu().add("Edit points");
+
+		menu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+			@Override
+			public boolean onMenuItemClick(MenuItem menuItem) {
+				if (menuItem == editMenuItem) {
+					showEditDialog(track);
+				} else if (menuItem == pointsMenuItem) {
+
+				}
+
+				return true;
+			}
+		});
+		menu.show();
 	}
 
 	@Override
