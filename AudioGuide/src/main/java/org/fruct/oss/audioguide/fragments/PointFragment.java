@@ -11,10 +11,14 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.app.ListFragment;
 import android.support.v4.content.LocalBroadcastManager;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+import org.fruct.oss.audioguide.AddPointFragment;
 import org.fruct.oss.audioguide.MultiPanel;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.adapters.PointAdapter;
@@ -85,6 +89,7 @@ public class PointFragment extends ListFragment {
 
 		setTrack();
 
+		setHasOptionsMenu(true);
 
 		setupAudioReceiver();
 	}
@@ -100,6 +105,26 @@ public class PointFragment extends ListFragment {
 	public void onStop() {
 		super.onStop();
 		getActivity().unbindService(serviceConnection);
+	}
+
+	@Override
+	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+		super.onCreateOptionsMenu(menu, inflater);
+
+		inflater.inflate(R.menu.points_menu, menu);
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+		case R.id.action_add:
+			log.debug("Action add selected");
+			AddPointFragment dialogFragment = new AddPointFragment(track);
+			dialogFragment.show(getFragmentManager(), "add-point-dialog");
+			break;
+		}
+
+		return super.onOptionsItemSelected(item);
 	}
 
 	private void setupAudioReceiver() {

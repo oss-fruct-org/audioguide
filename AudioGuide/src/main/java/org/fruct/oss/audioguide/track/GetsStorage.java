@@ -15,12 +15,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 
-public class GetsStorage implements IStorage {
+public class GetsStorage implements IStorage, IRemoteStorage {
 	private final static Logger log = LoggerFactory.getLogger(GetsStorage.class);
 
 	public static final String PREF_AUTH_TOKEN = "pref-auth-token";
@@ -38,6 +42,18 @@ public class GetsStorage implements IStorage {
 	public static final String LOAD_TRACK_REQUEST = "<request><params>" +
 			"%s" +
 			"<name>%s</name>" +
+			"</params></request>";
+
+	public static final String SEND_POINT = "<request><params>" +
+			"%s" +
+			"<channel>%s</channel>" +
+			"<title>%s</title>" +
+			"<description>%s</description>" +
+			"<link>%s</link>" +
+			"<latitude>%f</latitude>" +
+			"<longitude>%f</longitude>" +
+			"<altitude>%f</altitude>" +
+			"<time>%s</time>" +
 			"</params></request>";
 
 	public static final String LOGIN_STAGE_1 = "<request><params></params></request>";
@@ -93,8 +109,31 @@ public class GetsStorage implements IStorage {
 			Kml kml = ((Kml) response.getContent());
 			return new ArrayList<Point>(kml.getPoints());
 		} catch (Exception e) {
-			log.warn("Error: ", e);
+			log.error("Error: ", e);
 			return Collections.emptyList();
+		}
+	}
+
+	@Override
+	public void sendPoint(Track track, Point point) {
+		Date currentDate = new Date();
+		String timeStr = new SimpleDateFormat("dd MM yyyy HH:mm:ss.SSS", Locale.ROOT).format(currentDate);
+		String request = String.format(Locale.ROOT, SEND_POINT, createTokenTag(),
+				track.getName(),
+				point.getName(),
+				point.getDescription(),
+				"http://example.com",
+				point.getLatE6() / 1e6,
+				point.getLonE6() / 1e6,
+				0.0,
+				timeStr);
+		log.debug("sendPoint request ", request);
+
+		try {
+			String responseString = Utils.downloadUrl(GETS_SERVER + "/addPoint.php", request);
+			// TODO: parse response
+		} catch (IOException e) {
+			log.error("Error: ", e);
 		}
 	}
 
