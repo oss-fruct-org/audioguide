@@ -23,6 +23,7 @@ import org.fruct.oss.audioguide.fragments.GetsFragment;
 import org.fruct.oss.audioguide.fragments.MapFragment;
 import org.fruct.oss.audioguide.fragments.NavigateFragment;
 import org.fruct.oss.audioguide.fragments.TrackFragment;
+import org.fruct.oss.audioguide.fragments.edit.EditTrackFragmentFragment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -159,6 +160,10 @@ public class MainActivity extends ActionBarActivity
 			fragment = GetsFragment.newInstance();
 			initPanels(-1);
 			break;
+		case 4:
+			fragment = EditTrackFragmentFragment.newInstance();
+			initPanels(-1);
+			break;
 		}
 
 		fragmentStack.clear();
@@ -182,6 +187,10 @@ public class MainActivity extends ActionBarActivity
 			break;
 		case 4:
 			mTitle = getString(R.string.title_section4);
+			break;
+		case 5:
+			mTitle = getString(R.string.title_section5);
+			break;
 		}
 	}
 

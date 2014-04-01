@@ -146,6 +146,18 @@ public class TrackManager {
 		return tracks;
 	}
 
+	public List<Track> getEditingTracks() {
+		Collection<Track> allTracks = this.allTracks.values();
+		List<Track> tracks = Utils.select(allTracks, new Utils.Predicate<Track>() {
+			@Override
+			public boolean apply(Track track) {
+				return track.isEditing();
+			}
+		});
+		Collections.sort(tracks);
+		return tracks;
+	}
+
 	public List<Point> getPoints(Track track) {
 		return new ArrayList<Point>(localStorage.getPoints(track));
 	}
@@ -317,6 +329,7 @@ public class TrackManager {
 
 	public void waitTasks() {
 		final Object lock = new Object();
+		//noinspection SynchronizationOnLocalVariableOrMethodParameter
 		synchronized (lock) {
 			executor.execute(new Runnable() {
 				@Override
