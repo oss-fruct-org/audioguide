@@ -13,6 +13,7 @@ public class Track implements Parcelable, Comparable<Track> {
 
 	private boolean isLocal;
 	private boolean isActive;
+	private boolean isEditing;
 
 	private long localId;
 
@@ -51,6 +52,10 @@ public class Track implements Parcelable, Comparable<Track> {
 		return isActive;
 	}
 
+	public boolean isEditing() {
+		return isEditing;
+	}
+
 
 	// Setters
 	public void setName(String name) {
@@ -75,6 +80,10 @@ public class Track implements Parcelable, Comparable<Track> {
 
 	public void setActive(boolean isActive) {
 		this.isActive = isActive;
+	}
+
+	public void setEditing(boolean isEditing) {
+		this.isEditing = isEditing;
 	}
 
 
@@ -127,6 +136,7 @@ public class Track implements Parcelable, Comparable<Track> {
 		parcel.writeInt(isActive ? 1 : 0);
 		parcel.writeInt(isLocal ? 1 : 0);
 		parcel.writeLong(localId);
+		parcel.writeInt(isEditing ? 1 : 0);
 	}
 
 	public static final Creator<Track> CREATOR = new Creator<Track>() {
@@ -140,6 +150,7 @@ public class Track implements Parcelable, Comparable<Track> {
 			track.setActive(parcel.readInt() != 0);
 			track.setLocal(parcel.readInt() != 0);
 			track.localId = parcel.readLong();
+			track.setEditing(parcel.readInt() != 0);
 
 			return track;
 		}
