@@ -18,7 +18,7 @@ public class DatabaseStorage implements ILocalStorage {
 	private final static Logger log = LoggerFactory.getLogger(DatabaseStorage.class);
 
 	public static final String DB_NAME = "tracksdb";
-	public static final int DB_VERSION = 12;
+	public static final int DB_VERSION = (int) System.currentTimeMillis();
 	public static final String CREATE_TRACKS_SQL = "CREATE TABLE tracks " +
 			"(id INTEGER PRIMARY KEY AUTOINCREMENT," +
 			"name TEXT," +
@@ -59,7 +59,7 @@ public class DatabaseStorage implements ILocalStorage {
 
 	@Override
 	public void storeLocalTrack(Track track) {
-		ContentValues cv = new ContentValues(4);
+		ContentValues cv = new ContentValues(5);
 		cv.put("name", track.getName());
 		cv.put("description", track.getDescription());
 		cv.put("url", track.getUrl());
@@ -81,7 +81,7 @@ public class DatabaseStorage implements ILocalStorage {
 	}
 
 	private void storeLocalPoint(Track track, Point point) {
-		ContentValues cv = new ContentValues(6);
+		ContentValues cv = new ContentValues(7);
 		cv.put("name", point.getName());
 		cv.put("description", point.getDescription());
 		cv.put("lat", point.getLatE6());

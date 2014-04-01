@@ -23,7 +23,7 @@ import org.fruct.oss.audioguide.fragments.GetsFragment;
 import org.fruct.oss.audioguide.fragments.MapFragment;
 import org.fruct.oss.audioguide.fragments.NavigateFragment;
 import org.fruct.oss.audioguide.fragments.TrackFragment;
-import org.fruct.oss.audioguide.fragments.edit.EditTrackFragmentFragment;
+import org.fruct.oss.audioguide.fragments.edit.EditTrackFragment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -161,7 +161,7 @@ public class MainActivity extends ActionBarActivity
 			initPanels(-1);
 			break;
 		case 4:
-			fragment = EditTrackFragmentFragment.newInstance();
+			fragment = EditTrackFragment.newInstance();
 			initPanels(-1);
 			break;
 		}

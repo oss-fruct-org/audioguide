@@ -6,6 +6,8 @@ import android.support.v4.app.ListFragment;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.ListView;
 
 import org.fruct.oss.audioguide.MultiPanel;
 import org.fruct.oss.audioguide.R;
@@ -17,18 +19,18 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-public class EditTrackFragmentFragment extends ListFragment implements TrackManager.Listener {
-	private final static Logger log = LoggerFactory.getLogger(EditTrackFragmentFragment.class);
+public class EditTrackFragment extends ListFragment implements TrackManager.Listener {
+	private final static Logger log = LoggerFactory.getLogger(EditTrackFragment.class);
 
     private MultiPanel multiPanel;
 	private TrackManager trackManager;
 	private TrackAdapter trackAdapter;
 
-	public static EditTrackFragmentFragment newInstance() {
-		return new EditTrackFragmentFragment();
+	public static EditTrackFragment newInstance() {
+		return new EditTrackFragment();
     }
 
-    public EditTrackFragmentFragment() {
+    public EditTrackFragment() {
     }
 
     @Override
@@ -54,6 +56,7 @@ public class EditTrackFragmentFragment extends ListFragment implements TrackMana
 		switch (item.getItemId()) {
 		case R.id.action_add:
 			log.debug("Add track action");
+			showEditDialog(null);
 			return true;
 		}
 
@@ -78,6 +81,12 @@ public class EditTrackFragmentFragment extends ListFragment implements TrackMana
     }
 
 	@Override
+	public void onListItemClick(ListView l, View v, int position, long id) {
+		Track track = trackAdapter.getItem(position);
+		showEditDialog(track);
+	}
+
+	@Override
 	public void tracksUpdated() {
 		getActivity().runOnUiThread(new Runnable() {
 			@Override
@@ -96,11 +105,31 @@ public class EditTrackFragmentFragment extends ListFragment implements TrackMana
 
 	@Override
 	public void trackUpdated(Track track) {
-
+		tracksUpdated();
 	}
 
 	@Override
 	public void pointsUpdated(Track track) {
 
 	}
+
+	private void showEditDialog(Track track) {
+		EditTrackDialog dialog = new EditTrackDialog(track);
+		dialog.setListener(editDialogListener);
+		dialog.show(getFragmentManager(), "edit-track-dialog");
+	}
+
+	private EditTrackDialog.Listener editDialogListener = new EditTrackDialog.Listener() {
+		@Override
+		public void trackCreated(Track track) {
+			log.debug("Track created callback");
+			trackManager.storeLocal(track);
+		}
+
+		@Override
+		public void trackUpdated(Track track) {
+			log.debug("Track updated callback");
+			trackManager.storeLocal(track);
+		}
+	};
 }
