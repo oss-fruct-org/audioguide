@@ -22,6 +22,12 @@ public class Point implements Parcelable {
 	private String audioUrl;
 	private String photoUrl;
 
+	public void setCoordinates(int latE6, int lonE6) {
+		this.latE6 = latE6;
+		this.lonE6 = lonE6;
+		cachedLocation = null;
+	}
+
 	public void setCoordinates(String coordinates) {
 		StringTokenizer tok = new StringTokenizer(coordinates, ",", false);
 
@@ -29,6 +35,7 @@ public class Point implements Parcelable {
 		double longitude = Double.parseDouble(tok.nextToken());
 		latE6 = (int) (latitude * 1e6);
 		lonE6 = (int) (longitude * 1e6);
+		cachedLocation = null;
 	}
 
 	public String getCoordinates() {
@@ -78,8 +85,18 @@ public class Point implements Parcelable {
 		return photoUrl;
 	}
 
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public void setDescription(String name) {
+		this.description = description;
+	}
+
+
 	public int getLatE6() {
-		cachedLocation = null;
+		cachedLocation = null; // TODO: ???
 		return latE6;
 	}
 

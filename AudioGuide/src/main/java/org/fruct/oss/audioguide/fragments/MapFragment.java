@@ -29,7 +29,10 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
 
+import org.apache.http.auth.AUTH;
 import org.fruct.oss.audioguide.R;
+import org.fruct.oss.audioguide.fragments.edit.EditPointDialog;
+import org.fruct.oss.audioguide.fragments.edit.EditTrackDialog;
 import org.fruct.oss.audioguide.overlays.EditOverlay;
 import org.fruct.oss.audioguide.overlays.MyPositionOverlay;
 import org.fruct.oss.audioguide.track.AudioService;
@@ -76,7 +79,7 @@ public class MapFragment extends Fragment implements TrackManager.Listener {
 	private ViewGroup bottomToolbar;
 
 	private Point selectedPoint;
-	private EditOverlay editOverlay;
+	private EditOverlay<Point> editOverlay;
 
 	/**
 	 * Use this factory method to create a new instance of
@@ -112,10 +115,16 @@ public class MapFragment extends Fragment implements TrackManager.Listener {
 			mockLocation();
 			break;
 		case R.id.action_add:
-			editOverlay.addPoint(AUtils.copyGeoPoint(mapView.getMapCenter()));
-			mapView.invalidate();
+			startAddingPoint();
+			break;
 		}
 		return super.onOptionsItemSelected(item);
+	}
+
+	private void startAddingPoint() {
+		EditPointDialog dialog = new EditPointDialog(null);
+		dialog.setListener(editDialogListener);
+		dialog.show(getFragmentManager(), "edit-track-dialog");
 	}
 
 	private void mockLocation() {
@@ -359,11 +368,22 @@ public class MapFragment extends Fragment implements TrackManager.Listener {
 
 
 	private void createEditOverlay() {
-		editOverlay = new EditOverlay(getActivity());
+		editOverlay = new EditOverlay<Point>(getActivity());
+		editOverlay.setListener(new EditOverlay.Listener<Point>() {
+			@Override
+			public void pointMoved(Point point, IGeoPoint geoPoint) {
+				log.debug("Point moved");
+			}
 
-		editOverlay.addPoint(new GeoPoint(61.786269, 34.346153));
+			@Override
+			public void pointPressed(Point point) {
+				log.debug("Point pressed");
+			}
+		});
+
+		/*editOverlay.addPoint(new GeoPoint(61.786269, 34.346153));
 		editOverlay.addPoint(new GeoPoint(61.786106, 34.350530));
-		editOverlay.addPoint(new GeoPoint(61.787285, 34.354564));
+		editOverlay.addPoint(new GeoPoint(61.787285, 34.354564));*/
 
 		mapView.getOverlays().add(editOverlay);
 	}
@@ -419,4 +439,23 @@ public class MapFragment extends Fragment implements TrackManager.Listener {
 			return point;
 		}
 	}
+
+	private EditPointDialog.Listener editDialogListener = new EditPointDialog.Listener() {
+		@Override
+		public void trackCreated(Point point) {
+			log.debug("Point created callback");
+
+			IGeoPoint mapCenter = mapView.getMapCenter();
+			point.setCoordinates(mapCenter.getLatitudeE6(), mapCenter.getLongitudeE6());
+			editOverlay.addPoint(AUtils.copyGeoPoint(mapCenter), point);
+			mapView.invalidate();
+		}
+
+		@Override
+		public void trackUpdated(Point point) {
+			log.debug("Point updated callback");
+			//trackManager.storeLocal(track);
+		}
+	};
+
 }

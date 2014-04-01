@@ -2,7 +2,6 @@ package org.fruct.oss.audioguide.overlays;
 
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.Rect;
@@ -20,7 +19,12 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 
-public class EditOverlay extends Overlay {
+public class EditOverlay<T> extends Overlay {
+	public interface Listener<T> {
+		void pointMoved(T t, IGeoPoint geoPoint);
+		void pointPressed(T t);
+	}
+
 	private final static Logger log = LoggerFactory.getLogger(EditOverlay.class);
 
 	private List<EditOverlayItem> items = new ArrayList<EditOverlayItem>();
@@ -39,6 +43,7 @@ public class EditOverlay extends Overlay {
 	private transient Point point2 = new Point();
 	private transient HitResult hitResult = new HitResult();
 
+	private Listener<T> listener;
 
 	public EditOverlay(Context ctx) {
 		super(ctx);
@@ -58,6 +63,10 @@ public class EditOverlay extends Overlay {
 		linePaint.setAntiAlias(true);
 
 		itemSize = Utils.getDP(16);
+	}
+
+	public void setListener(Listener<T> listener) {
+		this.listener = listener;
 	}
 
 	@Override
@@ -104,8 +113,8 @@ public class EditOverlay extends Overlay {
 				item == draggingItem ? itemBackgroundDragPaint : itemBackgroundPaint);
 	}
 
-	public void addPoint(GeoPoint geoPoint) {
-		EditOverlayItem item = new EditOverlayItem(geoPoint);
+	public void addPoint(GeoPoint geoPoint, T t) {
+		EditOverlayItem item = new EditOverlayItem(geoPoint, t);
 		items.add(item);
 	}
 
@@ -139,13 +148,14 @@ public class EditOverlay extends Overlay {
 		return null;
 	}
 
-
 	@Override
-	public boolean onSingleTapConfirmed(MotionEvent e, MapView mapView) {
+	public boolean onLongPress(MotionEvent e, MapView mapView) {
 		HitResult hitResult = testHit(e, mapView);
 
 		if (hitResult != null) {
-			log.debug("Hit");
+			if (listener != null) {
+				listener.pointPressed(hitResult.item.data);
+			}
 		}
 
 		return false;
@@ -167,6 +177,10 @@ public class EditOverlay extends Overlay {
 				return false;
 			}
 		} else if (event.getAction() == MotionEvent.ACTION_UP && draggingItem != null) {
+			if (listener != null) {
+				listener.pointMoved(draggingItem.data, draggingItem.geoPoint);
+			}
+
 			draggingItem = null;
 			mapView.invalidate();
 			return true;
@@ -181,7 +195,6 @@ public class EditOverlay extends Overlay {
 
 	private void moveItem(EditOverlayItem item, MotionEvent e, MapView mapView) {
 		final MapView.Projection proj = mapView.getProjection();
-		final Rect screenRect = proj.getIntrinsicScreenRect();
 
 		point.set((int) e.getX() + dragRelX, (int) e.getY() + dragRelY);
 
@@ -191,10 +204,12 @@ public class EditOverlay extends Overlay {
 	}
 
 	class EditOverlayItem {
-		EditOverlayItem(GeoPoint geoPoint) {
+		EditOverlayItem(GeoPoint geoPoint, T data) {
 			this.geoPoint = geoPoint;
+			this.data = data;
 		}
 
+		T data;
 		GeoPoint geoPoint;
 	}
 
