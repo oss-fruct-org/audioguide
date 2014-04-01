@@ -30,12 +30,14 @@ import android.view.animation.AnimationUtils;
 import android.widget.Button;
 
 import org.fruct.oss.audioguide.R;
+import org.fruct.oss.audioguide.overlays.EditOverlay;
 import org.fruct.oss.audioguide.overlays.MyPositionOverlay;
 import org.fruct.oss.audioguide.track.AudioService;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.Track;
 import org.fruct.oss.audioguide.track.TrackManager;
 import org.fruct.oss.audioguide.track.TrackingService;
+import org.fruct.oss.audioguide.util.AUtils;
 import org.osmdroid.api.IGeoPoint;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.util.ResourceProxyImpl;
@@ -74,6 +76,7 @@ public class MapFragment extends Fragment implements TrackManager.Listener {
 	private ViewGroup bottomToolbar;
 
 	private Point selectedPoint;
+	private EditOverlay editOverlay;
 
 	/**
 	 * Use this factory method to create a new instance of
@@ -108,6 +111,9 @@ public class MapFragment extends Fragment implements TrackManager.Listener {
 		case R.id.action_place:
 			mockLocation();
 			break;
+		case R.id.action_add:
+			editOverlay.addPoint(AUtils.copyGeoPoint(mapView.getMapCenter()));
+			mapView.invalidate();
 		}
 		return super.onOptionsItemSelected(item);
 	}
@@ -133,6 +139,7 @@ public class MapFragment extends Fragment implements TrackManager.Listener {
 		createCenterOverlay();
 		updatePointsOverlay();
 		createMyPositionOverlay();
+		createEditOverlay();
 
 		for (Overlay overlay : mapView.getOverlays()) {
 			log.debug("OVERLAY: {}", overlay.getClass().getName());
@@ -348,6 +355,17 @@ public class MapFragment extends Fragment implements TrackManager.Listener {
 		};
 
 		mapView.getOverlays().add(clickHandlerOverlay);
+	}
+
+
+	private void createEditOverlay() {
+		editOverlay = new EditOverlay(getActivity());
+
+		editOverlay.addPoint(new GeoPoint(61.786269, 34.346153));
+		editOverlay.addPoint(new GeoPoint(61.786106, 34.350530));
+		editOverlay.addPoint(new GeoPoint(61.787285, 34.354564));
+
+		mapView.getOverlays().add(editOverlay);
 	}
 
 	@TargetApi(Build.VERSION_CODES.HONEYCOMB)

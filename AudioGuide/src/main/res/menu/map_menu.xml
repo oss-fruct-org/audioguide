@@ -5,5 +5,9 @@
     <item android:id="@+id/action_place"
           android:icon="@drawable/ic_action_accept"
           android:title="Place"
-          app:showAsAction="always"/>
+          app:showAsAction="ifRoom"/>
+    <item android:id="@+id/action_add"
+          android:icon="@drawable/ic_action_new"
+          android:title="Add point"
+          app:showAsAction="always" />
 </menu>
