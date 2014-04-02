@@ -60,6 +60,7 @@ public class GetsStorage implements IStorage, IRemoteStorage {
 	public static final String CREATE_TRACK = "<request><params>" +
 			"%s" +
 			"<name>%s</name>" +
+			"%s" +
 			"<description>%s</description>" +
 			"<url>%s</url>" +
 			"</params></request>";
@@ -152,8 +153,9 @@ public class GetsStorage implements IStorage, IRemoteStorage {
 
 	@Override
 	public void sendTrack(Track track, List<Point> points) {
+
 		String request = String.format(Locale.ROOT, CREATE_TRACK, createTokenTag(),
-				track.getName(), track.getDescription(), track.getUrl());
+				track.getName(), createHnameTag(track),  track.getDescription(), track.getUrl());
 
 		try {
 			String responseString = Utils.downloadUrl(GETS_SERVER + "/createTrack.php", request);
@@ -209,6 +211,13 @@ public class GetsStorage implements IStorage, IRemoteStorage {
 		}
 
 		return true;
+	}
+
+	private String createHnameTag(Track track) {
+		if (!Utils.isNullOrEmpty(track.getHname()))
+			return "<hname>" + track.getHname() + "</hname>";
+		else
+			return "";
 	}
 
 	private String createLoadTracksRequest() {

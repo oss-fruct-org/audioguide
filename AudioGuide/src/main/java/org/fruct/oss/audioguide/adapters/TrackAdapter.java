@@ -5,7 +5,6 @@ import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -14,7 +13,9 @@ import org.fruct.oss.audioguide.track.Track;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class TrackAdapter extends ArrayAdapter<Track> {
 	private final static Logger log = LoggerFactory.getLogger(TrackAdapter.class);
@@ -22,7 +23,7 @@ public class TrackAdapter extends ArrayAdapter<Track> {
 	private final Context context;
 	private final int resource;
 	private final List<Track> items;
-
+	private Map<String, Integer> highlight = new HashMap<String, Integer>();
 
 	public TrackAdapter(Context context, int resource, List<Track> items) {
 		super(context, resource, items);
@@ -60,13 +61,32 @@ public class TrackAdapter extends ArrayAdapter<Track> {
 		Track track = items.get(position);
 		holder.track = track;
 
-		holder.text1.setText(track.getHumanReadableHam());
+		holder.text1.setText(track.getHumanReadableName());
 		holder.text2.setText(track.getDescription());
 
 		setupButton(holder.localImage, holder.track.isLocal());
 		setupButton(holder.activeImage, holder.track.isActive());
 
+		Integer highlightColor = highlight.get(track.getName());
+		if (highlightColor != null) {
+			view.setBackgroundColor(highlightColor);
+		} else {
+			view.setBackgroundColor(0xffffffff);
+		}
+
 		return view;
+	}
+
+	public void clearTrackHighlights() {
+		highlight.clear();
+	}
+
+	public void addTrackHighlight(Track track, int color) {
+		if (track == null) {
+			return;
+		}
+
+		highlight.put(track.getName(), color);
 	}
 
 	private void setupButton(ImageView button, boolean isHighlighted) {

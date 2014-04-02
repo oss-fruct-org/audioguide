@@ -175,9 +175,15 @@ public class TrackManager {
 	}
 
 	public void setEditingTrack(Track track) {
+		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(App.getContext());
+
+		if (track == null) {
+			pref.edit().remove(PREF_EDITING_TRACK).apply();
+			return;
+		}
+
 		// TODO: add check for edit availability
 		if (track.isLocal()) {
-			SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(App.getContext());
 			pref.edit().putString(PREF_EDITING_TRACK, track.getId()).apply();
 		}
 	}

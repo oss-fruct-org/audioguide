@@ -22,8 +22,9 @@ import java.util.List;
 
 public class EditTrackFragment extends ListFragment implements TrackManager.Listener {
 	private final static Logger log = LoggerFactory.getLogger(EditTrackFragment.class);
+	public static final int HIGHLIGHT_COLOR = 0xff99ff99;
 
-    private MultiPanel multiPanel;
+	private MultiPanel multiPanel;
 	private TrackManager trackManager;
 	private TrackAdapter trackAdapter;
 
@@ -43,6 +44,9 @@ public class EditTrackFragment extends ListFragment implements TrackManager.List
 
 		trackAdapter = new TrackAdapter(getActivity(), R.layout.list_track_item, trackManager.getLocalTracks());
 		setListAdapter(trackAdapter);
+
+		trackAdapter.addTrackHighlight(trackManager.getEditingTrack(), HIGHLIGHT_COLOR);
+
 		setHasOptionsMenu(true);
     }
 
@@ -144,8 +148,12 @@ public class EditTrackFragment extends ListFragment implements TrackManager.List
 	private void showPointsFragment(Track track) {
 		trackManager.setEditingTrack(track);
 
-		EditPointsFragment fragment = EditPointsFragment.newInstance(track);
-		multiPanel.replaceFragment(fragment, this);
+		trackAdapter.clearTrackHighlights();
+		trackAdapter.addTrackHighlight(trackManager.getEditingTrack(), HIGHLIGHT_COLOR);
+		trackAdapter.notifyDataSetChanged();
+
+		//EditPointsFragment fragment = EditPointsFragment.newInstance(track);
+		//multiPanel.replaceFragment(fragment, this);
 	}
 
 	private void showEditDialog(Track track) {
@@ -156,6 +164,9 @@ public class EditTrackFragment extends ListFragment implements TrackManager.List
 
 	private void sendTrack(Track track) {
 		trackManager.sendTrack(track);
+		trackManager.setEditingTrack(null);
+		trackAdapter.clearTrackHighlights();
+		trackAdapter.notifyDataSetChanged();
 	}
 
 	private EditTrackDialog.Listener editDialogListener = new EditTrackDialog.Listener() {

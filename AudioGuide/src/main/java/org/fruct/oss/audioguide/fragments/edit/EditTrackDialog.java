@@ -52,7 +52,7 @@ public class EditTrackDialog extends DialogFragment implements DialogInterface.O
 		editUrl = (EditText) view.findViewById(R.id.edit_url);
 
 		if (track != null) {
-			if (!Utils.isNullOrEmpty(track.getName())) editName.setText(track.getName());
+			if (!Utils.isNullOrEmpty(track.getHname())) editName.setText(track.getHname());
 			if (!Utils.isNullOrEmpty(track.getDescription())) editDescription.setText(track.getDescription());
 			if (!Utils.isNullOrEmpty(track.getUrl())) editUrl.setText(track.getUrl());
 		}
@@ -71,8 +71,13 @@ public class EditTrackDialog extends DialogFragment implements DialogInterface.O
 		String description = editDescription.getText().toString();
 		String url = editUrl.getText().toString();
 
+		// Assign name to track only when track is creating
+		if (isNewTracks) {
+			track.setName(createName(name));
+		}
+
 		if (name != null) {
-			track.setName(name);
+			track.setHname(name);
 		}
 
 		if (description != null) {
@@ -92,6 +97,10 @@ public class EditTrackDialog extends DialogFragment implements DialogInterface.O
 			else
 				listener.trackUpdated(track);
 		}
+	}
+
+	private String createName(String hname) {
+		return "tr_" + hname.toLowerCase().replace(' ', '_');
 	}
 
 	public void setListener(Listener listener) {

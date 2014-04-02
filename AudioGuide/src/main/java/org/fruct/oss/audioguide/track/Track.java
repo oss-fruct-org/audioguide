@@ -87,7 +87,7 @@ public class Track implements Parcelable, Comparable<Track> {
 	}
 
 
-	public String getHumanReadableHam() {
+	public String getHumanReadableName() {
 		if (hname != null)
 			return hname;
 		else
