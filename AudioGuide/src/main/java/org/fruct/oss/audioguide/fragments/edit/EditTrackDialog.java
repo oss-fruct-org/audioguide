@@ -85,7 +85,6 @@ public class EditTrackDialog extends DialogFragment implements DialogInterface.O
 
 		// This track initially local, trackManager doesn't download points for it
 		track.setLocal(true);
-		track.setEditing(true);
 
 		if (listener != null) {
 			if (isNewTracks)

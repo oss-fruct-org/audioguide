@@ -1,10 +1,12 @@
 package org.fruct.oss.audioguide.track;
 
 import android.annotation.TargetApi;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
+import android.preference.PreferenceManager;
 import android.support.v4.util.LruCache;
 
 import org.fruct.oss.audioguide.App;
@@ -45,6 +47,8 @@ class IconCache extends LruCache<String, Bitmap> {
 
 public class TrackManager {
 	private final static Logger log = LoggerFactory.getLogger(TrackManager.class);
+
+	public static final String PREF_EDITING_TRACK = "pref-editing-track-id";
 
 	public static interface Listener {
 		void tracksUpdated();
@@ -146,16 +150,36 @@ public class TrackManager {
 		return tracks;
 	}
 
-	public List<Track> getEditingTracks() {
+	public List<Track> getLocalTracks() {
 		Collection<Track> allTracks = this.allTracks.values();
 		List<Track> tracks = Utils.select(allTracks, new Utils.Predicate<Track>() {
 			@Override
 			public boolean apply(Track track) {
-				return track.isEditing();
+				return track.isLocal();
 			}
 		});
 		Collections.sort(tracks);
 		return tracks;
+
+	}
+
+	public Track getEditingTrack() {
+		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(App.getContext());
+		String id = pref.getString(PREF_EDITING_TRACK, null);
+
+		if (id != null) {
+			return allTracks.get(id);
+		} else {
+			return null;
+		}
+	}
+
+	public void setEditingTrack(Track track) {
+		// TODO: add check for edit availability
+		if (track.isLocal()) {
+			SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(App.getContext());
+			pref.edit().putString(PREF_EDITING_TRACK, track.getId()).apply();
+		}
 	}
 
 	public List<Point> getPoints(Track track) {

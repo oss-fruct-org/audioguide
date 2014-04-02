@@ -370,10 +370,10 @@ public class MapFragment extends Fragment implements TrackManager.Listener {
 	}
 
 	private void createEditOverlay() {
-		List<Track> editTracks = trackManager.getEditingTracks();
+		Track globalEditTrack = trackManager.getEditingTrack();
 
-		if (!editTracks.isEmpty()) {
-			editTrack = editTracks.get(0);
+		if (globalEditTrack != null) {
+			editTrack = globalEditTrack;
 			editOverlay = new EditOverlay<Point>(getActivity());
 
 			List<Point> points = trackManager.getPoints(editTrack);

@@ -41,7 +41,7 @@ public class EditTrackFragment extends ListFragment implements TrackManager.List
 		trackManager = TrackManager.getInstance();
 		trackManager.addListener(this);
 
-		trackAdapter = new TrackAdapter(getActivity(), R.layout.list_track_item, trackManager.getEditingTracks());
+		trackAdapter = new TrackAdapter(getActivity(), R.layout.list_track_item, trackManager.getLocalTracks());
 		setListAdapter(trackAdapter);
 		setHasOptionsMenu(true);
     }
@@ -119,7 +119,7 @@ public class EditTrackFragment extends ListFragment implements TrackManager.List
 		getActivity().runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
-				List<Track> editingTracks = trackManager.getEditingTracks();
+				List<Track> editingTracks = trackManager.getLocalTracks();
 
 				trackAdapter.clear();
 				for (Track track : editingTracks) {
@@ -142,6 +142,8 @@ public class EditTrackFragment extends ListFragment implements TrackManager.List
 	}
 
 	private void showPointsFragment(Track track) {
+		trackManager.setEditingTrack(track);
+
 		EditPointsFragment fragment = EditPointsFragment.newInstance(track);
 		multiPanel.replaceFragment(fragment, this);
 	}
