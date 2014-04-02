@@ -56,6 +56,13 @@ public class GetsStorage implements IStorage, IRemoteStorage {
 			"<time>%s</time>" +
 			"</params></request>";
 
+	public static final String CREATE_TRACK = "<request><params>" +
+			"%s" +
+			"<name>%s</name>" +
+			"<description>%s</description>" +
+			"<url>%s</url>" +
+			"</params></request>";
+
 	public static final String LOGIN_STAGE_1 = "<request><params></params></request>";
 	public static final String LOGIN_STAGE_2 = "<request><params><id>%s</id></params></request>";
 
@@ -134,6 +141,23 @@ public class GetsStorage implements IStorage, IRemoteStorage {
 			// TODO: parse response
 		} catch (IOException e) {
 			log.error("Error: ", e);
+		}
+	}
+
+	@Override
+	public void sendTrack(Track track, List<Point> points) {
+		String request = String.format(Locale.ROOT, CREATE_TRACK, createTokenTag(),
+				track.getName(), track.getDescription(), track.getUrl());
+
+		try {
+			String responseString = Utils.downloadUrl(GETS_SERVER + "/createTrack.php", request);
+			// TODO: parse response
+		} catch (IOException e) {
+			log.error("Error: ", e);
+		}
+
+		for (Point point : points) {
+			sendPoint(track, point);
 		}
 	}
 

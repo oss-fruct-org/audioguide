@@ -242,6 +242,13 @@ public class TrackManager {
 		}
 	}
 
+	public void sendTrack(Track track) {
+		if (remoteStorage instanceof IRemoteStorage) {
+			List<Point> points = localStorage.getPoints(track);
+			((IRemoteStorage) remoteStorage).sendTrack(track, points);
+		}
+	}
+
 	private void doLoadRemoteTracks() {
 		remoteStorage.load();
 

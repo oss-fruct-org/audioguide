@@ -95,6 +95,7 @@ public class EditTrackFragment extends ListFragment implements TrackManager.List
 
 		final MenuItem editMenuItem= menu.getMenu().add("Edit description");
 		final MenuItem pointsMenuItem = menu.getMenu().add("Edit points");
+		final MenuItem sendMenuItem = menu.getMenu().add("Send to server");
 
 		menu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
 			@Override
@@ -103,6 +104,8 @@ public class EditTrackFragment extends ListFragment implements TrackManager.List
 					showEditDialog(track);
 				} else if (menuItem == pointsMenuItem) {
 					showPointsFragment(track);
+				} else if (menuItem == sendMenuItem) {
+					sendTrack(track);
 				}
 
 				return true;
@@ -147,6 +150,10 @@ public class EditTrackFragment extends ListFragment implements TrackManager.List
 		EditTrackDialog dialog = new EditTrackDialog(track);
 		dialog.setListener(editDialogListener);
 		dialog.show(getFragmentManager(), "edit-track-dialog");
+	}
+
+	private void sendTrack(Track track) {
+		trackManager.sendTrack(track);
 	}
 
 	private EditTrackDialog.Listener editDialogListener = new EditTrackDialog.Listener() {
