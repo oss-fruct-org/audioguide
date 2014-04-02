@@ -97,13 +97,13 @@ public class GetsResponse {
 			String tagName = parser.getName();
 			if (tagName.equals("status")) {
 				readStatus(resp, parser);
-			} else if (tagName.equals("content")) {
+			} else if (tagName.equals("content") && contentClass != null) {
 				ContentParser contentParser = contentParsers.get(contentClass);
 				if (contentParser == null) {
-					throw new IllegalArgumentException("Unknown content class " + contentClass);
+					Utils.skip(parser);
+				} else {
+					resp.content = contentParser.parse(parser);
 				}
-
-				resp.content = contentParser.parse(parser);
 			} else {
 				Utils.skip(parser);
 			}

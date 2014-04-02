@@ -7,7 +7,9 @@ import android.preference.PreferenceManager;
 
 import org.fruct.oss.audioguide.App;
 import org.fruct.oss.audioguide.parsers.AuthRedirectResponse;
+import org.fruct.oss.audioguide.parsers.GetsException;
 import org.fruct.oss.audioguide.parsers.GetsResponse;
+import org.fruct.oss.audioguide.parsers.IContent;
 import org.fruct.oss.audioguide.parsers.Kml;
 import org.fruct.oss.audioguide.parsers.TracksContent;
 import org.fruct.oss.audioguide.util.Utils;
@@ -32,7 +34,6 @@ public class GetsStorage implements IStorage, IRemoteStorage {
 
 	public static final String GETS_SERVER = "http://getsi.no-ip.info/getslocal";
 	//public static final String GETS_SERVER = "http://oss.fruct.org/projects/gets/service";
-	public static final String TOKEN = "66cf0b48817ad7eaa1a4cec102984add";
 
 	public static final String LOAD_TRACKS_REQUEST = "<request><params>" +
 			"%s" + // Token may be empty
@@ -61,6 +62,11 @@ public class GetsStorage implements IStorage, IRemoteStorage {
 			"<name>%s</name>" +
 			"<description>%s</description>" +
 			"<url>%s</url>" +
+			"</params></request>";
+
+	public static final String DELETE_TRACK = "<request><params>" +
+			"%s" +
+			"<name>%s</name>" +
 			"</params></request>";
 
 	public static final String LOGIN_STAGE_1 = "<request><params></params></request>";
@@ -151,14 +157,58 @@ public class GetsStorage implements IStorage, IRemoteStorage {
 
 		try {
 			String responseString = Utils.downloadUrl(GETS_SERVER + "/createTrack.php", request);
+			GetsResponse response = GetsResponse.parse(responseString, IContent.class);
+
+			// Track already exists
+			if (response.getCode() == 2) {
+				if (deleteTrack(track)) {
+					responseString = Utils.downloadUrl(GETS_SERVER + "/createTrack.php", request);
+					response = GetsResponse.parse(responseString, IContent.class);
+				} else {
+					log.error("Cannot update track {}", track.getName());
+				}
+			}
+
+			if (response.getCode() != 0) {
+				log.error("Cannot create track {}", track.getName());
+				return;
+			}
+
 			// TODO: parse response
 		} catch (IOException e) {
 			log.error("Error: ", e);
+			return;
+		} catch (GetsException e) {
+			e.printStackTrace();
+			return;
 		}
 
 		for (Point point : points) {
 			sendPoint(track, point);
 		}
+	}
+
+	@Override
+	public boolean deleteTrack(Track track) {
+		String request = String.format(Locale.ROOT, DELETE_TRACK, createTokenTag(),
+				track.getName());
+		try {
+			String responseString = Utils.downloadUrl(GETS_SERVER + "/deleteTrack.php", request);
+			GetsResponse response = GetsResponse.parse(responseString, IContent.class);
+
+			if (response.getCode() != 0) {
+				log.error("Cannot delete track from GeTS server");
+				return false;
+			}
+		} catch (IOException e) {
+			log.error("Error: ", e);
+			return false;
+		} catch (GetsException e) {
+			log.warn("Incorrect answer from server: ", e);
+			return false;
+		}
+
+		return true;
 	}
 
 	private String createLoadTracksRequest() {
