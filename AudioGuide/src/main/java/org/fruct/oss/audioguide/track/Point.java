@@ -90,7 +90,7 @@ public class Point implements Parcelable {
 		this.name = name;
 	}
 
-	public void setDescription(String name) {
+	public void setDescription(String description) {
 		this.description = description;
 	}
 

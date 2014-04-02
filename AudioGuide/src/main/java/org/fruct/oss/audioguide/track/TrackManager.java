@@ -231,6 +231,10 @@ public class TrackManager {
 		localStorage.storeLocalPoints(track, points);
 	}
 
+	public void storePoint(Track track, Point point) {
+		localStorage.storePoint(track, point);
+	}
+
 	public void sendPoint(Track track, Point point) {
 		if (remoteStorage instanceof IRemoteStorage) {
 			((IRemoteStorage) remoteStorage).sendPoint(track, point);

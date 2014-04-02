@@ -15,4 +15,9 @@ public interface ILocalStorage extends IStorage {
 	 * @param points
 	 */
 	void storeLocalPoints(Track track, List<Point> points);
+
+	/**
+	 * Update point of track
+	 */
+	void storePoint(Track track, Point point);
 }

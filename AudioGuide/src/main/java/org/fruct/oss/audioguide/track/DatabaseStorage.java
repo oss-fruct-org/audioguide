@@ -80,6 +80,24 @@ public class DatabaseStorage implements ILocalStorage {
 		}
 	}
 
+	@Override
+	public void storePoint(Track track, Point point) {
+		ContentValues cv = new ContentValues(7);
+		cv.put("name", point.getName());
+		cv.put("description", point.getDescription());
+		cv.put("lat", point.getLatE6());
+		cv.put("lon", point.getLonE6());
+		cv.put("audioUrl", point.getAudioUrl());
+		cv.put("photoUrl", point.getPhotoUrl());
+		cv.put("trackId", track.getLocalId());
+
+		int count = db.update("points", cv, "points.trackId=? and points.name=?",
+				new String[]{String.valueOf(track.getLocalId()), point.getName()});
+		if (count < 1) {
+			db.insert("points", null, cv);
+		}
+	}
+
 	private void storeLocalPoint(Track track, Point point) {
 		ContentValues cv = new ContentValues(7);
 		cv.put("name", point.getName());

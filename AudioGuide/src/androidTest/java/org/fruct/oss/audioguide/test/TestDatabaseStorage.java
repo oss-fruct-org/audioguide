@@ -103,8 +103,6 @@ public class TestDatabaseStorage extends AndroidTestCase {
 	}
 
 	public void testStorePoints() {
-		log.debug("BEGIN");
-
 		Track track, track2;
 		Point point1, point2;
 
@@ -133,6 +131,37 @@ public class TestDatabaseStorage extends AndroidTestCase {
 		sort(points);
 		assertTrue(comparePoints(point1, points.get(0)));
 		assertTrue(comparePoints(point2, points.get(1)));
+	}
+
+	public void testUpdatePoint() {
+		Track track1, track2;
+		storage.storeLocalTrack(track1 = new Track("AAA", "BBB", "CCC"));
+		storage.storeLocalTrack(track2 = new Track("BBB", "CCC", "DDD"));
+
+		Point point1, point2;
+		storage.storePoint(track1, point1 = new Point("ZZZ1", "XXX", "CCC", 46, 64));
+		storage.storePoint(track1, point2 = new Point("ZZZ2", "YYY", "CCC", 12, 13));
+
+		reopen();
+
+		List<Point> points = storage.getPoints(track1);
+		sort(points);
+
+		assertEquals("XXX", points.get(0).getDescription());
+		assertEquals("YYY", points.get(1).getDescription());
+
+
+		// Update point
+		point2.setDescription("QWERTY");
+		storage.storePoint(track1, point2);
+		reopen();
+
+		points = storage.getPoints(track1);
+		sort(points);
+
+		assertEquals(2, points.size());
+		assertEquals("XXX", points.get(0).getDescription());
+		assertEquals("QWERTY", points.get(1).getDescription());
 	}
 
 	private boolean comparePoints(Point p1, Point p2) {

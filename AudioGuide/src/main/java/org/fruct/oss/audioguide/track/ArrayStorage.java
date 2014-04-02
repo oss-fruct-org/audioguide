@@ -42,6 +42,20 @@ public class ArrayStorage implements ILocalStorage {
 	}
 
 	@Override
+	public void storePoint(Track track, Point point) {
+		if (points.containsKey(track)) {
+			List<Point> list = points.get(track);
+			for (int i = 0; i < list.size(); i++) {
+				Point p = list.get(i);
+				if (point.equals(p)) {
+					list.set(i, point);
+					break;
+				}
+			}
+		}
+	}
+
+	@Override
 	public void initialize() {
 	}
 
