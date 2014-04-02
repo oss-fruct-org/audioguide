@@ -232,6 +232,7 @@ public class TrackManager {
 	}
 
 	public void storePoint(Track track, Point point) {
+		log.trace("Store point to track " + track.getName() + ": " + point.getName());
 		localStorage.storePoint(track, point);
 	}
 
@@ -242,7 +243,6 @@ public class TrackManager {
 	}
 
 	private void doLoadRemoteTracks() {
-		log.trace("doLoadRemoteTracks");
 		remoteStorage.load();
 
 		List<Track> tracks = remoteStorage.getTracks();

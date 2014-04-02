@@ -11,15 +11,14 @@ import android.widget.EditText;
 
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.track.Point;
-import org.fruct.oss.audioguide.track.Track;
 import org.fruct.oss.audioguide.util.Utils;
 
 public class EditPointDialog extends DialogFragment implements DialogInterface.OnClickListener {
 	private Listener listener;
 
 	public interface Listener {
-		void trackCreated(Point point);
-		void trackUpdated(Point point);
+		void pointCreated(Point point);
+		void pointUpdated(Point point);
 	}
 
 	private Point point;
@@ -78,9 +77,9 @@ public class EditPointDialog extends DialogFragment implements DialogInterface.O
 
 		if (listener != null) {
 			if (isNewPoint)
-				listener.trackCreated(point);
+				listener.pointCreated(point);
 			else
-				listener.trackUpdated(point);
+				listener.pointUpdated(point);
 		}
 	}
 

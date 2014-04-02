@@ -29,10 +29,8 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
 
-import org.apache.http.auth.AUTH;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.fragments.edit.EditPointDialog;
-import org.fruct.oss.audioguide.fragments.edit.EditTrackDialog;
 import org.fruct.oss.audioguide.overlays.EditOverlay;
 import org.fruct.oss.audioguide.overlays.MyPositionOverlay;
 import org.fruct.oss.audioguide.track.AudioService;
@@ -79,7 +77,10 @@ public class MapFragment extends Fragment implements TrackManager.Listener {
 	private ViewGroup bottomToolbar;
 
 	private Point selectedPoint;
+
+
 	private EditOverlay<Point> editOverlay;
+	private Track editTrack;
 
 	/**
 	 * Use this factory method to create a new instance of
@@ -122,9 +123,11 @@ public class MapFragment extends Fragment implements TrackManager.Listener {
 	}
 
 	private void startAddingPoint() {
-		EditPointDialog dialog = new EditPointDialog(null);
-		dialog.setListener(editDialogListener);
-		dialog.show(getFragmentManager(), "edit-track-dialog");
+		if (editTrack != null) {
+			EditPointDialog dialog = new EditPointDialog(null);
+			dialog.setListener(editDialogListener);
+			dialog.show(getFragmentManager(), "edit-track-dialog");
+		}
 	}
 
 	private void mockLocation() {
@@ -366,26 +369,21 @@ public class MapFragment extends Fragment implements TrackManager.Listener {
 		mapView.getOverlays().add(clickHandlerOverlay);
 	}
 
-
 	private void createEditOverlay() {
-		editOverlay = new EditOverlay<Point>(getActivity());
-		editOverlay.setListener(new EditOverlay.Listener<Point>() {
-			@Override
-			public void pointMoved(Point point, IGeoPoint geoPoint) {
-				log.debug("Point moved");
+		List<Track> editTracks = trackManager.getEditingTracks();
+
+		if (!editTracks.isEmpty()) {
+			editTrack = editTracks.get(0);
+			editOverlay = new EditOverlay<Point>(getActivity());
+
+			List<Point> points = trackManager.getPoints(editTrack);
+			for (Point point : points) {
+				editOverlay.addPoint(new GeoPoint(point.getLatE6(), point.getLonE6()), point);
 			}
 
-			@Override
-			public void pointPressed(Point point) {
-				log.debug("Point pressed");
-			}
-		});
-
-		/*editOverlay.addPoint(new GeoPoint(61.786269, 34.346153));
-		editOverlay.addPoint(new GeoPoint(61.786106, 34.350530));
-		editOverlay.addPoint(new GeoPoint(61.787285, 34.354564));*/
-
-		mapView.getOverlays().add(editOverlay);
+			editOverlay.setListener(editOverlayListener);
+			mapView.getOverlays().add(editOverlay);
+		}
 	}
 
 	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
@@ -442,19 +440,33 @@ public class MapFragment extends Fragment implements TrackManager.Listener {
 
 	private EditPointDialog.Listener editDialogListener = new EditPointDialog.Listener() {
 		@Override
-		public void trackCreated(Point point) {
+		public void pointCreated(Point point) {
 			log.debug("Point created callback");
 
 			IGeoPoint mapCenter = mapView.getMapCenter();
 			point.setCoordinates(mapCenter.getLatitudeE6(), mapCenter.getLongitudeE6());
 			editOverlay.addPoint(AUtils.copyGeoPoint(mapCenter), point);
+			trackManager.storePoint(editTrack, point);
 			mapView.invalidate();
 		}
 
 		@Override
-		public void trackUpdated(Point point) {
+		public void pointUpdated(Point point) {
 			log.debug("Point updated callback");
-			//trackManager.storeLocal(track);
+			trackManager.storePoint(editTrack, point);
+		}
+	};
+
+	private EditOverlay.Listener<Point> editOverlayListener = new EditOverlay.Listener<Point>() {
+		@Override
+		public void pointMoved(Point point, IGeoPoint geoPoint) {
+			point.setCoordinates(geoPoint.getLatitudeE6(), geoPoint.getLongitudeE6());
+			trackManager.storePoint(editTrack, point);
+		}
+
+		@Override
+		public void pointPressed(Point point) {
+
 		}
 	};
 
