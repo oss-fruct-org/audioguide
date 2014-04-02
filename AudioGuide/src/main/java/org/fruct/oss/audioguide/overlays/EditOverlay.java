@@ -38,6 +38,9 @@ public class EditOverlay<T> extends Overlay {
 	private EditOverlayItem draggingItem;
 	private int dragRelX;
 	private int dragRelY;
+	private int dragStartX;
+	private int dragStartY;
+	private boolean dragStarted;
 
 	private transient Point point = new Point();
 	private transient Point point2 = new Point();
@@ -148,7 +151,7 @@ public class EditOverlay<T> extends Overlay {
 		return null;
 	}
 
-	@Override
+	/*@Override
 	public boolean onLongPress(MotionEvent e, MapView mapView) {
 		HitResult hitResult = testHit(e, mapView);
 
@@ -159,7 +162,7 @@ public class EditOverlay<T> extends Overlay {
 		}
 
 		return false;
-	}
+	}*/
 
 	@Override
 	public boolean onTouchEvent(MotionEvent event, MapView mapView) {
@@ -170,6 +173,9 @@ public class EditOverlay<T> extends Overlay {
 				draggingItem = hitResult.item;
 				dragRelX = hitResult.relHookX;
 				dragRelY = hitResult.relHookY;
+				dragStartX = (int) event.getX();
+				dragStartY = (int) event.getY();
+				dragStarted = false;
 
 				mapView.invalidate();
 				return true;
@@ -177,16 +183,25 @@ public class EditOverlay<T> extends Overlay {
 				return false;
 			}
 		} else if (event.getAction() == MotionEvent.ACTION_UP && draggingItem != null) {
-			if (listener != null) {
-				listener.pointMoved(draggingItem.data, draggingItem.geoPoint);
+			if (dragStarted) {
+				if (listener != null) {
+					listener.pointMoved(draggingItem.data, draggingItem.geoPoint);
+				}
+			} else {
+				listener.pointPressed(draggingItem.data);
 			}
 
 			draggingItem = null;
 			mapView.invalidate();
 			return true;
 		} else if (event.getAction() == MotionEvent.ACTION_MOVE && draggingItem != null) {
-			moveItem(draggingItem, event, mapView);
+			final int dx = dragStartX - (int) event.getX();
+			final int dy = dragStartY - (int) event.getY();
 
+			if (dragStarted || dx * dx + dy * dy > 8 * 8) {
+				dragStarted = true;
+				moveItem(draggingItem, event, mapView);
+			}
 			return true;
 		} else {
 			return false;

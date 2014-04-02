@@ -18,11 +18,12 @@ public class DatabaseStorage implements ILocalStorage {
 	private final static Logger log = LoggerFactory.getLogger(DatabaseStorage.class);
 
 	public static final String DB_NAME = "tracksdb";
-	public static final int DB_VERSION = 1;
+	public static final int DB_VERSION = 2;
 	public static final String CREATE_TRACKS_SQL = "CREATE TABLE tracks " +
 			"(id INTEGER PRIMARY KEY AUTOINCREMENT," +
 			"name TEXT," +
 			"description TEXT," +
+			"hname TEXT," +
 			"url TEXT," +
 			"active INTEGER," +
 			"editing INTEGER);";
@@ -39,7 +40,7 @@ public class DatabaseStorage implements ILocalStorage {
 			"FOREIGN KEY(trackId) REFERENCES tracks(id) ON DELETE CASCADE);";
 
 	public static final String[] SELECT_TRACK_COLUMNS = {
-			"id", "name", "description", "url", "active", "editing"
+			"id", "name", "description", "url", "active", "editing", "hname"
 	};
 
 	public static final String[] SELECT_POINT_COLUMNS = {
@@ -59,12 +60,13 @@ public class DatabaseStorage implements ILocalStorage {
 
 	@Override
 	public void storeLocalTrack(Track track) {
-		ContentValues cv = new ContentValues(5);
+		ContentValues cv = new ContentValues(6);
 		cv.put("name", track.getName());
 		cv.put("description", track.getDescription());
 		cv.put("url", track.getUrl());
 		cv.put("active", track.isActive());
 		cv.put("editing", track.isEditing());
+		cv.put("hname", track.getHname());
 
 		if (tracks.contains(track)) {
 			tracks.remove(track);

@@ -466,7 +466,11 @@ public class MapFragment extends Fragment implements TrackManager.Listener {
 
 		@Override
 		public void pointPressed(Point point) {
+			log.debug("Point pressed");
 
+			EditPointDialog dialog = new EditPointDialog(point);
+			dialog.setListener(editDialogListener);
+			dialog.show(getFragmentManager(), "edit-track-dialog");
 		}
 	};
 
