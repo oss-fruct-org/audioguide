@@ -2,7 +2,7 @@ apply plugin: 'android'
 
 android {
     compileSdkVersion 19
-    buildToolsVersion '19.0.1'
+    buildToolsVersion '19.0.3'
 
     defaultConfig {
         minSdkVersion 10
@@ -28,16 +28,14 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
     }
-
-
 }
 
 dependencies {
-    compile 'com.android.support:support-v4:19.0.1'
-    compile 'com.android.support:appcompat-v7:19.0.1'
+    compile 'com.android.support:support-v4:19.1.0'
+    compile 'com.android.support:appcompat-v7:19.1.0'
     compile 'org.osmdroid:osmdroid-android:4.1'
-    compile 'org.simpleframework:simple-xml:2.7.1@jar'
-    compile 'org.slf4j:slf4j-android:1.6.1-RC1'
+    // compile 'org.simpleframework:simple-xml:2.7.1@jar'
+    compile 'org.slf4j:slf4j-android:1.7.6'
     //
     compile fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
     androidTestCompile 'com.jayway.android.robotium:robotium-solo:5.0.1'
