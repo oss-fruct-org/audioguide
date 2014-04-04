@@ -65,6 +65,12 @@ public class GetsResponse {
 				return TokenContent.parse(parser);
 			}
 		});
+		contentParsers.put(PostUrlContent.class, new ContentParser() {
+			@Override
+			public IContent parse(XmlPullParser parser) throws IOException, XmlPullParserException {
+				return PostUrlContent.parse(parser);
+			}
+		});
 	}
 
 

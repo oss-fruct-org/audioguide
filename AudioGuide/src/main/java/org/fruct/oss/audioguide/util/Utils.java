@@ -1,5 +1,6 @@
 package org.fruct.oss.audioguide.util;
 
+import android.net.Uri;
 import android.util.Pair;
 import android.util.TypedValue;
 
@@ -9,8 +10,10 @@ import org.slf4j.LoggerFactory;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
+import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -252,6 +255,57 @@ public class Utils {
 		}
 
 		dir.delete();
+	}
+
+	public static String postFile(String urlString, String path, String mimeType) throws IOException {
+		HttpURLConnection conn = null;
+		InputStream responseStream = null;
+
+		File localFile = new File(path);
+
+		if (!localFile.exists() || !localFile.canRead() || localFile.isDirectory()) {
+			throw new IOException("Invalid file: " + path);
+		}
+
+		long fileSize = localFile.length();
+		InputStream localStream = new FileInputStream(path);
+
+		try {
+			URL url = new URL(urlString);
+			conn = (HttpURLConnection) url.openConnection();
+			conn.setReadTimeout(10000);
+			conn.setConnectTimeout(10000);
+			conn.setRequestMethod("POST");
+			conn.setDoInput(true);
+			conn.setDoOutput(true);
+			conn.setRequestProperty("User-Agent", "RoadSigns/0.2 (http://oss.fruct.org/projects/roadsigns/)");
+			conn.setRequestProperty("Content-Length", String.valueOf(fileSize));
+			if (mimeType != null)
+				conn.setRequestProperty("Content-Type", mimeType);
+
+			BufferedOutputStream outputStream = new BufferedOutputStream(conn.getOutputStream());
+			copyStream(localStream, outputStream);
+			outputStream.close();
+
+			conn.connect();
+
+			int responseCode = conn.getResponseCode();
+			responseStream = conn.getInputStream();
+			String response = Utils.inputStreamToString(responseStream);
+
+			log.trace("Request url {} data file {}", urlString, path);
+			log.trace("Response code {}, response {}", responseCode, response);
+
+			return response;
+		} finally {
+			if (conn != null)
+				conn.disconnect();
+
+			if (responseStream != null)
+				responseStream.close();
+
+			localStream.close();
+		}
 	}
 
 	public static String downloadUrl(String urlString, String postQuery) throws IOException {

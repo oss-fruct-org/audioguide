@@ -73,6 +73,8 @@ public class GetsStorage implements IStorage, IRemoteStorage {
 	public static final String LOGIN_STAGE_1 = "<request><params></params></request>";
 	public static final String LOGIN_STAGE_2 = "<request><params><id>%s</id></params></request>";
 
+	public static final String UPLOAD_FILE = "<request><params><auth_token>%s</auth_token><title>%s</title></params></request>";
+
 	private List<Track> loadedTracks;
 
 	@Override

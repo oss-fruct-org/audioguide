@@ -13,11 +13,11 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import org.fruct.oss.audioguide.R;
+import org.fruct.oss.audioguide.fragments.UploadFragment;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.util.Utils;
 
 public class EditPointDialog extends DialogFragment implements DialogInterface.OnClickListener {
-    private static final int IMAGE_REQUEST_CODE = 0;
     private Listener listener;
 
 	public interface Listener {
@@ -101,25 +101,11 @@ public class EditPointDialog extends DialogFragment implements DialogInterface.O
 	}
 
     private void showFileChooserDialog() {
-        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-        intent.setType("*/*");
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
-
-        startActivityForResult(Intent.createChooser(intent, "Choose file"), IMAGE_REQUEST_CODE);
-    }
+		UploadFragment fragment = new UploadFragment();
+		fragment.show(getFragmentManager(), "upload-dialog");
+	}
 
 	public void setListener(Listener listener) {
 		this.listener = listener;
 	}
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == IMAGE_REQUEST_CODE) {
-            if (resultCode == Activity.RESULT_OK) {
-                imageFileText.setText(data.getDataString());
-            }
-        }
-
-        super.onActivityResult(requestCode, resultCode, data);
-    }
 }
