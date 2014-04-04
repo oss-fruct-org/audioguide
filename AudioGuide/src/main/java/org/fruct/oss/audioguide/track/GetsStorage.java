@@ -153,7 +153,6 @@ public class GetsStorage implements IStorage, IRemoteStorage {
 
 	@Override
 	public void sendTrack(Track track, List<Point> points) {
-
 		String request = String.format(Locale.ROOT, CREATE_TRACK, createTokenTag(),
 				track.getName(), createHnameTag(track),  track.getDescription(), track.getUrl());
 

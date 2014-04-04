@@ -32,16 +32,16 @@ import org.fruct.oss.audioguide.util.Utils;
 import java.io.IOException;
 
 public class GetsFragment extends Fragment implements WebViewDialog.Listener {
-    private MultiPanel multiPanel;
+	private MultiPanel multiPanel;
 
 	// TODO: store between screen rotations
 	private String sessionId;
 
-    public static GetsFragment newInstance() {
+	public static GetsFragment newInstance() {
 		return new GetsFragment();
-    }
-    public GetsFragment() {
-    }
+	}
+	public GetsFragment() {
+	}
 
 	private void setAnonBoxState(Button signInButton, CheckBox anonCheckBox) {
 		signInButton.setEnabled(!anonCheckBox.isChecked());
@@ -49,9 +49,9 @@ public class GetsFragment extends Fragment implements WebViewDialog.Listener {
 		pref.edit().putBoolean(GetsStorage.PREF_AUTH_ANON, anonCheckBox.isChecked()).apply();
 	}
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container,
+							 Bundle savedInstanceState) {
 		View view = inflater.inflate(R.layout.fragment_gets, container, false);
 		assert view != null;
 
@@ -82,22 +82,22 @@ public class GetsFragment extends Fragment implements WebViewDialog.Listener {
 		return view;
 	}
 
-    @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        try {
-            multiPanel = (MultiPanel) activity;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString()
-                    + " must implement MultiPanel");
-        }
-    }
+	@Override
+	public void onAttach(Activity activity) {
+		super.onAttach(activity);
+		try {
+			multiPanel = (MultiPanel) activity;
+		} catch (ClassCastException e) {
+			throw new ClassCastException(activity.toString()
+					+ " must implement MultiPanel");
+		}
+	}
 
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        multiPanel = null;
-    }
+	@Override
+	public void onDetach() {
+		super.onDetach();
+		multiPanel = null;
+	}
 
 	private void authenticate() throws IOException, GetsException {
 		// Authentication stage 1
