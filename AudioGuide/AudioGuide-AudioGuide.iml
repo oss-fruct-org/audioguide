@@ -75,6 +75,7 @@
     <orderEntry type="library" exported="" name="osmdroid-android-4.1" level="project" />
     <orderEntry type="library" exported="" name="appcompat-v7-19.1.0" level="project" />
     <orderEntry type="library" exported="" name="support-v4-19.1.0" level="project" />
+    <orderEntry type="library" exported="" name="simple-xml-2.7.1" level="project" />
     <orderEntry type="library" exported="" name="slf4j-android-1.7.6" level="project" />
   </component>
 </module>

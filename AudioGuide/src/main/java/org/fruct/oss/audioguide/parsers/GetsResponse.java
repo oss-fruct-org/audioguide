@@ -71,6 +71,18 @@ public class GetsResponse {
 				return PostUrlContent.parse(parser);
 			}
 		});
+		contentParsers.put(FileContent.class, new ContentParser() {
+			@Override
+			public IContent parse(XmlPullParser parser) throws IOException, XmlPullParserException {
+				return FileContent.parse(parser);
+			}
+		});
+		contentParsers.put(FilesContent.class, new ContentParser() {
+			@Override
+			public IContent parse(XmlPullParser parser) throws IOException, XmlPullParserException {
+				return FilesContent.parse(parser);
+			}
+		});
 	}
 
 

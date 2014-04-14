@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<response>
+    <status>
+        <code>0</code>
+        <message>successs</message>
+    </status>
+    <content>
+        <files>
+            <file>
+                <title>qwe asd</title>
+                <mimeType>image/png</mimeType>
+                <downloadUrl>https://docs.google.com/uc?id=0B99FJDhx6L84ck53cXEwbWdGY28&amp;export=download</downloadUrl>
+            </file>
+            <file>
+                <title>qwe asd</title>
+                <mimeType>image/png</mimeType>
+                <downloadUrl>https://docs.google.com/uc?id=0B99FJDhx6L84Z0lXYXVxRjY0LWc&amp;export=download</downloadUrl>
+            </file>
+            <file>
+                <title>&lt;qwe asd&gt;</title>
+                <mimeType>image/png</mimeType>
+                <downloadUrl>https://docs.google.com/uc?id=0B99FJDhx6L84bEZVVDZpR1duQTQ&amp;export=download</downloadUrl>
+            </file>
+        </files>
+    </content>
+</response>

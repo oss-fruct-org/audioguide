@@ -5,6 +5,8 @@ import android.content.Context;
 import android.test.AndroidTestCase;
 
 import org.fruct.oss.audioguide.parsers.AuthRedirectResponse;
+import org.fruct.oss.audioguide.parsers.FileContent;
+import org.fruct.oss.audioguide.parsers.FilesContent;
 import org.fruct.oss.audioguide.parsers.GetsResponse;
 import org.fruct.oss.audioguide.parsers.IContent;
 import org.fruct.oss.audioguide.parsers.Kml;
@@ -107,5 +109,33 @@ public class ParserTest extends AndroidTestCase{
 
 		TokenContent content = ((TokenContent) resp.getContent());
 		assertEquals("74a89174426b40307102e165374ab8ab", content.getAccessToken());
+	}
+
+	public void testFiles() throws Exception {
+		InputStream stream = testContext.getAssets().open("files.xml");
+
+		GetsResponse resp = GetsResponse.parse(Utils.inputStreamToString(stream), FilesContent.class);
+		assertEquals(0, resp.getCode());
+		assertEquals("successs", resp.getMessage());
+		assertTrue(resp.getContent() instanceof FilesContent);
+
+		FilesContent content = ((FilesContent) resp.getContent());
+		assertEquals(3, content.getFiles().size());
+
+		FileContent file1 = content.getFiles().get(0);
+		assertEquals(file1.getTitle(), "qwe asd");
+		assertEquals(file1.getMimeType(), "image/png");
+		assertEquals(file1.getUrl(), "https://docs.google.com/uc?id=0B99FJDhx6L84ck53cXEwbWdGY28&export=download");
+
+		FileContent file2 = content.getFiles().get(1);
+		assertEquals(file2.getTitle(), "qwe asd");
+		assertEquals(file2.getMimeType(), "image/png");
+		assertEquals(file2.getUrl(), "https://docs.google.com/uc?id=0B99FJDhx6L84Z0lXYXVxRjY0LWc&export=download");
+
+		FileContent file3 = content.getFiles().get(2);
+		assertEquals(file3.getTitle(), "<qwe asd>");
+		assertEquals(file3.getMimeType(), "image/png");
+		assertEquals(file3.getUrl(), "https://docs.google.com/uc?id=0B99FJDhx6L84bEZVVDZpR1duQTQ&export=download");
+
 	}
 }

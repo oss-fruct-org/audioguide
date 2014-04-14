@@ -5,17 +5,28 @@
     tools:context="org.fruct.oss.audioguide.fragments.GetsFragment"
     android:orientation="vertical">
 
+    <TextView
+        android:id="@+id/login_label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Not signed in"
+        style="@style/HeaderText"
+        />
+
+    <Button
+        android:id="@+id/sign_in_button"
+        style="@style/Button"
+        android:text="Sign in"/>
+
+    <Button
+        android:id="@+id/manage_files_button"
+        style="@style/Button"
+        android:text="Manage files"/>
+
     <CheckBox
         android:id="@+id/anon_check"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Use anonymous account"
         />
-
-    <Button
-        android:id="@+id/sign_in_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Sign in"/>
-
 </LinearLayout>

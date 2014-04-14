@@ -26,6 +26,7 @@ import org.fruct.oss.audioguide.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Locale;
 
@@ -129,6 +130,7 @@ public class UploadFragment extends DialogFragment {
 
 				try {
 					Utils.postFile(uploadUrl, localFileUri.getPath(), "image/png");
+					new File("/sdcard/qweqwe");
 				} catch (IOException e) {
 					log.error("GeTS error: ", e);
 					showError("Error uploading file");
