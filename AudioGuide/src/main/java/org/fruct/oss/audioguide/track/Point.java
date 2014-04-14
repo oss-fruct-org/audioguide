@@ -94,6 +94,14 @@ public class Point implements Parcelable {
 		this.description = description;
 	}
 
+	public void setPhotoUrl(String photoUrl) {
+		this.photoUrl = photoUrl;
+	}
+
+	public void setAudioUrl(String audioUrl) {
+		this.audioUrl = audioUrl;
+	}
+
 
 	public int getLatE6() {
 		cachedLocation = null; // TODO: ???

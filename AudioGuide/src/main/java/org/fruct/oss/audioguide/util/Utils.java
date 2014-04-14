@@ -257,18 +257,18 @@ public class Utils {
 		dir.delete();
 	}
 
-	public static String postFile(String urlString, String path, String mimeType) throws IOException {
+	/**
+	 * Sent post request with content of given stream.
+	 * This method doesn't close stream
+	 * @param urlString Uri to connect
+	 * @param stream Stream to upload
+	 * @param mimeType Mime type of content
+	 * @return server response
+	 * @throws IOException
+	 */
+	public static String postStream(String urlString, InputStream stream, String mimeType) throws IOException {
 		HttpURLConnection conn = null;
 		InputStream responseStream = null;
-
-		File localFile = new File(path);
-
-		if (!localFile.exists() || !localFile.canRead() || localFile.isDirectory()) {
-			throw new IOException("Invalid file: " + path);
-		}
-
-		long fileSize = localFile.length();
-		InputStream localStream = new FileInputStream(path);
 
 		try {
 			URL url = new URL(urlString);
@@ -279,12 +279,12 @@ public class Utils {
 			conn.setDoInput(true);
 			conn.setDoOutput(true);
 			conn.setRequestProperty("User-Agent", "RoadSigns/0.2 (http://oss.fruct.org/projects/roadsigns/)");
-			conn.setRequestProperty("Content-Length", String.valueOf(fileSize));
+			//conn.setRequestProperty("Content-Length", String.valueOf(fileSize));
 			if (mimeType != null)
 				conn.setRequestProperty("Content-Type", mimeType);
 
 			BufferedOutputStream outputStream = new BufferedOutputStream(conn.getOutputStream());
-			copyStream(localStream, outputStream);
+			copyStream(stream, outputStream);
 			outputStream.close();
 
 			conn.connect();
@@ -293,7 +293,7 @@ public class Utils {
 			responseStream = conn.getInputStream();
 			String response = Utils.inputStreamToString(responseStream);
 
-			log.trace("Request url {} data file {}", urlString, path);
+			log.trace("Request url {} data", urlString);
 			log.trace("Response code {}, response {}", responseCode, response);
 
 			return response;
@@ -303,8 +303,25 @@ public class Utils {
 
 			if (responseStream != null)
 				responseStream.close();
+		}
+	}
 
-			localStream.close();
+	public static String postFile(String urlString, String path, String mimeType) throws IOException {
+		File localFile = new File(path);
+
+		if (!localFile.exists() || !localFile.canRead() || localFile.isDirectory()) {
+			throw new IOException("Invalid file: " + path);
+		}
+
+		long fileSize = localFile.length();
+		InputStream localStream = new FileInputStream(path);
+		try {
+			return postStream(urlString, localStream, mimeType);
+		} finally {
+			try {
+				localStream.close();
+			} catch (IOException e) {
+			}
 		}
 	}
 

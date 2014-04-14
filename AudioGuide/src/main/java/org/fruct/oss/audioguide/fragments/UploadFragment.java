@@ -4,6 +4,7 @@ package org.fruct.oss.audioguide.fragments;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
@@ -14,10 +15,12 @@ import android.support.v4.app.DialogFragment;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import org.fruct.oss.audioguide.App;
 import org.fruct.oss.audioguide.R;
+import org.fruct.oss.audioguide.parsers.FileContent;
 import org.fruct.oss.audioguide.parsers.GetsException;
 import org.fruct.oss.audioguide.parsers.GetsResponse;
 import org.fruct.oss.audioguide.parsers.PostUrlContent;
@@ -27,7 +30,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Locale;
 
 public class UploadFragment extends DialogFragment {
@@ -38,6 +43,7 @@ public class UploadFragment extends DialogFragment {
 	private Uri localFileUri;
 	private EditText titleEdit;
 	private Button browseButton;
+	private ProgressBar progressBar;
 
 	@Override
 	public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -48,6 +54,7 @@ public class UploadFragment extends DialogFragment {
 
 		titleEdit = ((EditText) view.findViewById(R.id.title_text));
 		browseButton = (Button) view.findViewById(R.id.browse_button);
+		progressBar = (ProgressBar) view.findViewById(R.id.progress_bar);
 
 		browseButton.setOnClickListener(new View.OnClickListener() {
 			@Override
@@ -71,7 +78,7 @@ public class UploadFragment extends DialogFragment {
 		if (requestCode == IMAGE_REQUEST_CODE) {
 			if (resultCode == Activity.RESULT_OK) {
 				localFileUri = data.getData();
-				log.debug("User select file {}", localFileUri.toString());
+				log.debug("User select file {}, {}", localFileUri.toString(), data.getType());
 				browseButton.setText("Upload");
 				browseButton.setOnClickListener(uploadListener);
 			}
@@ -124,18 +131,54 @@ public class UploadFragment extends DialogFragment {
  	}
 
 	private void uploadStage2(final String uploadUrl) {
-		AsyncTask<Void, Void, String> task = new AsyncTask<Void, Void, String>() {
-			@Override
-			protected String doInBackground(Void... voids) {
+		AsyncTask<Void, Integer, FileContent> task = new AsyncTask<Void, Integer, FileContent>() {
+			private int fileSize;
+			private boolean started = false;
 
+			@Override
+			protected FileContent doInBackground(Void... voids) {
 				try {
-					Utils.postFile(uploadUrl, localFileUri.getPath(), "image/png");
-					new File("/sdcard/qweqwe");
+					InputStream stream = getActivity().getContentResolver().openInputStream(localFileUri);
+
+					if (stream == null) {
+						showError("Wrong file");
+						return null;
+					}
+
+					fileSize = stream.available();
+					log.debug("Stream size {}", stream.available());
+
+					String responseStr = Utils.postStream(uploadUrl, stream, "image/png");
+					GetsResponse response = GetsResponse.parse(responseStr, FileContent.class);
+
+					if (response.getCode() != 0) {
+						log.error("Gets did return error code");
+						showError("Error uploading file");
+						return null;
+					}
+
+					return ((FileContent) response.getContent());
 				} catch (IOException e) {
+					log.error("GeTS error: ", e);
+					showError("Error uploading file");
+				} catch (GetsException e) {
 					log.error("GeTS error: ", e);
 					showError("Error uploading file");
 				}
 				return null;
+			}
+
+			@Override
+			protected void onProgressUpdate(Integer... values) {
+				super.onProgressUpdate(values);
+
+
+			}
+
+			@Override
+			protected void onPostExecute(FileContent fileContent) {
+				Toast.makeText(getActivity(), "File successfully uploaded", Toast.LENGTH_LONG).show();
+				UploadFragment.this.dismiss();
 			}
 		}.execute();
 	}

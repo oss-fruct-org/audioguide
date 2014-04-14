@@ -12,9 +12,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import org.fruct.oss.audioguide.FileChooserActivity;
 import org.fruct.oss.audioguide.R;
+import org.fruct.oss.audioguide.fragments.FileManagerFragment;
 import org.fruct.oss.audioguide.fragments.UploadFragment;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.util.Utils;
@@ -26,7 +28,7 @@ public class EditPointDialog extends DialogFragment implements DialogInterface.O
 
 	private static final int REQUEST_CODE_IMAGE = 1;
 
-    private Listener listener;
+	private Listener listener;
 
 	public interface Listener {
 		void pointCreated(Point point);
@@ -36,12 +38,13 @@ public class EditPointDialog extends DialogFragment implements DialogInterface.O
 	private Point point;
 	private boolean isNewPoint;
 
+
 	private EditText editName;
 	private EditText editDescription;
 	private EditText editUrl;
 
-    //private EditText imageFileText;
-    private Button imageFileButton;
+	private TextView imageFileLabel;//Text;
+	private Button imageFileButton;
 
 	public EditPointDialog(Point point) {
 		if (point == null) {
@@ -61,9 +64,9 @@ public class EditPointDialog extends DialogFragment implements DialogInterface.O
 		editName = (EditText) view.findViewById(R.id.text_title);
 		editDescription = (EditText) view.findViewById(R.id.text_description);
 
-        //imageFileText = (EditText) view.findViewById(R.id.image_file);
-        imageFileButton = (Button) view.findViewById(R.id.image_file_button);
-        //editUrl = (EditText) view.findViewById(R.id.edit_url);
+		imageFileLabel = (TextView) view.findViewById(R.id.image_file_title);
+		imageFileButton = (Button) view.findViewById(R.id.image_file_button);
+		//editUrl = (EditText) view.findViewById(R.id.edit_url);
 
 		if (point != null) {
 			if (!Utils.isNullOrEmpty(point.getName())) editName.setText(point.getName());
@@ -71,12 +74,12 @@ public class EditPointDialog extends DialogFragment implements DialogInterface.O
 			//if (!Utils.isNullOrEmpty(point.point())) editUrl.setText(point.getUrl());
 		}
 
-        imageFileButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showFileChooserDialog();
-            }
-        });
+		imageFileButton.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				showFileChooserDialog();
+			}
+		});
 
 		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 		builder.setView(view)
@@ -108,7 +111,7 @@ public class EditPointDialog extends DialogFragment implements DialogInterface.O
 		}
 	}
 
-    private void showFileChooserDialog() {
+	private void showFileChooserDialog() {
 		Intent intent = new Intent(getActivity(), FileChooserActivity.class);
 		intent.setType("*/*");
 		startActivityForResult(intent, REQUEST_CODE_IMAGE);
@@ -122,6 +125,10 @@ public class EditPointDialog extends DialogFragment implements DialogInterface.O
 			Uri uri = data.getData();
 			assert uri != null;
 			log.info("File {} chosen", uri.toString());
+
+			String title = data.getStringExtra(FileManagerFragment.RESULT_TITLE);
+			imageFileLabel.setText(title);
+			point.setPhotoUrl(data.getStringExtra(FileManagerFragment.RESULT_URL));
 		}
 	}
 

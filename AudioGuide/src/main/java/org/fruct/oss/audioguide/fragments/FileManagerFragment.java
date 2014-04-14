@@ -8,6 +8,9 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.ListFragment;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ListAdapter;
 import android.widget.ListView;
@@ -16,6 +19,7 @@ import org.fruct.oss.audioguide.FileChooserActivity;
 import org.fruct.oss.audioguide.MultiPanel;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.adapters.FileAdapter;
+import org.fruct.oss.audioguide.parsers.FileContent;
 import org.fruct.oss.audioguide.parsers.FilesContent;
 import org.fruct.oss.audioguide.parsers.GetsException;
 import org.fruct.oss.audioguide.parsers.GetsResponse;
@@ -29,6 +33,10 @@ import java.util.Locale;
 
 public class FileManagerFragment extends ListFragment {
 	public static final String ARG_PICKER_MODE = "arg-picker-mode";
+
+	public static final String RESULT_URL = "result-uri";
+	public static final String RESULT_TITLE = "result-title";
+	public static final String RESULT_MIME = "result-mime";
 
 	private final static Logger log = LoggerFactory.getLogger(FileManagerFragment.class);
 
@@ -61,8 +69,27 @@ public class FileManagerFragment extends ListFragment {
 		adapter = new FileAdapter(getActivity(), R.layout.list_file_item);
 		setListAdapter(adapter);
 
+		setHasOptionsMenu(true);
+
 		startFilesLoading();
     }
+
+	@Override
+	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+		super.onCreateOptionsMenu(menu, inflater);
+
+		inflater.inflate(R.menu.file_manager_menu, menu);
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+		case R.id.action_add:
+			addFile();
+			break;
+		}
+		return super.onOptionsItemSelected(item);
+	}
 
 	private void startFilesLoading() {
 		AsyncTask<Void, Void, FilesContent> filesTask = new AsyncTask<Void, Void, FilesContent>() {
@@ -111,7 +138,12 @@ public class FileManagerFragment extends ListFragment {
 
 		if (pickerMode) {
 			Intent intent = new Intent();
-			intent.setData(Uri.parse(adapter.getItem(position).getUrl()));
+			FileContent item = adapter.getItem(position);
+
+			intent.setData(Uri.parse(item.getUrl()));
+			intent.putExtra(RESULT_MIME, item.getMimeType());
+			intent.putExtra(RESULT_TITLE, item.getTitle());
+			intent.putExtra(RESULT_URL, item.getUrl());
 
 			if (getActivity().getParent() == null)
 				getActivity().setResult(Activity.RESULT_OK, intent);
@@ -120,6 +152,11 @@ public class FileManagerFragment extends ListFragment {
 
 			getActivity().finish();
 		}
+	}
+
+	private void addFile() {
+		UploadFragment fragment = new UploadFragment();
+		fragment.show(getFragmentManager(), "upload-fragment");
 	}
 
 	@Override
