@@ -103,6 +103,18 @@ public class MainActivity extends ActionBarActivity
 	}
 
 	@Override
+	protected void onResume() {
+		super.onResume();
+		log.trace("MainActivity onResume");
+	}
+
+	@Override
+	protected void onPause() {
+		super.onPause();
+		log.trace("MainActivity onPause");
+	}
+
+	@Override
 	protected void onStop() {
 		super.onStop();
 		log.trace("MainActivity onStop");
@@ -112,6 +124,11 @@ public class MainActivity extends ActionBarActivity
 	protected void onDestroy() {
 		super.onDestroy();
 		log.trace("MainActivity onDestroy");
+
+		//FragmentTransaction trans = fragmentManager.beginTransaction();
+		//removeFragments(trans);
+		//trans.commit();
+		//fragmentManager.executePendingTransactions();
 	}
 
 	private void initPanels(int maxCount) {
@@ -356,16 +373,15 @@ public class MainActivity extends ActionBarActivity
 		outState.putInt(STATE_PANELS_COUNT, panelsCount);
 		outState.putInt(STATE_STACK_SIZE, fragmentStack.size());
 
-		FragmentTransaction trans = fragmentManager.beginTransaction();
-		removeFragments(trans);
-		trans.commit();
-		fragmentManager.executePendingTransactions();
-
 		outState.putParcelableArrayList(STATE_STACK, fragmentStack);
 
 		super.onSaveInstanceState(outState);
 	}
 
+	@Override
+	protected void onRestoreInstanceState(Bundle savedInstanceState) {
+		super.onRestoreInstanceState(savedInstanceState);
+	}
 
 	@Override
 	public void onFragmentInteraction(Uri uri) {
@@ -458,6 +474,14 @@ public class MainActivity extends ActionBarActivity
 			return fragment;
 		}
 
+		public Fragment.SavedState getStage() {
+			if (fragment == null) {
+				return state;
+			} else {
+				return state = fragmentManager.saveFragmentInstanceState(fragment);
+			}
+		}
+
 		@Override
 		public int describeContents() {
 			return 0;
@@ -465,6 +489,10 @@ public class MainActivity extends ActionBarActivity
 
 		@Override
 		public void writeToParcel(Parcel parcel, int i) {
+			if (state == null && fragment != null) {
+				state = getStage();
+			}
+
 			parcel.writeParcelable(state, i);
 			parcel.writeSerializable(aClass);
 		}
