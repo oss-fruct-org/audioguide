@@ -136,6 +136,5 @@ public class ParserTest extends AndroidTestCase{
 		assertEquals(file3.getTitle(), "<qwe asd>");
 		assertEquals(file3.getMimeType(), "image/png");
 		assertEquals(file3.getUrl(), "https://docs.google.com/uc?id=0B99FJDhx6L84bEZVVDZpR1duQTQ&export=download");
-
 	}
 }

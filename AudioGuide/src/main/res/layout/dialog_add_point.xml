@@ -24,22 +24,13 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <EditText
-            android:layout_alignParentLeft="true"
-            android:layout_toLeftOf="@+id/image_file_button"
-
-            android:inputType="text"
-            android:id="@+id/image_file"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-
         <Button
             android:layout_alignParentRight="true"
 
-            android:id="@id/image_file_button"
+            android:id="@+id/image_file_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="..."/>
+            android:text="Select file"/>
 
     </RelativeLayout>
 </LinearLayout>

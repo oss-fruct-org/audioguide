@@ -60,6 +60,7 @@ public class MainActivity extends ActionBarActivity
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
+		log.trace("MainActivity onCreate");
 		super.onCreate(savedInstanceState);
 
 		fragmentManager = getSupportFragmentManager();
@@ -88,12 +89,29 @@ public class MainActivity extends ActionBarActivity
 				R.id.navigation_drawer,
 				(DrawerLayout) findViewById(R.id.drawer_layout));
 
-
 		if (savedInstanceState != null) {
 			FragmentTransaction trans = fragmentManager.beginTransaction();
 			recreateFragmentStack(trans);
 			trans.commit();
 		}
+	}
+
+	@Override
+	protected void onStart() {
+		super.onStart();
+		log.trace("MainActivity onStart");
+	}
+
+	@Override
+	protected void onStop() {
+		super.onStop();
+		log.trace("MainActivity onStop");
+	}
+
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		log.trace("MainActivity onDestroy");
 	}
 
 	private void initPanels(int maxCount) {

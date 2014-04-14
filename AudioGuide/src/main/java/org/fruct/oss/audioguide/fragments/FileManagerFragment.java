@@ -1,28 +1,45 @@
 package org.fruct.oss.audioguide.fragments;
 
 import android.app.Activity;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.ListFragment;
+import android.view.View;
+import android.widget.ListAdapter;
+import android.widget.ListView;
 
+import org.fruct.oss.audioguide.FileChooserActivity;
 import org.fruct.oss.audioguide.MultiPanel;
+import org.fruct.oss.audioguide.R;
+import org.fruct.oss.audioguide.adapters.FileAdapter;
+import org.fruct.oss.audioguide.parsers.FilesContent;
+import org.fruct.oss.audioguide.parsers.GetsException;
+import org.fruct.oss.audioguide.parsers.GetsResponse;
+import org.fruct.oss.audioguide.track.GetsStorage;
+import org.fruct.oss.audioguide.util.Utils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-/**
- * A fragment representing a list of Items.
- * <p />
- * <p />
- * Activities containing this fragment MUST implement the {@link org.fruct.oss.audioguide.MultiPanel}
- * interface.
- */
+import java.io.IOException;
+import java.util.Locale;
+
 public class FileManagerFragment extends ListFragment {
-	private MultiPanel multiPanel;
+	public static final String ARG_PICKER_MODE = "arg-picker-mode";
 
-	// TODO: Rename and change types of parameters
-    public static FileManagerFragment newInstance() {
+	private final static Logger log = LoggerFactory.getLogger(FileManagerFragment.class);
+
+	private FileAdapter adapter;
+	private boolean pickerMode;
+
+    public static FileManagerFragment newInstance(boolean pickerMode) {
         FileManagerFragment fragment = new FileManagerFragment();
-        /*Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);*/
+        Bundle args = new Bundle();
+        args.putBoolean(ARG_PICKER_MODE, pickerMode);
+        fragment.setArguments(args);
         return fragment;
     }
 
@@ -38,24 +55,79 @@ public class FileManagerFragment extends ListFragment {
         super.onCreate(savedInstanceState);
 
         if (getArguments() != null) {
+			pickerMode = getArguments().getBoolean(ARG_PICKER_MODE, false);
         }
+
+		adapter = new FileAdapter(getActivity(), R.layout.list_file_item);
+		setListAdapter(adapter);
+
+		startFilesLoading();
     }
 
+	private void startFilesLoading() {
+		AsyncTask<Void, Void, FilesContent> filesTask = new AsyncTask<Void, Void, FilesContent>() {
+			@Override
+			protected FilesContent doInBackground(Void... voids) {
+				SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getActivity());
+				String accessToken = pref.getString(GetsStorage.PREF_AUTH_TOKEN, null);
 
-    @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        try {
-            multiPanel = (MultiPanel) activity;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString()
-                + " must implement MultiPanel");
-        }
-    }
+				if (accessToken == null) {
+					log.warn("Trying get files without auth token");
+					return null;
+				}
 
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        multiPanel = null;
-    }
+				String request = String.format(Locale.ROOT, GetsStorage.LIST_FILES, accessToken);
+				try {
+					String responseString = Utils.downloadUrl(GetsStorage.GETS_SERVER + "/files/listFiles.php", request);
+					GetsResponse response = GetsResponse.parse(responseString, FilesContent.class);
+
+					if (response.getCode() != 0) {
+						log.error("Error code returned while downloading files");
+						return null;
+					}
+
+					return ((FilesContent) response.getContent());
+				} catch (IOException e) {
+					log.error("File list download error: ", e);
+					return null;
+				} catch (GetsException e) {
+					log.error("Wrong response from server: ", e);
+					return null;
+				}
+			}
+
+			@Override
+			protected void onPostExecute(FilesContent filesContent) {
+				adapter.setFilesContent(filesContent);
+			}
+		};
+
+		filesTask.execute();
+	}
+
+	@Override
+	public void onListItemClick(ListView listView, View view, int position, long id) {
+		super.onListItemClick(listView, view, position, id);
+
+		if (pickerMode) {
+			Intent intent = new Intent();
+			intent.setData(Uri.parse(adapter.getItem(position).getUrl()));
+
+			if (getActivity().getParent() == null)
+				getActivity().setResult(Activity.RESULT_OK, intent);
+			else
+				getActivity().getParent().setResult(Activity.RESULT_OK, intent);
+
+			getActivity().finish();
+		}
+	}
+
+	@Override
+	public void onAttach(Activity activity) {
+		super.onAttach(activity);
+
+		if (activity instanceof FileChooserActivity) {
+			pickerMode = true;
+		}
+	}
 }

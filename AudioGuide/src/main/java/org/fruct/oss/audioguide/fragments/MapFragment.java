@@ -96,6 +96,8 @@ public class MapFragment extends Fragment implements TrackManager.Listener {
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
+		log.trace("MapFragment onCreate");
+
 		super.onCreate(savedInstanceState);
 
 		trackManager = TrackManager.getInstance();
@@ -163,6 +165,8 @@ public class MapFragment extends Fragment implements TrackManager.Listener {
 	@Override
 	public void onStart() {
 		super.onStart();
+		log.trace("MapFragment onStart");
+
 
 		getActivity().bindService(new Intent(getActivity(), TrackingService.class),
 				serviceConnection, Context.BIND_AUTO_CREATE);
@@ -181,6 +185,7 @@ public class MapFragment extends Fragment implements TrackManager.Listener {
 
 	@Override
 	public void onStop() {
+		log.trace("MapFragment onStop");
 		super.onStop();
 
 		LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(locationReceiver);
@@ -189,6 +194,7 @@ public class MapFragment extends Fragment implements TrackManager.Listener {
 
 	@Override
 	public void onDestroy() {
+		log.trace("MapFragment onDestroy");
 		super.onDestroy();
 
 		trackManager.removeListener(this);

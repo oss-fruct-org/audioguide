@@ -82,7 +82,7 @@ public class GetsFragment extends Fragment implements WebViewDialog.Listener, Sh
 		manageFilesButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View view) {
-				FileManagerFragment fileManager = FileManagerFragment.newInstance();
+				FileManagerFragment fileManager = FileManagerFragment.newInstance(false);
 				multiPanel.replaceFragment(fileManager, GetsFragment.this);
 			}
 		});

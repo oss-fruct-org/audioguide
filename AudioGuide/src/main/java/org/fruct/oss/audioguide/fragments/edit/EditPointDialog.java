@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.view.LayoutInflater;
@@ -12,12 +13,19 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
+import org.fruct.oss.audioguide.FileChooserActivity;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.fragments.UploadFragment;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.util.Utils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class EditPointDialog extends DialogFragment implements DialogInterface.OnClickListener {
+	private final static Logger log = LoggerFactory.getLogger(EditPointDialog.class);
+
+	private static final int REQUEST_CODE_IMAGE = 0;
+
     private Listener listener;
 
 	public interface Listener {
@@ -32,7 +40,7 @@ public class EditPointDialog extends DialogFragment implements DialogInterface.O
 	private EditText editDescription;
 	private EditText editUrl;
 
-    private EditText imageFileText;
+    //private EditText imageFileText;
     private Button imageFileButton;
 
 	public EditPointDialog(Point point) {
@@ -53,7 +61,7 @@ public class EditPointDialog extends DialogFragment implements DialogInterface.O
 		editName = (EditText) view.findViewById(R.id.text_title);
 		editDescription = (EditText) view.findViewById(R.id.text_description);
 
-        imageFileText = (EditText) view.findViewById(R.id.image_file);
+        //imageFileText = (EditText) view.findViewById(R.id.image_file);
         imageFileButton = (Button) view.findViewById(R.id.image_file_button);
         //editUrl = (EditText) view.findViewById(R.id.edit_url);
 
@@ -101,8 +109,20 @@ public class EditPointDialog extends DialogFragment implements DialogInterface.O
 	}
 
     private void showFileChooserDialog() {
-		UploadFragment fragment = new UploadFragment();
-		fragment.show(getFragmentManager(), "upload-dialog");
+		Intent intent = new Intent(getActivity(), FileChooserActivity.class);
+		intent.setType("*/*");
+		getActivity().startActivityForResult(intent, REQUEST_CODE_IMAGE);
+	}
+
+	@Override
+	public void onActivityResult(int requestCode, int resultCode, Intent data) {
+		super.onActivityResult(requestCode, resultCode, data);
+
+		if (requestCode == REQUEST_CODE_IMAGE && resultCode == Activity.RESULT_OK) {
+			Uri uri = data.getData();
+			assert uri != null;
+			log.info("File {} chosen", uri.toString());
+		}
 	}
 
 	public void setListener(Listener listener) {
