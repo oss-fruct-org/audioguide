@@ -1,6 +1,7 @@
 package org.fruct.oss.audioguide;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -386,6 +387,12 @@ public class MainActivity extends ActionBarActivity
 	@Override
 	public void onFragmentInteraction(Uri uri) {
 
+	}
+
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		super.onActivityResult(requestCode, resultCode, data);
+		log.debug("MainActivity onActivityResult {}, {}", requestCode, resultCode);
 	}
 
 	/**

@@ -184,6 +184,12 @@ public class MapFragment extends Fragment implements TrackManager.Listener {
 	}
 
 	@Override
+	public void onResume() {
+		super.onResume();
+		log.trace("MapFragment onResume");
+	}
+
+	@Override
 	public void onStop() {
 		log.trace("MapFragment onStop");
 		super.onStop();
@@ -414,7 +420,12 @@ public class MapFragment extends Fragment implements TrackManager.Listener {
 
 	}
 
+	@Override
+	public void onActivityResult(int requestCode, int resultCode, Intent data) {
+		super.onActivityResult(requestCode, resultCode, data);
 
+		log.debug("MapFragment onActivityResult {}, {}", requestCode, resultCode);
+	}
 
 	private class TrackingServiceConnection implements ServiceConnection {
 		@Override

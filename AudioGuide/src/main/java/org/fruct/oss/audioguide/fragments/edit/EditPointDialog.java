@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
 public class EditPointDialog extends DialogFragment implements DialogInterface.OnClickListener {
 	private final static Logger log = LoggerFactory.getLogger(EditPointDialog.class);
 
-	private static final int REQUEST_CODE_IMAGE = 0;
+	private static final int REQUEST_CODE_IMAGE = 1;
 
     private Listener listener;
 
@@ -111,7 +111,7 @@ public class EditPointDialog extends DialogFragment implements DialogInterface.O
     private void showFileChooserDialog() {
 		Intent intent = new Intent(getActivity(), FileChooserActivity.class);
 		intent.setType("*/*");
-		getActivity().startActivityForResult(intent, REQUEST_CODE_IMAGE);
+		startActivityForResult(intent, REQUEST_CODE_IMAGE);
 	}
 
 	@Override
