@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-public class TrackFragment extends ListFragment implements TrackManager.Listener {
+public class TrackFragment extends ListFragment {
 	private final static Logger log = LoggerFactory.getLogger(TrackFragment.class);
 
 	private MultiPanel multiPanel;
@@ -37,7 +37,6 @@ public class TrackFragment extends ListFragment implements TrackManager.Listener
 		super.onCreate(savedInstanceState);
 
 		trackManager = TrackManager.getInstance();
-		trackManager.addListener(this);
 
 		trackAdapter = new TrackModelAdapter(getActivity(), R.layout.list_track_item, trackManager.getTracksModel());
 		setListAdapter(trackAdapter);
@@ -45,7 +44,6 @@ public class TrackFragment extends ListFragment implements TrackManager.Listener
 
 	@Override
 	public void onDestroy() {
-		trackManager.removeListener(this);
 		trackAdapter.close();
 
 		super.onDestroy();
@@ -73,26 +71,6 @@ public class TrackFragment extends ListFragment implements TrackManager.Listener
 	public void onListItemClick(ListView l, View v, int position, long id) {
 		Track track = trackAdapter.getItem(position);
 		trackClicked(track);
-	}
-
-	@Override
-	public void tracksUpdated() {
-		//final List<Track> tracks = trackManager.getTracks();
-		//log.debug("Tracks updated. Size = {}", tracks.size());
-
-		/*getActivity().runOnUiThread(new Runnable() {
-			@Override
-			public void run() {
-				trackAdapter.clear();
-				for (Track track : tracks)
-					trackAdapter.add(track);
-			}
-		});*/
-	}
-
-	@Override
-	public void pointsUpdated(Track track) {
-
 	}
 
 	public void trackClicked(Track track) {

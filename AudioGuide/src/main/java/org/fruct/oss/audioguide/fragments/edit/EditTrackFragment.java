@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-public class EditTrackFragment extends ListFragment implements TrackManager.Listener {
+public class EditTrackFragment extends ListFragment {
 	private final static Logger log = LoggerFactory.getLogger(EditTrackFragment.class);
 	public static final int HIGHLIGHT_COLOR = 0xff99ff99;
 
@@ -40,7 +40,6 @@ public class EditTrackFragment extends ListFragment implements TrackManager.List
         super.onCreate(savedInstanceState);
 
 		trackManager = TrackManager.getInstance();
-		trackManager.addListener(this);
 
 		trackAdapter = new TrackModelAdapter(getActivity(),
 				R.layout.list_track_item,
@@ -54,7 +53,6 @@ public class EditTrackFragment extends ListFragment implements TrackManager.List
 
 	@Override
 	public void onDestroy() {
-		trackManager.removeListener(this);
 		trackAdapter.close();
 		super.onDestroy();
 	}
@@ -119,15 +117,6 @@ public class EditTrackFragment extends ListFragment implements TrackManager.List
 			}
 		});
 		menu.show();
-	}
-
-	@Override
-	public void tracksUpdated() {
-	}
-
-	@Override
-	public void pointsUpdated(Track track) {
-
 	}
 
 	private void showPointsFragment(Track track) {

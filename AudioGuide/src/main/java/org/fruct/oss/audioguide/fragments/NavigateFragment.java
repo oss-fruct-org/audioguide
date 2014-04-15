@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
  * Activities containing this fragment MUST implement the {@link org.fruct.oss.audioguide.MultiPanel}
  * interface.
  */
-public class NavigateFragment extends ListFragment implements TrackManager.Listener {
+public class NavigateFragment extends ListFragment {
 	private final static Logger log = LoggerFactory.getLogger(NavigateFragment.class);
 
 	private TrackManager trackManager;
@@ -51,7 +51,6 @@ public class NavigateFragment extends ListFragment implements TrackManager.Liste
 		super.onCreate(savedInstanceState);
 
 		trackManager = TrackManager.getInstance();
-		trackManager.addListener(this);
 
 		trackAdapter = new TrackModelAdapter(getActivity(),
 				R.layout.list_track_item,
@@ -65,7 +64,6 @@ public class NavigateFragment extends ListFragment implements TrackManager.Liste
 	public void onDestroy() {
 		super.onDestroy();
 
-		trackManager.removeListener(this);
 		trackAdapter.close();
 		trackManager = null;
 	}
@@ -106,20 +104,6 @@ public class NavigateFragment extends ListFragment implements TrackManager.Liste
 	public void onListItemClick(ListView l, View v, int position, long id) {
 		Track track = trackAdapter.getItem(position);
 		multiPanel.replaceFragment(PointFragment.newInstance(track), this);
-	}
-
-	@Override
-	public void tracksUpdated() {
-		/*getActivity().runOnUiThread(new Runnable() {
-			@Override
-			public void run() {
-				updateTracksAdapter();
-			}
-		});*/
-	}
-
-	@Override
-	public void pointsUpdated(Track track) {
 	}
 
 	private class TrackingServiceConnection implements ServiceConnection {
