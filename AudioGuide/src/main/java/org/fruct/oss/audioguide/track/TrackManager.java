@@ -1,20 +1,24 @@
 package org.fruct.oss.audioguide.track;
 
-import android.annotation.TargetApi;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.support.v4.util.LruCache;
 
 import org.fruct.oss.audioguide.App;
+import org.fruct.oss.audioguide.models.Model;
+import org.fruct.oss.audioguide.models.ModelListener;
 import org.fruct.oss.audioguide.util.Downloader;
 import org.fruct.oss.audioguide.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.annotation.Target;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -22,11 +26,17 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.lang.Object;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeoutException;
+
+/**
+ * Marks methods in TrackManager that can modify data storage and from that should
+ * be called methods of "notify*" group
+ */
+@java.lang.annotation.Retention(java.lang.annotation.RetentionPolicy.SOURCE)
+@interface DatasetModifier {
+}
 
 class IconCache extends LruCache<String, Bitmap> {
 	public IconCache(int maxSize) {
@@ -45,6 +55,56 @@ class IconCache extends LruCache<String, Bitmap> {
 	}
 }
 
+abstract class FilterModel<T> implements Model<T> {
+	public abstract boolean check(T t);
+
+	public ArrayList<T> list = new ArrayList<T>();
+	public ArrayList<ModelListener> listeners = new ArrayList<ModelListener>();
+	private Handler handler = new Handler(Looper.getMainLooper());
+
+	@Override
+	public int getCount() {
+		return list.size();
+	}
+
+	@Override
+	public T getItem(int position) {
+		return list.get(position);
+	}
+
+	@Override
+	public synchronized void addListener(ModelListener listener) {
+		listeners.add(listener);
+	}
+
+	@Override
+	public synchronized void removeListener(ModelListener listener) {
+		listeners.remove(listener);
+	}
+
+	public void setData(Collection<T> coll) {
+		list.clear();
+		for (T t : coll) {
+			if (check(t)) {
+				list.add(t);
+			}
+		}
+
+		handler.post(new Runnable() {
+			@Override
+			public void run() {
+				notifyDataSetChanged();
+			}
+		});
+	}
+
+	public void notifyDataSetChanged() {
+		for (ModelListener listener : listeners) {
+			listener.dataSetChanged();
+		}
+	}
+}
+
 public class TrackManager {
 	private final static Logger log = LoggerFactory.getLogger(TrackManager.class);
 
@@ -52,7 +112,6 @@ public class TrackManager {
 
 	public static interface Listener {
 		void tracksUpdated();
-		void trackUpdated(Track track);
 		void pointsUpdated(Track track);
 	}
 
@@ -160,7 +219,18 @@ public class TrackManager {
 		});
 		Collections.sort(tracks);
 		return tracks;
+	}
 
+	public Model<Track> getTracksModel() {
+		return allTracksModel;
+	}
+
+	public Model<Track> getActiveTracksModel() {
+		return activeTracksModel;
+	}
+
+	public Model<Track> getLocalTracksModel() {
+		return localTracksModel;
 	}
 
 	public Track getEditingTrack() {
@@ -211,6 +281,7 @@ public class TrackManager {
 		return null;
 	}
 
+	@DatasetModifier
 	public void storeLocal(final Track track) {
 		checkInitialized();
 
@@ -236,42 +307,48 @@ public class TrackManager {
 			}
 		}
 
-		notifyTrackUpdated(track);
+		notifyTracksUpdated();
 	}
 
+	@DatasetModifier
 	public void activateTrack(Track track) {
 		if (track.isLocal()) {
 			track.setActive(true);
 			allTracks.put(track.getId(), track);
 			localStorage.storeLocalTrack(track);
-			notifyTrackUpdated(track);
+			notifyTracksUpdated();
 		}
 	}
 
+	@DatasetModifier
 	public void deactivateTrack(Track track) {
 		if (track.isLocal()) {
 			track.setActive(false);
 			allTracks.put(track.getId(), track);
 			localStorage.storeLocalTrack(track);
-			notifyTrackUpdated(track);
+			notifyTracksUpdated();
 		}
 	}
 
+	@DatasetModifier
 	public void storePoints(Track track, List<Point> points) {
 		localStorage.storeLocalPoints(track, points);
 	}
 
+	@DatasetModifier
 	public void storePoint(Track track, Point point) {
 		log.trace("Store point to track " + track.getName() + ": " + point.getName());
 		localStorage.storePoint(track, point);
 	}
 
+	@DatasetModifier
 	public void sendPoint(Track track, Point point) {
 		if (remoteStorage instanceof IRemoteStorage) {
 			((IRemoteStorage) remoteStorage).sendPoint(track, point);
 		}
 	}
 
+	@DatasetModifier
 	public void sendTrack(Track track) {
 		if (remoteStorage instanceof IRemoteStorage) {
 			List<Point> points = localStorage.getPoints(track);
@@ -279,6 +356,7 @@ public class TrackManager {
 		}
 	}
 
+	@DatasetModifier
 	private void doLoadRemoteTracks() {
 		remoteStorage.load();
 
@@ -300,6 +378,7 @@ public class TrackManager {
 		notifyTracksUpdated();
 	}
 
+	@DatasetModifier
 	private void doLoadRemotePoints(final Track track) {
 		List<Point> points = remoteStorage.getPoints(track);
 		if (points == null || points.isEmpty())
@@ -322,11 +401,14 @@ public class TrackManager {
 	private synchronized void notifyTracksUpdated() {
 		for (Listener listener : listeners)
 			listener.tracksUpdated();
+
+		allTracksModel.setData(allTracks.values());
+		activeTracksModel.setData(allTracks.values());
+		localTracksModel.setData(allTracks.values());
 	}
 
 	private synchronized void notifyTrackUpdated(Track track) {
-		for (Listener listener : listeners)
-			listener.trackUpdated(track);
+
 	}
 
 	private void checkInitialized() {
@@ -391,4 +473,23 @@ public class TrackManager {
 			}
 		}
 	}
+
+	private FilterModel<Track> allTracksModel = new FilterModel<Track>() {
+		@Override
+		public boolean check(Track track) {
+			return true;
+		}
+	};
+	private FilterModel<Track> activeTracksModel = new FilterModel<Track>() {
+		@Override
+		public boolean check(Track track) {
+			return track.isActive();
+		}
+	};
+	private FilterModel<Track> localTracksModel = new FilterModel<Track>() {
+		@Override
+		public boolean check(Track track) {
+			return track.isLocal();
+		}
+	};
 }

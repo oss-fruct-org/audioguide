@@ -2,7 +2,6 @@ package org.fruct.oss.audioguide.fragments.edit;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.support.v4.app.ListFragment;
 import android.view.View;
 import android.widget.ListView;
@@ -86,11 +85,6 @@ public class EditPointsFragment extends ListFragment implements TrackManager.Lis
 
 	@Override
 	public void tracksUpdated() {
-
-	}
-
-	@Override
-	public void trackUpdated(Track track) {
 
 	}
 

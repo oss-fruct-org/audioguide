@@ -106,10 +106,6 @@ public class TrackingService extends Service implements TrackManager.Listener, D
 	}
 
 	@Override
-	public void trackUpdated(Track track) {
-	}
-
-	@Override
 	public void pointsUpdated(Track track) {
 	}
 

@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.IBinder;
 import android.support.v4.app.ListFragment;
 import android.view.View;
@@ -15,14 +14,12 @@ import android.widget.ListView;
 import org.fruct.oss.audioguide.MultiPanel;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.adapters.TrackAdapter;
+import org.fruct.oss.audioguide.adapters.TrackModelAdapter;
 import org.fruct.oss.audioguide.track.TrackingService;
 import org.fruct.oss.audioguide.track.Track;
 import org.fruct.oss.audioguide.track.TrackManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.io.IOException;
 
 /**
  * A fragment representing a list of Items.
@@ -37,7 +34,7 @@ public class NavigateFragment extends ListFragment implements TrackManager.Liste
 	private TrackManager trackManager;
 	private MultiPanel multiPanel;
 
-	private TrackAdapter trackAdapter;
+	private TrackModelAdapter trackAdapter;
 	private ServiceConnection serviceConnection;
 
 	private TrackingService trackingService;
@@ -55,7 +52,11 @@ public class NavigateFragment extends ListFragment implements TrackManager.Liste
 
 		trackManager = TrackManager.getInstance();
 		trackManager.addListener(this);
-		updateTracksAdapter();
+
+		trackAdapter = new TrackModelAdapter(getActivity(),
+				R.layout.list_track_item,
+				trackManager.getActiveTracksModel());
+		setListAdapter(trackAdapter);
 
 		serviceConnection = new TrackingServiceConnection();
 	}
@@ -65,6 +66,7 @@ public class NavigateFragment extends ListFragment implements TrackManager.Liste
 		super.onDestroy();
 
 		trackManager.removeListener(this);
+		trackAdapter.close();
 		trackManager = null;
 	}
 
@@ -106,23 +108,14 @@ public class NavigateFragment extends ListFragment implements TrackManager.Liste
 		multiPanel.replaceFragment(PointFragment.newInstance(track), this);
 	}
 
-	private void updateTracksAdapter() {
-		trackAdapter = new TrackAdapter(getActivity(), R.layout.list_track_item, trackManager.getActiveTracks());
-		setListAdapter(trackAdapter);
-	}
-
 	@Override
 	public void tracksUpdated() {
-		getActivity().runOnUiThread(new Runnable() {
+		/*getActivity().runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
 				updateTracksAdapter();
 			}
-		});
-	}
-
-	@Override
-	public void trackUpdated(Track track) {
+		});*/
 	}
 
 	@Override

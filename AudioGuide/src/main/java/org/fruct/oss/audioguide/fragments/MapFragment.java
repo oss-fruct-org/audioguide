@@ -411,11 +411,6 @@ public class MapFragment extends Fragment implements TrackManager.Listener {
 	}
 
 	@Override
-	public void trackUpdated(Track track) {
-
-	}
-
-	@Override
 	public void pointsUpdated(Track track) {
 
 	}

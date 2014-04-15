@@ -3,15 +3,13 @@ package org.fruct.oss.audioguide.fragments;
 import android.app.Activity;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.ListView;
 
 import org.fruct.oss.audioguide.MultiPanel;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.adapters.TrackAdapter;
+import org.fruct.oss.audioguide.adapters.TrackModelAdapter;
 import org.fruct.oss.audioguide.track.Track;
 import org.fruct.oss.audioguide.track.TrackManager;
 import org.slf4j.Logger;
@@ -25,7 +23,7 @@ public class TrackFragment extends ListFragment implements TrackManager.Listener
 	private MultiPanel multiPanel;
 	private TrackManager trackManager;
 
-	private TrackAdapter trackAdapter;
+	private TrackModelAdapter trackAdapter;
 
 	public static TrackFragment newInstance() {
 		return new TrackFragment();
@@ -40,13 +38,15 @@ public class TrackFragment extends ListFragment implements TrackManager.Listener
 
 		trackManager = TrackManager.getInstance();
 		trackManager.addListener(this);
-		trackAdapter = new TrackAdapter(getActivity(), R.layout.list_track_item, trackManager.getTracks());
+
+		trackAdapter = new TrackModelAdapter(getActivity(), R.layout.list_track_item, trackManager.getTracksModel());
 		setListAdapter(trackAdapter);
 	}
 
 	@Override
 	public void onDestroy() {
 		trackManager.removeListener(this);
+		trackAdapter.close();
 
 		super.onDestroy();
 	}
@@ -77,22 +77,17 @@ public class TrackFragment extends ListFragment implements TrackManager.Listener
 
 	@Override
 	public void tracksUpdated() {
-		final List<Track> tracks = trackManager.getTracks();
-		log.debug("Tracks updated. Size = {}", tracks.size());
+		//final List<Track> tracks = trackManager.getTracks();
+		//log.debug("Tracks updated. Size = {}", tracks.size());
 
-		getActivity().runOnUiThread(new Runnable() {
+		/*getActivity().runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
 				trackAdapter.clear();
 				for (Track track : tracks)
 					trackAdapter.add(track);
 			}
-		});
-	}
-
-	@Override
-	public void trackUpdated(Track track) {
-		trackAdapter.notifyDataSetChanged();
+		});*/
 	}
 
 	@Override

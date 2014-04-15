@@ -12,7 +12,7 @@ import android.widget.ListView;
 
 import org.fruct.oss.audioguide.MultiPanel;
 import org.fruct.oss.audioguide.R;
-import org.fruct.oss.audioguide.adapters.TrackAdapter;
+import org.fruct.oss.audioguide.adapters.TrackModelAdapter;
 import org.fruct.oss.audioguide.track.Track;
 import org.fruct.oss.audioguide.track.TrackManager;
 import org.slf4j.Logger;
@@ -26,7 +26,7 @@ public class EditTrackFragment extends ListFragment implements TrackManager.List
 
 	private MultiPanel multiPanel;
 	private TrackManager trackManager;
-	private TrackAdapter trackAdapter;
+	private TrackModelAdapter trackAdapter;
 
 	public static EditTrackFragment newInstance() {
 		return new EditTrackFragment();
@@ -42,7 +42,9 @@ public class EditTrackFragment extends ListFragment implements TrackManager.List
 		trackManager = TrackManager.getInstance();
 		trackManager.addListener(this);
 
-		trackAdapter = new TrackAdapter(getActivity(), R.layout.list_track_item, trackManager.getLocalTracks());
+		trackAdapter = new TrackModelAdapter(getActivity(),
+				R.layout.list_track_item,
+				trackManager.getLocalTracksModel());
 		setListAdapter(trackAdapter);
 
 		trackAdapter.addTrackHighlight(trackManager.getEditingTrack(), HIGHLIGHT_COLOR);
@@ -53,6 +55,7 @@ public class EditTrackFragment extends ListFragment implements TrackManager.List
 	@Override
 	public void onDestroy() {
 		trackManager.removeListener(this);
+		trackAdapter.close();
 		super.onDestroy();
 	}
 
@@ -120,24 +123,6 @@ public class EditTrackFragment extends ListFragment implements TrackManager.List
 
 	@Override
 	public void tracksUpdated() {
-		getActivity().runOnUiThread(new Runnable() {
-			@Override
-			public void run() {
-				List<Track> editingTracks = trackManager.getLocalTracks();
-
-				trackAdapter.clear();
-				for (Track track : editingTracks) {
-					trackAdapter.add(track);
-				}
-
-				trackAdapter.notifyDataSetChanged();
-			}
-		});
-	}
-
-	@Override
-	public void trackUpdated(Track track) {
-		tracksUpdated();
 	}
 
 	@Override
