@@ -137,4 +137,19 @@ public class ParserTest extends AndroidTestCase{
 		assertEquals(file3.getMimeType(), "image/png");
 		assertEquals(file3.getUrl(), "https://docs.google.com/uc?id=0B99FJDhx6L84bEZVVDZpR1duQTQ&export=download");
 	}
+
+	public void testFile() throws Exception {
+		InputStream stream = testContext.getAssets().open("file.xml");
+
+		GetsResponse resp = GetsResponse.parse(Utils.inputStreamToString(stream), FileContent.class);
+		assertEquals(0, resp.getCode());
+		assertEquals("success", resp.getMessage());
+		assertTrue(resp.getContent() instanceof FileContent);
+
+		FileContent content = ((FileContent) resp.getContent());
+		assertEquals(content.getTitle(), "qwerty");
+		assertEquals(content.getMimeType(), "image/png");
+		assertEquals(content.getUrl(), "https://docs.google.com/uc?id=0B99FJDhx6L84dmNnMlNOLU9JcXM&export=download");
+
+	}
 }

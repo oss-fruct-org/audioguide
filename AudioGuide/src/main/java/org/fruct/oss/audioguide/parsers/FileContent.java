@@ -25,6 +25,13 @@ public class FileContent implements IContent {
 
 
 	public static IContent parse(XmlPullParser parser) throws IOException, XmlPullParserException {
+		parser.require(XmlPullParser.START_TAG, null, null);
+		boolean startFromContent = false;
+		if (parser.getName().equals("content")) {
+			startFromContent = true;
+			parser.nextTag();
+		}
+
 		FileContent fileContent = new FileContent();
 		parser.require(XmlPullParser.START_TAG, null, "file");
 
@@ -47,7 +54,11 @@ public class FileContent implements IContent {
 
 		parser.require(XmlPullParser.END_TAG, null, "file");
 
+		if (startFromContent) {
+			parser.nextTag();
+			parser.require(XmlPullParser.END_TAG, null, "content");
+		}
+
 		return fileContent;
 	}
-
 }

@@ -25,6 +25,7 @@ import org.fruct.oss.audioguide.parsers.GetsException;
 import org.fruct.oss.audioguide.parsers.GetsResponse;
 import org.fruct.oss.audioguide.parsers.PostUrlContent;
 import org.fruct.oss.audioguide.track.GetsStorage;
+import org.fruct.oss.audioguide.util.ProgressInputStream;
 import org.fruct.oss.audioguide.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +39,13 @@ import java.util.Locale;
 public class UploadFragment extends DialogFragment {
 	private final static Logger log = LoggerFactory.getLogger(UploadFragment.class);
 
+	public static interface Listener {
+		void fileCreated(FileContent file);
+	}
+
 	private static final int IMAGE_REQUEST_CODE = 0;
+
+	private Listener listener;
 
 	private Uri localFileUri;
 	private EditText titleEdit;
@@ -55,6 +62,8 @@ public class UploadFragment extends DialogFragment {
 		titleEdit = ((EditText) view.findViewById(R.id.title_text));
 		browseButton = (Button) view.findViewById(R.id.browse_button);
 		progressBar = (ProgressBar) view.findViewById(R.id.progress_bar);
+
+		progressBar.setVisibility(View.GONE);
 
 		browseButton.setOnClickListener(new View.OnClickListener() {
 			@Override
@@ -74,7 +83,6 @@ public class UploadFragment extends DialogFragment {
 
 	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
-		log.debug("onActivityResult");
 		if (requestCode == IMAGE_REQUEST_CODE) {
 			if (resultCode == Activity.RESULT_OK) {
 				localFileUri = data.getData();
@@ -98,6 +106,10 @@ public class UploadFragment extends DialogFragment {
 			uploadStage1(GetsStorage.GETS_SERVER + "/files/uploadFile.php", request);
 		}
 	};
+
+	public void setListener(Listener listener) {
+		this.listener = listener;
+	}
 
 	private void uploadStage1(final String url, final String request) {
 		AsyncTask<Void, Void, String> task = new AsyncTask<Void, Void, String>() {
@@ -148,7 +160,15 @@ public class UploadFragment extends DialogFragment {
 					fileSize = stream.available();
 					log.debug("Stream size {}", stream.available());
 
-					String responseStr = Utils.postStream(uploadUrl, stream, "image/png");
+					ProgressInputStream pStream = new ProgressInputStream(stream, fileSize, fileSize / 10,
+							new ProgressInputStream.ProgressListener() {
+						@Override
+						public void update(int current, int max) {
+							publishProgress(current);
+						}
+					});
+
+					String responseStr = Utils.postStream(uploadUrl, pStream, "image/png");
 					GetsResponse response = GetsResponse.parse(responseStr, FileContent.class);
 
 					if (response.getCode() != 0) {
@@ -172,12 +192,23 @@ public class UploadFragment extends DialogFragment {
 			protected void onProgressUpdate(Integer... values) {
 				super.onProgressUpdate(values);
 
+				if (!started) {
+					started = true;
+					progressBar.setMax(fileSize);
+					progressBar.setVisibility(View.VISIBLE);
+				}
 
+				progressBar.setProgress(values[0]);
 			}
 
 			@Override
 			protected void onPostExecute(FileContent fileContent) {
 				Toast.makeText(getActivity(), "File successfully uploaded", Toast.LENGTH_LONG).show();
+
+				if (listener != null) {
+					listener.fileCreated(fileContent);
+				}
+				
 				UploadFragment.this.dismiss();
 			}
 		}.execute();

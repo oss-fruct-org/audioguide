@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.Locale;
 
-public class FileManagerFragment extends ListFragment {
+public class FileManagerFragment extends ListFragment implements UploadFragment.Listener {
 	public static final String ARG_PICKER_MODE = "arg-picker-mode";
 
 	public static final String RESULT_URL = "result-uri";
@@ -156,6 +156,7 @@ public class FileManagerFragment extends ListFragment {
 
 	private void addFile() {
 		UploadFragment fragment = new UploadFragment();
+		fragment.setListener(this);
 		fragment.show(getFragmentManager(), "upload-fragment");
 	}
 
@@ -166,5 +167,11 @@ public class FileManagerFragment extends ListFragment {
 		if (activity instanceof FileChooserActivity) {
 			pickerMode = true;
 		}
+	}
+
+	@Override
+	public void fileCreated(FileContent file) {
+		adapter.add(file);
+		adapter.notifyDataSetChanged();
 	}
 }

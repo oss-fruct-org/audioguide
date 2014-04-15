@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?><response>
+    <status><code>0</code><message>success</message></status>
+    <content>
+        <file>
+            <title>qwerty</title>
+            <downloadUrl>https://docs.google.com/uc?id=0B99FJDhx6L84dmNnMlNOLU9JcXM&amp;export=download</downloadUrl>
+            <mimeType>image/png</mimeType>
+        </file>
+    </content>
+</response>
