@@ -3,18 +3,12 @@ package org.fruct.oss.audioguide.fragments.edit;
 import android.app.Activity;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
-import android.view.View;
-import android.widget.ListView;
 
 import org.fruct.oss.audioguide.MultiPanel;
 import org.fruct.oss.audioguide.R;
-import org.fruct.oss.audioguide.adapters.PointAdapter;
 import org.fruct.oss.audioguide.adapters.PointModelAdapter;
-import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.Track;
 import org.fruct.oss.audioguide.track.TrackManager;
-
-import java.util.List;
 
 public class EditPointsFragment extends ListFragment {
 	private static final String ARG_TRACK = "arg-track";
