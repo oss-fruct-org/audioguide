@@ -267,7 +267,11 @@ public class TrackManager {
 		String id = pref.getString(PREF_EDITING_TRACK, null);
 
 		if (id != null) {
-			return allTracks.get(id);
+			Track track = allTracks.get(id);
+			if (track != null && track.isLocal())
+				return track;
+			else
+				return null;
 		} else {
 			return null;
 		}
@@ -368,6 +372,12 @@ public class TrackManager {
 	public void storePoint(Track track, Point point) {
 		log.trace("Store point to track " + track.getName() + ": " + point.getName());
 		localStorage.storePoint(track, point);
+
+		if (point.hasPhoto()) {
+			iconDownloader.insertUri(Uri.parse(point.getPhotoUrl()));
+		}
+
+		notifyPointsUpdated(track);
 	}
 
 	@DatasetModifier
@@ -378,10 +388,15 @@ public class TrackManager {
 	}
 
 	@DatasetModifier
-	public void sendTrack(Track track) {
+	public void sendTrack(final Track track) {
 		if (remoteStorage instanceof IRemoteStorage) {
-			List<Point> points = localStorage.getPoints(track);
-			((IRemoteStorage) remoteStorage).sendTrack(track, points);
+			executor.execute(new Runnable() {
+				@Override
+				public void run() {
+					List<Point> points = localStorage.getPoints(track);
+					((IRemoteStorage) remoteStorage).sendTrack(track, points);
+				}
+			});
 		}
 	}
 

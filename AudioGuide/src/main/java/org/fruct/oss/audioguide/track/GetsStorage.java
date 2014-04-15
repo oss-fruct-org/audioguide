@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.preference.PreferenceManager;
+import android.util.Xml;
 
 import org.fruct.oss.audioguide.App;
 import org.fruct.oss.audioguide.parsers.AuthRedirectResponse;
@@ -13,10 +14,14 @@ import org.fruct.oss.audioguide.parsers.IContent;
 import org.fruct.oss.audioguide.parsers.Kml;
 import org.fruct.oss.audioguide.parsers.TracksContent;
 import org.fruct.oss.audioguide.util.Utils;
+import org.json.JSONException;
+import org.json.JSONStringer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xmlpull.v1.XmlSerializer;
 
 import java.io.IOException;
+import java.io.StringWriter;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -43,18 +48,6 @@ public class GetsStorage implements IStorage, IRemoteStorage {
 	public static final String LOAD_TRACK_REQUEST = "<request><params>" +
 			"%s" +
 			"<name>%s</name>" +
-			"</params></request>";
-
-	public static final String SEND_POINT = "<request><params>" +
-			"%s" +
-			"<channel>%s</channel>" +
-			"<title>%s</title>" +
-			"<description>%s</description>" +
-			"<link>%s</link>" +
-			"<latitude>%f</latitude>" +
-			"<longitude>%f</longitude>" +
-			"<altitude>%f</altitude>" +
-			"<time>%s</time>" +
 			"</params></request>";
 
 	public static final String CREATE_TRACK = "<request><params>" +
@@ -141,22 +134,47 @@ public class GetsStorage implements IStorage, IRemoteStorage {
 	public void sendPoint(Track track, Point point) {
 		Date currentDate = new Date();
 		String timeStr = new SimpleDateFormat("dd MM yyyy HH:mm:ss.SSS", Locale.ROOT).format(currentDate);
-		String request = String.format(Locale.ROOT, SEND_POINT, createTokenTag(),
+		String desc;
+		String request = createAddPointRequest(
 				track.getName(),
 				point.getName(),
-				point.getDescription(),
+				desc = createDescription(point),
 				"http://example.com",
 				point.getLatE6() / 1e6,
 				point.getLonE6() / 1e6,
 				0.0,
 				timeStr);
-		log.debug("sendPoint request ", request);
+
+		log.debug("Description {}", desc);
+		log.debug("sendPoint request {}", request);
 
 		try {
 			String responseString = Utils.downloadUrl(GETS_SERVER + "/addPoint.php", request);
 			// TODO: parse response
 		} catch (IOException e) {
 			log.error("Error: ", e);
+		}
+	}
+
+	private String createDescription(Point point) {
+		if (!point.hasPhoto() && !point.hasAudio()) {
+			return point.getDescription();
+		}
+
+		try {
+			JSONStringer stringer = new JSONStringer();
+			stringer.object().key("description").value(point.getDescription());
+			if (point.hasAudio())
+				stringer.key("audio").value(point.getAudioUrl());
+
+			if (point.hasPhoto())
+				stringer.key("photo").value(point.getPhotoUrl());
+
+			// Remove slash escapes
+			return stringer.endObject().toString().replace("\\/", "/");
+		} catch (JSONException e) {
+			log.warn("JSON encoding error", e);
+			return point.getDescription();
 		}
 	}
 
@@ -236,14 +254,66 @@ public class GetsStorage implements IStorage, IRemoteStorage {
 		return String.format(LOAD_TRACK_REQUEST, createTokenTag(), trackName);
 	}
 
+	/*
+			"<request><params>" +
+			"%s" +
+			"<channel>%s</channel>" +
+			"<title>%s</title>" +
+			"<description>%s</description>" +
+			"<link>%s</link>" +
+			"<latitude>%f</latitude>" +
+			"<longitude>%f</longitude>" +
+			"<altitude>%f</altitude>" +
+			"<time>%s</time>" +
+			"</params></request>"
+	 */
+
+	private String createAddPointRequest(String trackName, String pointName, String description,
+										 String url, double lat, double lon, double alt, String timeStr) {
+		try {
+			XmlSerializer serializer = Xml.newSerializer();
+			StringWriter writer = new StringWriter();
+			serializer.setOutput(writer);
+
+			serializer.startDocument("UTF-8", true);
+			serializer.startTag(null, "request").startTag(null, "params");
+			writeTokenTag(serializer);
+
+			serializer.startTag(null, "channel").text(trackName).endTag(null, "channel")
+					.startTag(null, "title").text(pointName).endTag(null, "title")
+					.startTag(null, "description").text(description).endTag(null, "description")
+					.startTag(null, "link").text(url).endTag(null, "link")
+					.startTag(null, "latitude").text(String.valueOf(lat)).endTag(null, "latitude")
+					.startTag(null, "longitude").text(String.valueOf(lon)).endTag(null, "longitude")
+					.startTag(null, "altitude").text(String.valueOf(alt)).endTag(null, "altitude")
+					.startTag(null, "time").text(timeStr).endTag(null, "time")
+					.endTag(null, "params").endTag(null, "request").endDocument();
+			serializer.flush();
+
+			return writer.toString();
+		} catch (IOException e) {
+			log.error("Can't create xml document: ", e);
+			return null;
+		}
+	}
+
 	private String createTokenTag() {
 		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(App.getContext());
-
 		String token = pref.getString(PREF_AUTH_TOKEN, null);
 		boolean anonAccount = pref.getBoolean(PREF_AUTH_ANON, false);
 		if (token == null || anonAccount)
 			return "";
 		else
 			return "<auth_token>" + token + "</auth_token>";
+	}
+
+	private void writeTokenTag(XmlSerializer serializer) throws IOException {
+		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(App.getContext());
+		String token = pref.getString(PREF_AUTH_TOKEN, null);
+		boolean anonAccount = pref.getBoolean(PREF_AUTH_ANON, false);
+
+		if (token != null && !anonAccount) {
+			serializer.startTag(null, "auth_token").text(token).endTag(null, "auth_token");
+		}
 	}
 }
