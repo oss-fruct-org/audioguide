@@ -103,6 +103,28 @@ abstract class FilterModel<T> implements Model<T> {
 			listener.dataSetChanged();
 		}
 	}
+
+	@Override
+	public Iterator<T> iterator() {
+		return new Iterator<T>() {
+			private int index;
+
+			@Override
+			public boolean hasNext() {
+				return index < getCount();
+			}
+
+			@Override
+			public T next() {
+				return getItem(index++);
+			}
+
+			@Override
+			public void remove() {
+				throw new UnsupportedOperationException("Can't remove from model");
+			}
+		};
+	}
 }
 
 public class TrackManager {

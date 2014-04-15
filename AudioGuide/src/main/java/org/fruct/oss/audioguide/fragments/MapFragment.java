@@ -31,6 +31,7 @@ import android.widget.Button;
 
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.fragments.edit.EditPointDialog;
+import org.fruct.oss.audioguide.models.Model;
 import org.fruct.oss.audioguide.overlays.EditOverlay;
 import org.fruct.oss.audioguide.overlays.MyPositionOverlay;
 import org.fruct.oss.audioguide.track.AudioService;
@@ -62,7 +63,7 @@ import static android.view.ViewGroup.LayoutParams;
  * create an instance of this fragment.
  *
  */
-public class MapFragment extends Fragment implements TrackManager.Listener {
+public class MapFragment extends Fragment {
 	private final static Logger log = LoggerFactory.getLogger(MapFragment.class);
 
 	private MapView mapView;
@@ -101,7 +102,6 @@ public class MapFragment extends Fragment implements TrackManager.Listener {
 		super.onCreate(savedInstanceState);
 
 		trackManager = TrackManager.getInstance();
-		trackManager.addListener(this);
 		setHasOptionsMenu(true);
 	}
 
@@ -203,7 +203,11 @@ public class MapFragment extends Fragment implements TrackManager.Listener {
 		log.trace("MapFragment onDestroy");
 		super.onDestroy();
 
-		trackManager.removeListener(this);
+		if (editOverlay != null) {
+			editOverlay.close();
+			editOverlay = null;
+		}
+
 		trackManager = null;
 	}
 
@@ -386,10 +390,11 @@ public class MapFragment extends Fragment implements TrackManager.Listener {
 
 		if (globalEditTrack != null) {
 			editTrack = globalEditTrack;
-			editOverlay = new EditOverlay<Point>(getActivity());
 
-			List<Point> points = trackManager.getPoints(editTrack);
-			for (Point point : points) {
+			Model<Point> pointsModel = trackManager.getPointsModel(editTrack);
+			editOverlay = new EditOverlay<Point>(getActivity(), pointsModel);
+
+			for (Point point : pointsModel) {
 				editOverlay.addPoint(new GeoPoint(point.getLatE6(), point.getLonE6()), point);
 			}
 
@@ -402,17 +407,6 @@ public class MapFragment extends Fragment implements TrackManager.Listener {
 	private void setHardwareAccelerationOff() {
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
 			mapView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
-	}
-
-	// TrackManager.Listener methods
-	@Override
-	public void tracksUpdated() {
-
-	}
-
-	@Override
-	public void pointsUpdated(Track track) {
-
 	}
 
 	@Override

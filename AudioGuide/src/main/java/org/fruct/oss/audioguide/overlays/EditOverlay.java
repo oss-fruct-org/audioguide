@@ -7,6 +7,8 @@ import android.graphics.Point;
 import android.graphics.Rect;
 import android.view.MotionEvent;
 
+import org.fruct.oss.audioguide.models.Model;
+import org.fruct.oss.audioguide.models.ModelListener;
 import org.fruct.oss.audioguide.util.AUtils;
 import org.fruct.oss.audioguide.util.Utils;
 import org.osmdroid.api.IGeoPoint;
@@ -16,10 +18,12 @@ import org.osmdroid.views.overlay.Overlay;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class EditOverlay<T> extends Overlay {
+public class EditOverlay<T> extends Overlay implements Closeable, ModelListener {
 	public interface Listener<T> {
 		void pointMoved(T t, IGeoPoint geoPoint);
 		void pointPressed(T t);
@@ -47,8 +51,9 @@ public class EditOverlay<T> extends Overlay {
 	private transient HitResult hitResult = new HitResult();
 
 	private Listener<T> listener;
+	private final Model<T> model;
 
-	public EditOverlay(Context ctx) {
+	public EditOverlay(Context ctx, Model<T> model) {
 		super(ctx);
 
 		itemBackgroundPaint = new Paint();
@@ -59,13 +64,20 @@ public class EditOverlay<T> extends Overlay {
 		itemBackgroundDragPaint.setColor(0xff1143fa);
 		itemBackgroundDragPaint.setStyle(Paint.Style.FILL);
 
-
 		linePaint = new Paint();
 		linePaint.setColor(0xcc4455ff);
 		linePaint.setStyle(Paint.Style.STROKE);
 		linePaint.setAntiAlias(true);
 
 		itemSize = Utils.getDP(16);
+
+		this.model = model;
+		this.model.addListener(this);
+	}
+
+	@Override
+	public void close() {
+		this.model.removeListener(this);
 	}
 
 	public void setListener(Listener<T> listener) {
@@ -216,6 +228,11 @@ public class EditOverlay<T> extends Overlay {
 		IGeoPoint ret = proj.fromPixels(point.x, point.y);
 		item.geoPoint = AUtils.copyGeoPoint(ret);
 		mapView.invalidate();
+	}
+
+	@Override
+	public void dataSetChanged() {
+
 	}
 
 	class EditOverlayItem {
