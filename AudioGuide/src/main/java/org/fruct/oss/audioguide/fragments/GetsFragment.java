@@ -6,6 +6,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -188,7 +189,8 @@ public class GetsFragment extends Fragment implements WebViewDialog.Listener, Sh
 
 			@Override
 			protected void onPostExecute(String accessToken) {
-				SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getActivity());
+				FragmentActivity activity = getActivity();
+				SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(activity);
 				pref.edit().putString(GetsStorage.PREF_AUTH_TOKEN, accessToken).apply();
 			}
 		};

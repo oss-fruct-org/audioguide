@@ -1,7 +1,10 @@
 package org.fruct.oss.audioguide.util;
 
 
+import android.content.Context;
+import android.os.Build;
 import android.util.TypedValue;
+import android.view.ContextThemeWrapper;
 
 import org.fruct.oss.audioguide.App;
 import org.osmdroid.api.IGeoPoint;
@@ -24,5 +27,17 @@ public class AUtils {
 
 	private AUtils() {
 		throw new UnsupportedOperationException();
+	}
+
+	public static int getDialogTheme() {
+		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
+			return android.R.style.Theme_Dialog;
+		} else {
+			return android.R.style.Theme_Holo_Light_Dialog;
+		}
+	}
+
+	public static Context getDialogContext(Context context) {
+		return new ContextThemeWrapper(context, getDialogTheme());
 	}
 }

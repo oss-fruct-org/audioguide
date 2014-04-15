@@ -155,7 +155,7 @@ public class FileManagerFragment extends ListFragment implements UploadFragment.
 	}
 
 	private void addFile() {
-		UploadFragment fragment = new UploadFragment();
+		UploadFragment fragment = new UploadFragment("*/*");
 		fragment.setListener(this);
 		fragment.show(getFragmentManager(), "upload-fragment");
 	}

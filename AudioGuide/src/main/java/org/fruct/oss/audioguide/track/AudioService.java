@@ -38,7 +38,6 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
 	private BroadcastReceiver outReceiver;
 
 	private MediaPlayer player;
-
 	private Uri currentUri;
 
 	public AudioService() {
@@ -126,6 +125,7 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
 		if (player != null && player.isPlaying()) {
 			player.stop();
 			player = null;
+			currentUri = null;
 		}
 
 		player = new MediaPlayer();
@@ -154,19 +154,25 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
 
 	@Override
 	public void onCompletion(MediaPlayer mediaPlayer) {
-		mediaPlayer.release();
+		assert player == mediaPlayer;
+		player.release();
+		player = null;
+		currentUri = null;
 	}
 
 	@Override
 	public boolean onError(MediaPlayer mediaPlayer, int what, int extra) {
 		log.warn("Player error with uri" + currentUri + " " + what + " " + extra);
+
+		player = null;
+		currentUri = null;
+
 		return false;
 	}
 
 	private void stopAudioTrack(Uri uri) {
 		if (currentUri != null && (uri == null || currentUri.equals(uri)) && player.isPlaying()) {
 			player.stop();
-			currentUri = null;
 		}
 	}
 

@@ -19,6 +19,7 @@ import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.fragments.FileManagerFragment;
 import org.fruct.oss.audioguide.fragments.UploadFragment;
 import org.fruct.oss.audioguide.track.Point;
+import org.fruct.oss.audioguide.util.AUtils;
 import org.fruct.oss.audioguide.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +28,7 @@ public class EditPointDialog extends DialogFragment implements DialogInterface.O
 	private final static Logger log = LoggerFactory.getLogger(EditPointDialog.class);
 
 	private static final int REQUEST_CODE_IMAGE = 1;
+	private static final int REQUEST_CODE_AUDIO = 0;
 
 	private Listener listener;
 
@@ -43,8 +45,11 @@ public class EditPointDialog extends DialogFragment implements DialogInterface.O
 	private EditText editDescription;
 	private EditText editUrl;
 
-	private TextView imageFileLabel;//Text;
+	private TextView imageFileLabel;
 	private Button imageFileButton;
+
+	private TextView audioFileLabel;
+	private Button audioFileButton;
 
 	public EditPointDialog(Point point) {
 		if (point == null) {
@@ -66,6 +71,9 @@ public class EditPointDialog extends DialogFragment implements DialogInterface.O
 
 		imageFileLabel = (TextView) view.findViewById(R.id.image_file_title);
 		imageFileButton = (Button) view.findViewById(R.id.image_file_button);
+
+		audioFileLabel = (TextView) view.findViewById(R.id.audio_file_title);
+		audioFileButton = (Button) view.findViewById(R.id.audio_file_button);
 		//editUrl = (EditText) view.findViewById(R.id.edit_url);
 
 		if (point != null) {
@@ -77,11 +85,17 @@ public class EditPointDialog extends DialogFragment implements DialogInterface.O
 		imageFileButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View view) {
-				showFileChooserDialog();
+				showFileChooserDialog("image/*", REQUEST_CODE_IMAGE);
+			}
+		});
+		audioFileButton.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				showFileChooserDialog("audio/*", REQUEST_CODE_AUDIO);
 			}
 		});
 
-		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+		AlertDialog.Builder builder = new AlertDialog.Builder(AUtils.getDialogContext(getActivity()));
 		builder.setView(view)
 				.setPositiveButton(android.R.string.ok, this)
 				.setNegativeButton(android.R.string.cancel, null);
@@ -111,10 +125,10 @@ public class EditPointDialog extends DialogFragment implements DialogInterface.O
 		}
 	}
 
-	private void showFileChooserDialog() {
+	private void showFileChooserDialog(String mimeType, int requestCode) {
 		Intent intent = new Intent(getActivity(), FileChooserActivity.class);
-		intent.setType("*/*");
-		startActivityForResult(intent, REQUEST_CODE_IMAGE);
+		intent.setType(mimeType);
+		startActivityForResult(intent, requestCode);
 	}
 
 	@Override
@@ -124,11 +138,21 @@ public class EditPointDialog extends DialogFragment implements DialogInterface.O
 		if (requestCode == REQUEST_CODE_IMAGE && resultCode == Activity.RESULT_OK) {
 			Uri uri = data.getData();
 			assert uri != null;
-			log.info("File {} chosen", uri.toString());
+			log.info("Image file {} chosen", uri.toString());
 
 			String title = data.getStringExtra(FileManagerFragment.RESULT_TITLE);
-			imageFileLabel.setText(title);
 			point.setPhotoUrl(data.getStringExtra(FileManagerFragment.RESULT_URL));
+
+			imageFileLabel.setText(title);
+		} else if (requestCode == REQUEST_CODE_AUDIO && resultCode == Activity.RESULT_OK) {
+			Uri uri = data.getData();
+			assert uri != null;
+			log.info("Audio file {} chosen", uri.toString());
+
+			String title = data.getStringExtra(FileManagerFragment.RESULT_TITLE);
+			point.setAudioUrl(data.getStringExtra(FileManagerFragment.RESULT_URL));
+
+			audioFileLabel.setText(title);
 		}
 	}
 

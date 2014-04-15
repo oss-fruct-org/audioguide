@@ -38,6 +38,7 @@ import java.util.Locale;
 
 public class UploadFragment extends DialogFragment {
 	private final static Logger log = LoggerFactory.getLogger(UploadFragment.class);
+	private static final String STATE_MIME_TYPE = "mimeType";
 
 	public static interface Listener {
 		void fileCreated(FileContent file);
@@ -52,8 +53,21 @@ public class UploadFragment extends DialogFragment {
 	private Button browseButton;
 	private ProgressBar progressBar;
 
+	private String mimeType;
+
+	public UploadFragment(String mimeType) {
+		this.mimeType = mimeType;
+	}
+
+	public UploadFragment() {
+	}
+
 	@Override
 	public Dialog onCreateDialog(Bundle savedInstanceState) {
+		if (savedInstanceState != null) {
+			mimeType = savedInstanceState.getString(STATE_MIME_TYPE);
+		}
+
 		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 
 		View view = getActivity().getLayoutInflater().inflate(R.layout.dialog_upload_file, null);
@@ -69,7 +83,7 @@ public class UploadFragment extends DialogFragment {
 			@Override
 			public void onClick(View view) {
 				Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-				intent.setType("*/*");
+				intent.setType(mimeType);
 				intent.addCategory(Intent.CATEGORY_OPENABLE);
 
 				startActivityForResult(Intent.createChooser(intent, "Choose file"), IMAGE_REQUEST_CODE);
@@ -86,13 +100,24 @@ public class UploadFragment extends DialogFragment {
 		if (requestCode == IMAGE_REQUEST_CODE) {
 			if (resultCode == Activity.RESULT_OK) {
 				localFileUri = data.getData();
-				log.debug("User select file {}, {}", localFileUri.toString(), data.getType());
+				if (localFileUri == null)
+					return;
+
+				ContentResolver resolver = getActivity().getContentResolver();
+				log.debug("User select file {}, {}", localFileUri.toString(), resolver.getType(localFileUri));
 				browseButton.setText("Upload");
 				browseButton.setOnClickListener(uploadListener);
 			}
 		}
 
 		super.onActivityResult(requestCode, resultCode, data);
+	}
+
+	@Override
+	public void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
+
+		outState.putString(STATE_MIME_TYPE, mimeType);
 	}
 
 	private View.OnClickListener uploadListener = new View.OnClickListener() {
@@ -150,7 +175,13 @@ public class UploadFragment extends DialogFragment {
 			@Override
 			protected FileContent doInBackground(Void... voids) {
 				try {
-					InputStream stream = getActivity().getContentResolver().openInputStream(localFileUri);
+					ContentResolver resolver = getActivity().getContentResolver();
+					InputStream stream = resolver.openInputStream(localFileUri);
+					String mimeType = resolver.getType(localFileUri);
+					if (mimeType == null) {
+						log.warn("Cannot determine mime type of content {}", localFileUri);
+						mimeType = "image/png";
+					}
 
 					if (stream == null) {
 						showError("Wrong file");
@@ -168,7 +199,7 @@ public class UploadFragment extends DialogFragment {
 						}
 					});
 
-					String responseStr = Utils.postStream(uploadUrl, pStream, "image/png");
+					String responseStr = Utils.postStream(uploadUrl, pStream, mimeType);
 					GetsResponse response = GetsResponse.parse(responseStr, FileContent.class);
 
 					if (response.getCode() != 0) {
@@ -208,7 +239,7 @@ public class UploadFragment extends DialogFragment {
 				if (listener != null) {
 					listener.fileCreated(fileContent);
 				}
-				
+
 				UploadFragment.this.dismiss();
 			}
 		}.execute();

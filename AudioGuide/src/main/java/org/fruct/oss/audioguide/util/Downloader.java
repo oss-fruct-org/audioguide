@@ -14,9 +14,11 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class Downloader {
 	private final static Logger log = LoggerFactory.getLogger(Downloader.class);
@@ -25,6 +27,8 @@ public class Downloader {
 
 	private final Context context;
 	private final Set<String> files;
+
+	private final Set<String> enqueued = new HashSet<String>();
 
 	private ExecutorService executor = Executors.newSingleThreadExecutor();
 	private final File localFileDir;
@@ -84,6 +88,13 @@ public class Downloader {
 	}
 
 	private void enqueue(final String uri, final String uriHash) {
+		synchronized (enqueued) {
+			if (enqueued.contains(uri))
+				return;
+
+			enqueued.add(uri);
+		}
+
 		executor.execute(new Runnable() {
 			@Override
 			public void run() {
@@ -105,6 +116,10 @@ public class Downloader {
 					log.warn("Error downloading file " + uri, ex);
 					if (!new File(tmpFilePath).delete()) {
 						log.warn("Can't delete incomplete file {}", tmpFilePath);
+					}
+				} finally {
+					synchronized (enqueued) {
+						enqueued.remove(uri);
 					}
 				}
 			}
