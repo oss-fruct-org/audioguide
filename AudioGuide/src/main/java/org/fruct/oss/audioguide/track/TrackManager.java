@@ -127,6 +127,8 @@ public class TrackManager {
 
 	// All known tracks from local and remote storage
 	private final Map<String, Track> allTracks = new HashMap<String, Track>();
+	private final Map<Track, FilterModel<Point>> pointModels = new HashMap<Track, FilterModel<Point>>();
+
 	private List<Listener> listeners = new ArrayList<Listener>();
 
 	public TrackManager(ILocalStorage localStorage, IStorage remoteStorage) {
@@ -209,18 +211,6 @@ public class TrackManager {
 		return tracks;
 	}
 
-	public List<Track> getLocalTracks() {
-		Collection<Track> allTracks = this.allTracks.values();
-		List<Track> tracks = Utils.select(allTracks, new Utils.Predicate<Track>() {
-			@Override
-			public boolean apply(Track track) {
-				return track.isLocal();
-			}
-		});
-		Collections.sort(tracks);
-		return tracks;
-	}
-
 	public Model<Track> getTracksModel() {
 		return allTracksModel;
 	}
@@ -231,6 +221,23 @@ public class TrackManager {
 
 	public Model<Track> getLocalTracksModel() {
 		return localTracksModel;
+	}
+
+	public Model<Point> getPointsModel(Track track) {
+		FilterModel<Point> model = pointModels.get(track);
+		if (model == null) {
+			model = new FilterModel<Point>() {
+				@Override
+				public boolean check(Point point) {
+					return true;
+				}
+			};
+
+			model.setData(getPoints(track));
+			pointModels.put(track, model);
+		}
+
+		return model;
 	}
 
 	public Track getEditingTrack() {
@@ -396,6 +403,12 @@ public class TrackManager {
 	private synchronized void notifyPointsUpdated(Track track) {
 		for (Listener listener : listeners)
 			listener.pointsUpdated(track);
+
+		FilterModel<Point> pointModel = pointModels.get(track);
+
+		if (pointModel != null) {
+			pointModel.notifyDataSetChanged();
+		}
 	}
 
 	private synchronized void notifyTracksUpdated() {

@@ -97,7 +97,6 @@ public class TrackingService extends Service implements TrackManager.Listener, D
 		log.info("TrackingService onDestroy");
 	}
 
-
 	private TrackingServiceBinder binder = new TrackingServiceBinder();
 
 	@Override

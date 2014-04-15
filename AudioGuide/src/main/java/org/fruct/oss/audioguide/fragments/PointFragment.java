@@ -22,6 +22,7 @@ import org.fruct.oss.audioguide.AddPointFragment;
 import org.fruct.oss.audioguide.MultiPanel;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.adapters.PointAdapter;
+import org.fruct.oss.audioguide.adapters.PointModelAdapter;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.Track;
 import org.fruct.oss.audioguide.track.TrackManager;
@@ -51,11 +52,10 @@ public class PointFragment extends ListFragment {
 	private Track track;
 	private BroadcastReceiver inReceiver;
 	private BroadcastReceiver outReceiver;
-	private PointAdapter pointAdapter;
+	private PointModelAdapter pointAdapter;
 	private TrackingService trackingService;
 
 	private TrackingServiceConnection serviceConnection = new TrackingServiceConnection();
-
 
 	public static PointFragment newInstance(Track track) {
 		Bundle args = new Bundle(1);
@@ -87,10 +87,12 @@ public class PointFragment extends ListFragment {
 			track = savedInstanceState.getParcelable(STATE_TRACK);
 		}
 
-		setTrack();
+		pointAdapter = new PointModelAdapter(getActivity(),
+				R.layout.list_point_item,
+				trackManager.getPointsModel(track));
+		setListAdapter(pointAdapter);
 
 		setHasOptionsMenu(true);
-
 		setupAudioReceiver();
 	}
 
@@ -105,6 +107,16 @@ public class PointFragment extends ListFragment {
 	public void onStop() {
 		super.onStop();
 		getActivity().unbindService(serviceConnection);
+	}
+
+	@Override
+	public void onDestroy() {
+		super.onDestroy();
+		trackManager = null;
+		pointAdapter.close();
+
+		LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(inReceiver);
+		LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(outReceiver);
 	}
 
 	@Override
@@ -153,24 +165,6 @@ public class PointFragment extends ListFragment {
 	private void pointOutRange(Point point) {
 		if (pointAdapter != null)
 			pointAdapter.removeHighlightedItem(point);
-	}
-
-	private void setTrack() {
-		List<Point> points = trackManager.getPoints(track);
-
-		pointAdapter = new PointAdapter(getActivity(), R.layout.list_point_item, points);
-		setListAdapter(pointAdapter);
-		log.debug("Loaded {} points", points.size());
-	}
-
-
-	@Override
-	public void onDestroy() {
-		super.onDestroy();
-		trackManager = null;
-
-		LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(inReceiver);
-		LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(outReceiver);
 	}
 
 	@Override

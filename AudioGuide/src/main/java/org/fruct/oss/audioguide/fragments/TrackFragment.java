@@ -45,7 +45,6 @@ public class TrackFragment extends ListFragment {
 	@Override
 	public void onDestroy() {
 		trackAdapter.close();
-
 		super.onDestroy();
 	}
 
@@ -58,7 +57,6 @@ public class TrackFragment extends ListFragment {
 			throw new ClassCastException(activity.toString()
 					+ " must implement MultiFragment");
 		}
-
 	}
 
 	@Override

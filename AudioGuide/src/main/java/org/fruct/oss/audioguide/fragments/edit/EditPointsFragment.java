@@ -9,18 +9,21 @@ import android.widget.ListView;
 import org.fruct.oss.audioguide.MultiPanel;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.adapters.PointAdapter;
+import org.fruct.oss.audioguide.adapters.PointModelAdapter;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.Track;
 import org.fruct.oss.audioguide.track.TrackManager;
 
 import java.util.List;
 
-public class EditPointsFragment extends ListFragment implements TrackManager.Listener {
+public class EditPointsFragment extends ListFragment {
 	private static final String ARG_TRACK = "arg-track";
 
 	private MultiPanel multiPanel;
 	private Track track;
 	private TrackManager trackManager;
+
+	private PointModelAdapter adapter;
 
 	public static EditPointsFragment newInstance(Track track) {
 		EditPointsFragment fragment = new EditPointsFragment();
@@ -45,17 +48,14 @@ public class EditPointsFragment extends ListFragment implements TrackManager.Lis
 		}
 
 		trackManager = TrackManager.getInstance();
-		trackManager.addListener(this);
 
-		setupAdapter();
-
-        //setListAdapter(new ArrayAdapter<DummyContent.DummyItem>(getActivity(),
-        //        android.R.layout.simple_list_item_1, android.R.id.text1, DummyContent.ITEMS));
-    }
+		adapter = new PointModelAdapter(getActivity(), R.layout.list_point_item, trackManager.getPointsModel(track));
+		setListAdapter(adapter);
+	}
 
 	@Override
 	public void onDestroy() {
-		trackManager.removeListener(this);
+		adapter.close();
 
 		super.onDestroy();
 	}
@@ -76,26 +76,4 @@ public class EditPointsFragment extends ListFragment implements TrackManager.Lis
         super.onDetach();
         multiPanel = null;
     }
-
-
-    @Override
-    public void onListItemClick(ListView l, View v, int position, long id) {
-        super.onListItemClick(l, v, position, id);
-    }
-
-	@Override
-	public void tracksUpdated() {
-
-	}
-
-	@Override
-	public void pointsUpdated(Track track) {
-
-	}
-
-	private void setupAdapter() {
-		List<Point> points = trackManager.getPoints(track);
-		PointAdapter adapter = new PointAdapter(getActivity(), R.layout.list_point_item, points);
-		setListAdapter(adapter);
-	}
 }
