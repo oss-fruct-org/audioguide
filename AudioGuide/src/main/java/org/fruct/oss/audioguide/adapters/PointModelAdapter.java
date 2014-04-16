@@ -107,7 +107,6 @@ public class PointModelAdapter extends BaseAdapter implements Closeable, ModelLi
 			holder.text2 = (TextView) view.findViewById(android.R.id.text2);
 			holder.audioImage = (ImageView) view.findViewById(R.id.audioImage);
 			holder.icon = (ImageView) view.findViewById(android.R.id.icon);
-			holder.icon.setImageDrawable(null);
 		}
 
 		Point point = getItem(position);
@@ -116,6 +115,7 @@ public class PointModelAdapter extends BaseAdapter implements Closeable, ModelLi
 		holder.text1.setText(point.getName());
 		holder.text2.setText(point.getDescription());
 		holder.audioImage.setVisibility(point.hasAudio() ? View.VISIBLE : View.GONE);
+		holder.icon.setImageDrawable(null);
 
 		if (point.hasPhoto()) {
 			String photoUrl = point.getPhotoUrl();

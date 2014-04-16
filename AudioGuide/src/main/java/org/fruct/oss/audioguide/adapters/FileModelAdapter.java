@@ -17,6 +17,8 @@ import org.fruct.oss.audioguide.models.Model;
 import org.fruct.oss.audioguide.models.ModelListener;
 import org.fruct.oss.audioguide.parsers.FileContent;
 import org.fruct.oss.audioguide.util.Downloader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -24,6 +26,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class FileModelAdapter extends BaseAdapter implements Closeable, ModelListener, Downloader.Listener {
+	private final static Logger log = LoggerFactory.getLogger(FileModelAdapter.class);
 	private final int resource;
 	private final Context context;
 	private final Model<FileContent> model;
@@ -79,11 +82,11 @@ public class FileModelAdapter extends BaseAdapter implements Closeable, ModelLis
 
 			holder.title = ((TextView) view.findViewById(android.R.id.text1));
 			holder.image = ((ImageView) view.findViewById(android.R.id.icon));
-			holder.image.setImageDrawable(null);
 		}
 
 		FileContent file = getItem(position);
 		holder.title.setText(file.getTitle());
+		holder.image.setImageDrawable(null);
 
 		if (file.isImage()) {
 			String imageUrl = file.getUrl();
