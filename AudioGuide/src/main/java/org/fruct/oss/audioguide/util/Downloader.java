@@ -39,8 +39,7 @@ public class Downloader {
 	private final Set<String> files;
 	private WeakHashMap<Listener, Object> weakListeners = new WeakHashMap<Listener, Object>();
 
-	// Contains remote uri's hashes mapped to Locks
-	private final HashSet<String> enqueued = new HashSet<String>();
+	private final Set<String> enqueued = Collections.synchronizedSet(new HashSet<String>());
 
 	private ExecutorService executor = Executors.newSingleThreadExecutor();
 	private final File localFileDir;
@@ -70,7 +69,7 @@ public class Downloader {
 		return context.getExternalFilesDir(dir);
 	}
 
-	public void insertUri(Uri uri) {
+	public synchronized void insertUri(Uri uri) {
 		log.trace("Insert uri {}", uri);
 
 		String uriString = uri.toString();
@@ -88,7 +87,7 @@ public class Downloader {
 	 * @param uri HTTP or HTTPS uri
 	 * @return ready for use uri(cached or remote)
 	 */
-	public Uri getUri(final Uri uri) {
+	public synchronized Uri getUri(final Uri uri) {
 		String uriHash = Utils.hashString(uri.toString());
 		if (files.contains(uriHash)) {
 			return getLocalPath(uriHash);
@@ -108,6 +107,10 @@ public class Downloader {
 	}
 
 	private void enqueue(final String uri, final String uriHash) {
+		if (enqueued.contains(uriHash))
+			return;
+		enqueued.add(uriHash);
+
 		executor.execute(new Runnable() {
 			@Override
 			public void run() {
@@ -135,6 +138,8 @@ public class Downloader {
 					if (!new File(tmpFilePath).delete()) {
 						log.warn("Can't delete incomplete file {}", tmpFilePath);
 					}
+				} finally {
+					enqueued.remove(uriHash);
 				}
 			}
 		});

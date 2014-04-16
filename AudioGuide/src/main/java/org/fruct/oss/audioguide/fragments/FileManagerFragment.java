@@ -12,13 +12,12 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ListAdapter;
 import android.widget.ListView;
 
 import org.fruct.oss.audioguide.FileChooserActivity;
-import org.fruct.oss.audioguide.MultiPanel;
+import org.fruct.oss.audioguide.FileManager;
 import org.fruct.oss.audioguide.R;
-import org.fruct.oss.audioguide.adapters.FileAdapter;
+import org.fruct.oss.audioguide.adapters.FileModelAdapter;
 import org.fruct.oss.audioguide.parsers.FileContent;
 import org.fruct.oss.audioguide.parsers.FilesContent;
 import org.fruct.oss.audioguide.parsers.GetsException;
@@ -28,6 +27,7 @@ import org.fruct.oss.audioguide.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Locale;
 
@@ -40,7 +40,9 @@ public class FileManagerFragment extends ListFragment implements UploadFragment.
 
 	private final static Logger log = LoggerFactory.getLogger(FileManagerFragment.class);
 
-	private FileAdapter adapter;
+	private FileModelAdapter adapter;
+	private FileManager fileManager;
+
 	private boolean pickerMode;
 
     public static FileManagerFragment newInstance(boolean pickerMode) {
@@ -66,13 +68,20 @@ public class FileManagerFragment extends ListFragment implements UploadFragment.
 			pickerMode = getArguments().getBoolean(ARG_PICKER_MODE, false);
         }
 
-		adapter = new FileAdapter(getActivity(), R.layout.list_file_item);
+		fileManager = FileManager.getInstance();
+
+		adapter = new FileModelAdapter(getActivity(), R.layout.list_file_item, fileManager.getImagesModel());
 		setListAdapter(adapter);
 
 		setHasOptionsMenu(true);
-
-		startFilesLoading();
     }
+
+	@Override
+	public void onDestroy() {
+		adapter.close();
+
+		super.onDestroy();
+	}
 
 	@Override
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
@@ -89,47 +98,6 @@ public class FileManagerFragment extends ListFragment implements UploadFragment.
 			break;
 		}
 		return super.onOptionsItemSelected(item);
-	}
-
-	private void startFilesLoading() {
-		AsyncTask<Void, Void, FilesContent> filesTask = new AsyncTask<Void, Void, FilesContent>() {
-			@Override
-			protected FilesContent doInBackground(Void... voids) {
-				SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getActivity());
-				String accessToken = pref.getString(GetsStorage.PREF_AUTH_TOKEN, null);
-
-				if (accessToken == null) {
-					log.warn("Trying get files without auth token");
-					return null;
-				}
-
-				String request = String.format(Locale.ROOT, GetsStorage.LIST_FILES, accessToken);
-				try {
-					String responseString = Utils.downloadUrl(GetsStorage.GETS_SERVER + "/files/listFiles.php", request);
-					GetsResponse response = GetsResponse.parse(responseString, FilesContent.class);
-
-					if (response.getCode() != 0) {
-						log.error("Error code returned while downloading files");
-						return null;
-					}
-
-					return ((FilesContent) response.getContent());
-				} catch (IOException e) {
-					log.error("File list download error: ", e);
-					return null;
-				} catch (GetsException e) {
-					log.error("Wrong response from server: ", e);
-					return null;
-				}
-			}
-
-			@Override
-			protected void onPostExecute(FilesContent filesContent) {
-				adapter.setFilesContent(filesContent);
-			}
-		};
-
-		filesTask.execute();
 	}
 
 	@Override
@@ -171,7 +139,6 @@ public class FileManagerFragment extends ListFragment implements UploadFragment.
 
 	@Override
 	public void fileCreated(FileContent file) {
-		adapter.add(file);
-		adapter.notifyDataSetChanged();
+		fileManager.addFile(file);
 	}
 }

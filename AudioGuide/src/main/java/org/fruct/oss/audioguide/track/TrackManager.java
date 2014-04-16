@@ -1,27 +1,17 @@
 package org.fruct.oss.audioguide.track;
 
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.drawable.Drawable;
-import android.media.ThumbnailUtils;
 import android.net.Uri;
-import android.os.AsyncTask;
-import android.os.Build;
-import android.os.Handler;
-import android.os.Looper;
 import android.preference.PreferenceManager;
-import android.support.v4.util.LruCache;
 
 import org.fruct.oss.audioguide.App;
+import org.fruct.oss.audioguide.FileManager;
+import org.fruct.oss.audioguide.models.FilterModel;
 import org.fruct.oss.audioguide.models.Model;
-import org.fruct.oss.audioguide.models.ModelListener;
-import org.fruct.oss.audioguide.util.Downloader;
 import org.fruct.oss.audioguide.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.annotation.Target;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -41,95 +31,6 @@ import java.util.concurrent.Executors;
 @interface DatasetModifier {
 }
 
-class IconCache extends LruCache<String, Bitmap> {
-	public IconCache(int maxSize) {
-		super(maxSize);
-	}
-
-	@Override
-	protected int sizeOf(String key, Bitmap value) {
-		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB_MR1)
-			return 32;
-		else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT
-				&& Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR1)
-			return value.getByteCount() / 1024;
-		else
-			return value.getAllocationByteCount() / 1024;
-	}
-}
-
-abstract class FilterModel<T> implements Model<T> {
-	public abstract boolean check(T t);
-
-	public ArrayList<T> list = new ArrayList<T>();
-	public ArrayList<ModelListener> listeners = new ArrayList<ModelListener>();
-	private Handler handler = new Handler(Looper.getMainLooper());
-
-	@Override
-	public int getCount() {
-		return list.size();
-	}
-
-	@Override
-	public T getItem(int position) {
-		return list.get(position);
-	}
-
-	@Override
-	public synchronized void addListener(ModelListener listener) {
-		listeners.add(listener);
-	}
-
-	@Override
-	public synchronized void removeListener(ModelListener listener) {
-		listeners.remove(listener);
-	}
-
-	public void setData(Collection<T> coll) {
-		list.clear();
-		for (T t : coll) {
-			if (check(t)) {
-				list.add(t);
-			}
-		}
-
-		handler.post(new Runnable() {
-			@Override
-			public void run() {
-				notifyDataSetChanged();
-			}
-		});
-	}
-
-	public void notifyDataSetChanged() {
-		for (ModelListener listener : listeners) {
-			listener.dataSetChanged();
-		}
-	}
-
-	@Override
-	public Iterator<T> iterator() {
-		return new Iterator<T>() {
-			private int index;
-
-			@Override
-			public boolean hasNext() {
-				return index < getCount();
-			}
-
-			@Override
-			public T next() {
-				return getItem(index++);
-			}
-
-			@Override
-			public void remove() {
-				throw new UnsupportedOperationException("Can't remove from model");
-			}
-		};
-	}
-}
-
 public class TrackManager {
 	private final static Logger log = LoggerFactory.getLogger(TrackManager.class);
 
@@ -140,15 +41,13 @@ public class TrackManager {
 		void pointsUpdated(Track track);
 	}
 
-	private final Downloader iconDownloader;
-	private final LruCache<String, Bitmap> iconCache;
-
 	private final ILocalStorage localStorage;
 	private final IStorage remoteStorage;
 
 	private volatile boolean isInitialized = false;
 
 	private ExecutorService executor = Executors.newSingleThreadExecutor();
+	private FileManager fileManager;
 
 	// All known tracks from local and remote storage
 	private final Map<String, Track> allTracks = new HashMap<String, Track>();
@@ -159,8 +58,6 @@ public class TrackManager {
 	public TrackManager(ILocalStorage localStorage, IStorage remoteStorage) {
 		this.localStorage = localStorage;
 		this.remoteStorage = remoteStorage;
-		this.iconDownloader = new Downloader(App.getContext(), "point-icons");
-		this.iconCache = new IconCache(1024);
 	}
 
 	public void setExecutor(ExecutorService executor) {
@@ -170,6 +67,8 @@ public class TrackManager {
 	public void initialize() {
 		if (isInitialized)
 			throw new IllegalStateException("TrackManager already initialized");
+
+		fileManager = FileManager.getInstance();
 
 		localStorage.initialize();
 		remoteStorage.initialize();
@@ -308,33 +207,6 @@ public class TrackManager {
 		return new ArrayList<Point>(localStorage.getPoints(track));
 	}
 
-	public void addWeakIconListener(Downloader.Listener listener) {
-		iconDownloader.addWeakListener(listener);
-	}
-
-	public Bitmap getPointIconBitmap(Point point) {
-		if (point.hasPhoto()) {
-			Bitmap bitmap = iconCache.get(point.getPhotoUrl());
-			if (bitmap != null)
-				return bitmap;
-
-			Uri remotePhotoUri = Uri.parse(point.getPhotoUrl());
-			Uri localPhotoUri = iconDownloader.getUri(remotePhotoUri);
-
-			if (localPhotoUri != null && !localPhotoUri.equals(remotePhotoUri)) {
-				String localPhotoPath = localPhotoUri.getPath();
-				Bitmap newBitmap = BitmapFactory.decodeFile(localPhotoPath);
-				Bitmap thumbBitmap = ThumbnailUtils.extractThumbnail(newBitmap,
-						Utils.getDP(48), Utils.getDP(48));
-				newBitmap.recycle();
-				iconCache.put(point.getPhotoUrl(), thumbBitmap);
-				return thumbBitmap;
-			}
-		}
-
-		return null;
-	}
-
 	@DatasetModifier
 	public void storeLocal(final Track track) {
 		checkInitialized();
@@ -395,7 +267,7 @@ public class TrackManager {
 		localStorage.storePoint(track, point);
 
 		if (point.hasPhoto()) {
-			iconDownloader.insertUri(Uri.parse(point.getPhotoUrl()));
+			fileManager.insertImageUri(Uri.parse(point.getPhotoUrl()));
 		}
 
 		notifyPointsUpdated(track);
@@ -452,7 +324,7 @@ public class TrackManager {
 		localStorage.storeLocalPoints(track, points);
 		for (Point point : points) {
 			if (point.hasPhoto()) {
-				iconDownloader.insertUri(Uri.parse(point.getPhotoUrl()));
+				fileManager.insertImageUri(Uri.parse(point.getPhotoUrl()));
 			}
 		}
 		notifyPointsUpdated(track);
@@ -488,7 +360,7 @@ public class TrackManager {
 	}
 
 	private static TrackManager instance;
-	public static TrackManager getInstance() {
+	public synchronized static TrackManager getInstance() {
 		if (instance != null)
 			return instance;
 

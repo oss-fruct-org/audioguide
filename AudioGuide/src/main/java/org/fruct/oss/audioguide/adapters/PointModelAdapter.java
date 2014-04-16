@@ -4,30 +4,25 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
-import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import org.fruct.oss.audioguide.FileManager;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.models.Model;
 import org.fruct.oss.audioguide.models.ModelListener;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.TrackManager;
 import org.fruct.oss.audioguide.util.Downloader;
-import org.fruct.oss.audioguide.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
-import java.io.IOException;
-import java.lang.ref.WeakReference;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -36,6 +31,8 @@ public class PointModelAdapter extends BaseAdapter implements Closeable, ModelLi
 	private final static Logger log = LoggerFactory.getLogger(PointModelAdapter.class);
 
 	private final TrackManager trackManager;
+	private final FileManager fileManager;
+
 	private final RuntimeException stackTraceException;
 
 	private final Context context;
@@ -51,8 +48,11 @@ public class PointModelAdapter extends BaseAdapter implements Closeable, ModelLi
 		this.resource = resource;
 		this.model = model;
 		this.model.addListener(this);
+
 		this.trackManager = TrackManager.getInstance();
-		this.trackManager.addWeakIconListener(this);
+		this.fileManager = FileManager.getInstance();
+
+		this.fileManager.addWeakIconListener(this);
 
 		stackTraceException = new RuntimeException();
 	}
@@ -117,18 +117,13 @@ public class PointModelAdapter extends BaseAdapter implements Closeable, ModelLi
 		holder.text2.setText(point.getDescription());
 		holder.audioImage.setVisibility(point.hasAudio() ? View.VISIBLE : View.GONE);
 
-		/*if (holder.iconTask != null && holder.iconTask.getStatus() != AsyncTask.Status.FINISHED) {
-			holder.iconTask.cancel(true);
-			holder.iconTask = null;
-		}*/
-
 		if (point.hasPhoto()) {
 			String photoUrl = point.getPhotoUrl();
 			if (pendingIconUris.contains(photoUrl)) {
 				pendingIconUris.remove(photoUrl);
 			}
 
-			Bitmap iconBitmap = trackManager.getPointIconBitmap(point);
+			Bitmap iconBitmap = fileManager.getImageBitmap(photoUrl);
 			if (iconBitmap != null) {
 				holder.icon.setImageDrawable(new BitmapDrawable(context.getResources(), iconBitmap));
 			} else {

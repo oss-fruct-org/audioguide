@@ -23,6 +23,9 @@ public class FileContent implements IContent {
 		return url;
 	}
 
+	public boolean isImage() {
+		return mimeType.startsWith("image/");
+	}
 
 	public static IContent parse(XmlPullParser parser) throws IOException, XmlPullParserException {
 		parser.require(XmlPullParser.START_TAG, null, null);
