@@ -455,7 +455,7 @@ public class TrackManager {
 		FilterModel<Point> pointModel = pointModels.get(track);
 
 		if (pointModel != null) {
-			pointModel.notifyDataSetChanged();
+			pointModel.setData(localStorage.getPoints(track));
 		}
 	}
 

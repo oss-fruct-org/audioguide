@@ -179,7 +179,7 @@ public class GetsFragment extends Fragment implements WebViewDialog.Listener, Sh
 				}
 
 				if (response.getCode() != 0) {
-					Toast.makeText(getActivity(), "Error: " + response.getMessage(), Toast.LENGTH_LONG).show();
+					showError("Error: " + response.getMessage());
 					return null;
 				}
 
@@ -218,5 +218,14 @@ public class GetsFragment extends Fragment implements WebViewDialog.Listener, Sh
 		if (key.equals(GetsStorage.PREF_AUTH_TOKEN)) {
 			initializeLoginLabel();
 		}
+	}
+
+	private void showError(final String error) {
+			getActivity().runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					Toast.makeText(getActivity(), error, Toast.LENGTH_LONG).show();
+				}
+			});
 	}
 }
