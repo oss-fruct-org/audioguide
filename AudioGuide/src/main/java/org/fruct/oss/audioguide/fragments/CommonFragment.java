@@ -95,9 +95,9 @@ public class CommonFragment extends Fragment {
 
 			return true;
 
-		case R.id.action_refresh:
+		/*case R.id.action_refresh:
 			TrackManager.getInstance().refresh();
-			return true;
+			return true;*/
 		}
 
 		return super.onOptionsItemSelected(item);

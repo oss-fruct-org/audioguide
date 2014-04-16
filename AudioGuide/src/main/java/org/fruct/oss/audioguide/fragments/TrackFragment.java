@@ -3,6 +3,9 @@ package org.fruct.oss.audioguide.fragments;
 import android.app.Activity;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ListView;
 
@@ -37,6 +40,8 @@ public class TrackFragment extends ListFragment {
 
 		trackAdapter = new TrackModelAdapter(getActivity(), R.layout.list_track_item, trackManager.getTracksModel());
 		setListAdapter(trackAdapter);
+
+		setHasOptionsMenu(true);
 	}
 
 	@Override
@@ -66,6 +71,24 @@ public class TrackFragment extends ListFragment {
 	public void onListItemClick(ListView l, View v, int position, long id) {
 		Track track = trackAdapter.getItem(position);
 		trackClicked(track);
+	}
+
+	@Override
+	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+		super.onCreateOptionsMenu(menu, inflater);
+
+		inflater.inflate(R.menu.refresh, menu);
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+		case R.id.action_refresh:
+			trackManager.refresh();
+			break;
+		}
+
+		return super.onOptionsItemSelected(item);
 	}
 
 	public void trackClicked(Track track) {

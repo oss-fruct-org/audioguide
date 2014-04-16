@@ -18,7 +18,7 @@ public class DatabaseStorage implements ILocalStorage {
 	private final static Logger log = LoggerFactory.getLogger(DatabaseStorage.class);
 
 	public static final String DB_NAME = "tracksdb";
-	public static final int DB_VERSION = 6;
+	public static final int DB_VERSION = 7;
 	public static final String CREATE_TRACKS_SQL = "CREATE TABLE tracks " +
 			"(id INTEGER PRIMARY KEY AUTOINCREMENT," +
 			"name TEXT," +
@@ -122,6 +122,7 @@ public class DatabaseStorage implements ILocalStorage {
 	public void storeLocalPoints(Track track, List<Point> points) {
 		db.beginTransaction();
 
+		db.delete("points", "trackId=?", new String[] { String.valueOf(track.getLocalId()) });
 		try {
 			for (Point point : points)
 				storeLocalPoint(track, point);

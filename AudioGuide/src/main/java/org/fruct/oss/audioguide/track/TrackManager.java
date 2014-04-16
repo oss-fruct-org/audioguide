@@ -210,6 +210,16 @@ public class TrackManager {
 		loadRemoteTracks();
 	}
 
+	public void refreshPoints(final Track track) {
+		executor.execute(new Runnable() {
+			@Override
+			public void run() {
+				doLoadRemotePoints(track);
+			}
+		});
+	}
+
+
 	public synchronized void addListener(Listener listener) {
 		listeners.add(listener);
 	}

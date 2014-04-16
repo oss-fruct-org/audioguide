@@ -122,6 +122,7 @@ public class PointFragment extends ListFragment {
 		super.onCreateOptionsMenu(menu, inflater);
 
 		inflater.inflate(R.menu.points_menu, menu);
+		inflater.inflate(R.menu.refresh, menu);
 	}
 
 	@Override
@@ -131,6 +132,11 @@ public class PointFragment extends ListFragment {
 			log.debug("Action add selected");
 			AddPointFragment dialogFragment = new AddPointFragment(track);
 			dialogFragment.show(getFragmentManager(), "add-point-dialog");
+			break;
+
+		case R.id.action_refresh:
+			log.debug("Action refresh selected from PointFragment");
+			trackManager.refreshPoints(track);
 			break;
 		}
 
