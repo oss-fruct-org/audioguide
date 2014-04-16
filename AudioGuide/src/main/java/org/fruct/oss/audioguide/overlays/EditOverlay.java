@@ -3,7 +3,7 @@ package org.fruct.oss.audioguide.overlays;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
-import android.graphics.Point;
+import org.fruct.oss.audioguide.track.Point;
 import android.graphics.Rect;
 import android.view.MotionEvent;
 
@@ -23,10 +23,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class EditOverlay<T> extends Overlay implements Closeable, ModelListener {
-	public interface Listener<T> {
-		void pointMoved(T t, IGeoPoint geoPoint);
-		void pointPressed(T t);
+public class EditOverlay extends Overlay implements Closeable, ModelListener {
+	public interface Listener {
+		void pointMoved(Point t, IGeoPoint geoPoint);
+		void pointPressed(Point t);
 	}
 
 	private final static Logger log = LoggerFactory.getLogger(EditOverlay.class);
@@ -46,18 +46,20 @@ public class EditOverlay<T> extends Overlay implements Closeable, ModelListener 
 	private int dragStartY;
 	private boolean dragStarted;
 
-	private transient Point point = new Point();
-	private transient Point point2 = new Point();
+	private boolean isEditable = false;
+
+	private transient android.graphics.Point point = new android.graphics.Point();
+	private transient android.graphics.Point point2 = new android.graphics.Point();
 	private transient HitResult hitResult = new HitResult();
 
-	private Listener<T> listener;
-	private final Model<T> model;
+	private Listener listener;
+	private final Model<Point> model;
 
-	public EditOverlay(Context ctx, Model<T> model) {
+	public EditOverlay(Context ctx, Model<Point> model, int color) {
 		super(ctx);
 
 		itemBackgroundPaint = new Paint();
-		itemBackgroundPaint.setColor(0xffaa43ba);
+		itemBackgroundPaint.setColor(color);
 		itemBackgroundPaint.setStyle(Paint.Style.FILL);
 
 		itemBackgroundDragPaint = new Paint();
@@ -65,14 +67,21 @@ public class EditOverlay<T> extends Overlay implements Closeable, ModelListener 
 		itemBackgroundDragPaint.setStyle(Paint.Style.FILL);
 
 		linePaint = new Paint();
-		linePaint.setColor(0xcc4455ff);
+		linePaint.setColor(color);
 		linePaint.setStyle(Paint.Style.STROKE);
+		linePaint.setStrokeWidth(2);
 		linePaint.setAntiAlias(true);
 
 		itemSize = Utils.getDP(16);
 
 		this.model = model;
 		this.model.addListener(this);
+
+		dataSetChanged();
+	}
+
+	public void setEditable(boolean isEditable) {
+		this.isEditable = isEditable;
 	}
 
 	@Override
@@ -80,7 +89,7 @@ public class EditOverlay<T> extends Overlay implements Closeable, ModelListener 
 		this.model.removeListener(this);
 	}
 
-	public void setListener(Listener<T> listener) {
+	public void setListener(Listener listener) {
 		this.listener = listener;
 	}
 
@@ -128,7 +137,7 @@ public class EditOverlay<T> extends Overlay implements Closeable, ModelListener 
 				item == draggingItem ? itemBackgroundDragPaint : itemBackgroundPaint);
 	}
 
-	public void addPoint(GeoPoint geoPoint, T t) {
+	public void addPoint(GeoPoint geoPoint, org.fruct.oss.audioguide.track.Point t) {
 		EditOverlayItem item = new EditOverlayItem(geoPoint, t);
 		items.add(item);
 	}
@@ -163,19 +172,6 @@ public class EditOverlay<T> extends Overlay implements Closeable, ModelListener 
 		return null;
 	}
 
-	/*@Override
-	public boolean onLongPress(MotionEvent e, MapView mapView) {
-		HitResult hitResult = testHit(e, mapView);
-
-		if (hitResult != null) {
-			if (listener != null) {
-				listener.pointPressed(hitResult.item.data);
-			}
-		}
-
-		return false;
-	}*/
-
 	@Override
 	public boolean onTouchEvent(MotionEvent event, MapView mapView) {
 		if (event.getAction() == MotionEvent.ACTION_DOWN) {
@@ -200,19 +196,22 @@ public class EditOverlay<T> extends Overlay implements Closeable, ModelListener 
 					listener.pointMoved(draggingItem.data, draggingItem.geoPoint);
 				}
 			} else {
-				listener.pointPressed(draggingItem.data);
+				if (listener != null) {
+					listener.pointPressed(draggingItem.data);
+				}
 			}
-
 			draggingItem = null;
 			mapView.invalidate();
 			return true;
 		} else if (event.getAction() == MotionEvent.ACTION_MOVE && draggingItem != null) {
-			final int dx = dragStartX - (int) event.getX();
-			final int dy = dragStartY - (int) event.getY();
+			if (isEditable) {
+				final int dx = dragStartX - (int) event.getX();
+				final int dy = dragStartY - (int) event.getY();
 
-			if (dragStarted || dx * dx + dy * dy > 8 * 8) {
-				dragStarted = true;
-				moveItem(draggingItem, event, mapView);
+				if (dragStarted || dx * dx + dy * dy > 8 * 8) {
+					dragStarted = true;
+					moveItem(draggingItem, event, mapView);
+				}
 			}
 			return true;
 		} else {
@@ -232,16 +231,20 @@ public class EditOverlay<T> extends Overlay implements Closeable, ModelListener 
 
 	@Override
 	public void dataSetChanged() {
+		items.clear();
 
+		for (Point point : model) {
+			addPoint(new GeoPoint(point.getLatE6(), point.getLonE6()), point);
+		}
 	}
 
 	class EditOverlayItem {
-		EditOverlayItem(GeoPoint geoPoint, T data) {
+		EditOverlayItem(GeoPoint geoPoint, Point data) {
 			this.geoPoint = geoPoint;
 			this.data = data;
 		}
 
-		T data;
+		Point data;
 		GeoPoint geoPoint;
 	}
 

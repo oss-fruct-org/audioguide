@@ -31,7 +31,6 @@ import android.widget.Button;
 
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.fragments.edit.EditPointDialog;
-import org.fruct.oss.audioguide.models.Model;
 import org.fruct.oss.audioguide.overlays.EditOverlay;
 import org.fruct.oss.audioguide.overlays.MyPositionOverlay;
 import org.fruct.oss.audioguide.track.AudioService;
@@ -52,8 +51,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
-import static android.view.View.VISIBLE;
 import static android.view.ViewGroup.LayoutParams;
 
 
@@ -79,8 +78,9 @@ public class MapFragment extends Fragment {
 
 	private Point selectedPoint;
 
+	private List<EditOverlay> trackOverlays = new ArrayList<EditOverlay>();
 
-	private EditOverlay<Point> editOverlay;
+	private EditOverlay editOverlay;
 	private Track editTrack;
 
 	/**
@@ -203,9 +203,8 @@ public class MapFragment extends Fragment {
 		log.trace("MapFragment onDestroy");
 		super.onDestroy();
 
-		if (editOverlay != null) {
-			editOverlay.close();
-			editOverlay = null;
+		for (EditOverlay trackOverlay : trackOverlays) {
+			trackOverlay.close();
 		}
 
 		trackManager = null;
@@ -314,6 +313,36 @@ public class MapFragment extends Fragment {
 	}
 
 	private void updatePointsOverlay() {
+		// Clear all previous data
+		for (EditOverlay trackOverlay : trackOverlays) {
+			mapView.getOverlays().remove(trackOverlay);
+		}
+		trackOverlays.clear();
+		editOverlay = null;
+		editTrack = null;
+
+		Track globalEditTrack = trackManager.getEditingTrack();
+		Random r = new Random();
+		for (Track track : trackManager.getActiveTracks()) {
+			EditOverlay trackOverlay = new EditOverlay(getActivity(),
+					trackManager.getPointsModel(track), r.nextInt(0xffffff) + 0xff000000);
+			trackOverlays.add(trackOverlay);
+
+			if (globalEditTrack == track) {
+				// Save track that user edits
+				editOverlay = trackOverlay;
+				editTrack = track;
+				trackOverlay.setEditable(true);
+				trackOverlay.setListener(editOverlayListener);
+			}
+
+			mapView.getOverlays().add(trackOverlay);
+		}
+
+		mapView.invalidate();
+	}
+
+	/*private void updatePointsOverlay() {
 		if (trackOverlay != null)
 			mapView.getOverlays().remove(trackOverlay);
 
@@ -355,7 +384,7 @@ public class MapFragment extends Fragment {
 		});
 
 		mapView.getOverlays().add(trackOverlay);
-	}
+	}*/
 
 	private void createMyPositionOverlay() {
 		myPositionOverlay = new MyPositionOverlay(getActivity(), mapView);
@@ -386,7 +415,7 @@ public class MapFragment extends Fragment {
 	}
 
 	private void createEditOverlay() {
-		Track globalEditTrack = trackManager.getEditingTrack();
+		/*Track globalEditTrack = trackManager.getEditingTrack();
 
 		if (globalEditTrack != null) {
 			editTrack = globalEditTrack;
@@ -400,7 +429,7 @@ public class MapFragment extends Fragment {
 
 			editOverlay.setListener(editOverlayListener);
 			mapView.getOverlays().add(editOverlay);
-		}
+		}*/
 	}
 
 	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
@@ -463,7 +492,7 @@ public class MapFragment extends Fragment {
 		}
 	};
 
-	private EditOverlay.Listener<Point> editOverlayListener = new EditOverlay.Listener<Point>() {
+	private EditOverlay.Listener editOverlayListener = new EditOverlay.Listener() {
 		@Override
 		public void pointMoved(Point point, IGeoPoint geoPoint) {
 			point.setCoordinates(geoPoint.getLatitudeE6(), geoPoint.getLongitudeE6());
