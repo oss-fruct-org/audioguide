@@ -6,6 +6,8 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -16,9 +18,9 @@ import android.widget.TextView;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.models.Model;
 import org.fruct.oss.audioguide.models.ModelListener;
-import org.fruct.oss.audioguide.track.IconTask;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.TrackManager;
+import org.fruct.oss.audioguide.util.Downloader;
 import org.fruct.oss.audioguide.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +32,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class PointModelAdapter extends BaseAdapter implements Closeable, ModelListener {
+public class PointModelAdapter extends BaseAdapter implements Closeable, ModelListener, Downloader.Listener {
 	private final static Logger log = LoggerFactory.getLogger(PointModelAdapter.class);
 
 	private final TrackManager trackManager;
@@ -40,6 +42,7 @@ public class PointModelAdapter extends BaseAdapter implements Closeable, ModelLi
 	private final int resource;
 	private final Model<Point> model;
 	private Set<Point> highlightedItems = new HashSet<Point>();
+	private Set<String> pendingIconUris = new HashSet<String>();
 
 	private boolean closed = false;
 
@@ -49,6 +52,7 @@ public class PointModelAdapter extends BaseAdapter implements Closeable, ModelLi
 		this.model = model;
 		this.model.addListener(this);
 		this.trackManager = TrackManager.getInstance();
+		this.trackManager.addWeakIconListener(this);
 
 		stackTraceException = new RuntimeException();
 	}
@@ -113,31 +117,25 @@ public class PointModelAdapter extends BaseAdapter implements Closeable, ModelLi
 		holder.text2.setText(point.getDescription());
 		holder.audioImage.setVisibility(point.hasAudio() ? View.VISIBLE : View.GONE);
 
-		if (holder.iconTask != null && holder.iconTask.getStatus() != AsyncTask.Status.FINISHED) {
+		/*if (holder.iconTask != null && holder.iconTask.getStatus() != AsyncTask.Status.FINISHED) {
 			holder.iconTask.cancel(true);
 			holder.iconTask = null;
-		}
-
-		final WeakReference<PointHolder> weakHolder = new WeakReference<PointHolder>(holder);
-		holder.iconTask = trackManager.asyncGetPointIcon(point, new Utils.Function<Void, Drawable>() {
-			@Override
-			public Void apply(Drawable drawable) {
-				PointHolder holder = weakHolder.get();
-				if (holder != null && holder.iconTask != null && !holder.iconTask.isCancelled()) {
-					holder.icon.setImageDrawable(drawable);
-					holder.iconTask = null;
-				}
-
-				return null;
-			}
-		});
-
-		/*Bitmap iconBitmap = trackManager.getPointIconBitmap(point);
-		if (iconBitmap != null) {
-			holder.icon.setImageDrawable(new BitmapDrawable(context.getResources(), iconBitmap));
-		} else {
-			holder.icon.setImageDrawable(null);
 		}*/
+
+		if (point.hasPhoto()) {
+			String photoUrl = point.getPhotoUrl();
+			if (pendingIconUris.contains(photoUrl)) {
+				pendingIconUris.remove(photoUrl);
+			}
+
+			Bitmap iconBitmap = trackManager.getPointIconBitmap(point);
+			if (iconBitmap != null) {
+				holder.icon.setImageDrawable(new BitmapDrawable(context.getResources(), iconBitmap));
+			} else {
+				pendingIconUris.add(photoUrl);
+				holder.icon.setImageDrawable(null);
+			}
+		}
 
 		if (highlightedItems.contains(point)) {
 			view.setBackgroundColor(0xffffd700);
@@ -169,6 +167,19 @@ public class PointModelAdapter extends BaseAdapter implements Closeable, ModelLi
 		notifyDataSetChanged();
 	}
 
+	@Override
+	public void itemLoaded(final String uri) {
+		Handler handler = new Handler(Looper.getMainLooper());
+		handler.post(new Runnable() {
+			@Override
+			public void run() {
+				if (pendingIconUris.contains(uri))
+					notifyDataSetChanged();
+
+			}
+		});
+	}
+
 	private static class PointHolder {
 		PointHolder() {
 			log.debug("PointHolder create");
@@ -180,7 +191,5 @@ public class PointModelAdapter extends BaseAdapter implements Closeable, ModelLi
 
 		ImageView audioImage;
 		ImageView icon;
-
-		IconTask iconTask;
 	}
 }

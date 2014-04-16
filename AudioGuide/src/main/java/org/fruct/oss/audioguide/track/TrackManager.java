@@ -4,6 +4,7 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
+import android.media.ThumbnailUtils;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -297,13 +298,8 @@ public class TrackManager {
 		return new ArrayList<Point>(localStorage.getPoints(track));
 	}
 
-	// TODO: make drawables cache
-	public IconTask asyncGetPointIcon(Point point, final Utils.Function<Void, Drawable> function) {
-		if (!point.hasPhoto())
-			return null;
-
-		Uri uri = Uri.parse(point.getPhotoUrl());
-		return (IconTask) new IconTask(function, iconDownloader).execute(uri);
+	public void addWeakIconListener(Downloader.Listener listener) {
+		iconDownloader.addWeakListener(listener);
 	}
 
 	public Bitmap getPointIconBitmap(Point point) {
@@ -318,10 +314,14 @@ public class TrackManager {
 			if (localPhotoUri != null && !localPhotoUri.equals(remotePhotoUri)) {
 				String localPhotoPath = localPhotoUri.getPath();
 				Bitmap newBitmap = BitmapFactory.decodeFile(localPhotoPath);
-				iconCache.put(point.getPhotoUrl(), newBitmap);
-				return newBitmap;
+				Bitmap thumbBitmap = ThumbnailUtils.extractThumbnail(newBitmap,
+						Utils.getDP(48), Utils.getDP(48));
+				newBitmap.recycle();
+				iconCache.put(point.getPhotoUrl(), thumbBitmap);
+				return thumbBitmap;
 			}
 		}
+
 		return null;
 	}
 

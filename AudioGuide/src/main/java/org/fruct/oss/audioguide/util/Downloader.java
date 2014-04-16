@@ -19,6 +19,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -26,12 +27,17 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class Downloader {
+	public static interface Listener {
+		void itemLoaded(String uri);
+	}
+
 	private final static Logger log = LoggerFactory.getLogger(Downloader.class);
 
 	public static final String TMP_FILE_SUFFIX = ".download";
 
 	private final Context context;
 	private final Set<String> files;
+	private WeakHashMap<Listener, Object> weakListeners = new WeakHashMap<Listener, Object>();
 
 	// Contains remote uri's hashes mapped to Locks
 	private final HashSet<String> enqueued = new HashSet<String>();
@@ -92,54 +98,8 @@ public class Downloader {
 		}
 	}
 
-	public Uri waitUri(final Uri uri) throws InterruptedException {
-		//log.debug("waitUri {}", uri);
-
-		String uriHash = Utils.hashString(uri.toString());
-
-		if (files.contains(uriHash)) {
-			return getLocalPath(uriHash);
-		}
-
-		synchronized (enqueued) {
-			if (!enqueued.contains(uriHash)) {
-				enqueue(uri.toString(), uriHash);
-			}
-
-			assert enqueued.contains(uriHash);
-			while (enqueued.contains(uriHash)) {
-				enqueued.wait();
-			}
-
-			if (files.contains(uriHash)) {
-				return getLocalPath(uriHash);
-			} else {
-				return null;
-			}
-		}
-
-/*
-		synchronized (enqueued) {
-			if (files.contains(uriHash)) {
-				return getLocalPath(uriHash);
-			} else {
-				if (!enqueued.containsKey(uriHash)) {
-					enqueue(uri.toString(), uriHash);
-				}
-
-				Object waiter = enqueued.get(uriHash);
-				synchronized (waiter) {
-					waiter.wait();
-				}
-
-				if (files.contains(uriHash)) {
-					return getLocalPath(uriHash);
-				} else {
-					return null;
-				}
-			}
-		}
-		*/
+	public void addWeakListener(Listener listener) {
+		this.weakListeners.put(listener, weakListeners);
 	}
 
 	private Uri getLocalPath(String uriHash) {
@@ -148,14 +108,6 @@ public class Downloader {
 	}
 
 	private void enqueue(final String uri, final String uriHash) {
-		synchronized (enqueued) {
-			if (enqueued.contains(uriHash)) {
-				return;
-			}
-
-			enqueued.add(uriHash);
-		}
-
 		executor.execute(new Runnable() {
 			@Override
 			public void run() {
@@ -173,15 +125,15 @@ public class Downloader {
 					// All successfully loaded, add to list
 					log.trace("Adding file to list {}", uriHash);
 					files.add(uriHash);
+
+					for (Listener listener : weakListeners.keySet()) {
+						listener.itemLoaded(uri);
+					}
+
 				} catch (IOException ex) {
 					log.warn("Error downloading file " + uri, ex);
 					if (!new File(tmpFilePath).delete()) {
 						log.warn("Can't delete incomplete file {}", tmpFilePath);
-					}
-				} finally {
-					synchronized (enqueued) {
-						enqueued.remove(uriHash);
-						enqueued.notifyAll();
 					}
 				}
 			}
