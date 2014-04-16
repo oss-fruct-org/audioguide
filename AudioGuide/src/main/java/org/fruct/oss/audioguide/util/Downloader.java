@@ -3,6 +3,7 @@ package org.fruct.oss.audioguide.util;
 import android.content.Context;
 import android.net.Uri;
 
+import org.fruct.oss.audioguide.BuildConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,12 +14,16 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class Downloader {
 	private final static Logger log = LoggerFactory.getLogger(Downloader.class);
@@ -28,7 +33,8 @@ public class Downloader {
 	private final Context context;
 	private final Set<String> files;
 
-	private final Set<String> enqueued = new HashSet<String>();
+	// Contains remote uri's hashes mapped to Locks
+	private final HashSet<String> enqueued = new HashSet<String>();
 
 	private ExecutorService executor = Executors.newSingleThreadExecutor();
 	private final File localFileDir;
@@ -79,20 +85,75 @@ public class Downloader {
 	public Uri getUri(final Uri uri) {
 		String uriHash = Utils.hashString(uri.toString());
 		if (files.contains(uriHash)) {
-			String path = localFileDir.getPath() + "/" + uriHash;
-			return Uri.fromFile(new File(path));
+			return getLocalPath(uriHash);
 		} else {
 			enqueue(uri.toString(), uriHash);
 			return uri;
 		}
 	}
 
+	public Uri waitUri(final Uri uri) throws InterruptedException {
+		//log.debug("waitUri {}", uri);
+
+		String uriHash = Utils.hashString(uri.toString());
+
+		if (files.contains(uriHash)) {
+			return getLocalPath(uriHash);
+		}
+
+		synchronized (enqueued) {
+			if (!enqueued.contains(uriHash)) {
+				enqueue(uri.toString(), uriHash);
+			}
+
+			assert enqueued.contains(uriHash);
+			while (enqueued.contains(uriHash)) {
+				enqueued.wait();
+			}
+
+			if (files.contains(uriHash)) {
+				return getLocalPath(uriHash);
+			} else {
+				return null;
+			}
+		}
+
+/*
+		synchronized (enqueued) {
+			if (files.contains(uriHash)) {
+				return getLocalPath(uriHash);
+			} else {
+				if (!enqueued.containsKey(uriHash)) {
+					enqueue(uri.toString(), uriHash);
+				}
+
+				Object waiter = enqueued.get(uriHash);
+				synchronized (waiter) {
+					waiter.wait();
+				}
+
+				if (files.contains(uriHash)) {
+					return getLocalPath(uriHash);
+				} else {
+					return null;
+				}
+			}
+		}
+		*/
+	}
+
+	private Uri getLocalPath(String uriHash) {
+		String path = localFileDir.getPath() + "/" + uriHash;
+		return Uri.fromFile(new File(path));
+	}
+
 	private void enqueue(final String uri, final String uriHash) {
 		synchronized (enqueued) {
-			if (enqueued.contains(uri))
+			if (enqueued.contains(uriHash)) {
 				return;
+			}
 
-			enqueued.add(uri);
+			enqueued.add(uriHash);
 		}
 
 		executor.execute(new Runnable() {
@@ -119,7 +180,8 @@ public class Downloader {
 					}
 				} finally {
 					synchronized (enqueued) {
-						enqueued.remove(uri);
+						enqueued.remove(uriHash);
+						enqueued.notifyAll();
 					}
 				}
 			}

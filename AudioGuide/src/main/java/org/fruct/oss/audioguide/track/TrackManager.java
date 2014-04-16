@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
@@ -294,6 +295,15 @@ public class TrackManager {
 
 	public List<Point> getPoints(Track track) {
 		return new ArrayList<Point>(localStorage.getPoints(track));
+	}
+
+	// TODO: make drawables cache
+	public IconTask asyncGetPointIcon(Point point, final Utils.Function<Void, Drawable> function) {
+		if (!point.hasPhoto())
+			return null;
+
+		Uri uri = Uri.parse(point.getPhotoUrl());
+		return (IconTask) new IconTask(function, iconDownloader).execute(uri);
 	}
 
 	public Bitmap getPointIconBitmap(Point point) {

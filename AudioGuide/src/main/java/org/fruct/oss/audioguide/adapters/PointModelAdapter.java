@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.os.AsyncTask;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -14,13 +16,16 @@ import android.widget.TextView;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.models.Model;
 import org.fruct.oss.audioguide.models.ModelListener;
+import org.fruct.oss.audioguide.track.IconTask;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.TrackManager;
+import org.fruct.oss.audioguide.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -80,7 +85,7 @@ public class PointModelAdapter extends BaseAdapter implements Closeable, ModelLi
 	}
 
 	@Override
-	public View getView(int position, View convertView, ViewGroup parent) {
+	public View getView(final int position, View convertView, ViewGroup parent) {
 		PointHolder holder;
 		View view;
 
@@ -98,6 +103,7 @@ public class PointModelAdapter extends BaseAdapter implements Closeable, ModelLi
 			holder.text2 = (TextView) view.findViewById(android.R.id.text2);
 			holder.audioImage = (ImageView) view.findViewById(R.id.audioImage);
 			holder.icon = (ImageView) view.findViewById(android.R.id.icon);
+			holder.icon.setImageDrawable(null);
 		}
 
 		Point point = getItem(position);
@@ -107,12 +113,31 @@ public class PointModelAdapter extends BaseAdapter implements Closeable, ModelLi
 		holder.text2.setText(point.getDescription());
 		holder.audioImage.setVisibility(point.hasAudio() ? View.VISIBLE : View.GONE);
 
-		Bitmap iconBitmap = trackManager.getPointIconBitmap(point);
+		if (holder.iconTask != null && holder.iconTask.getStatus() != AsyncTask.Status.FINISHED) {
+			holder.iconTask.cancel(true);
+			holder.iconTask = null;
+		}
+
+		final WeakReference<PointHolder> weakHolder = new WeakReference<PointHolder>(holder);
+		holder.iconTask = trackManager.asyncGetPointIcon(point, new Utils.Function<Void, Drawable>() {
+			@Override
+			public Void apply(Drawable drawable) {
+				PointHolder holder = weakHolder.get();
+				if (holder != null && holder.iconTask != null && !holder.iconTask.isCancelled()) {
+					holder.icon.setImageDrawable(drawable);
+					holder.iconTask = null;
+				}
+
+				return null;
+			}
+		});
+
+		/*Bitmap iconBitmap = trackManager.getPointIconBitmap(point);
 		if (iconBitmap != null) {
 			holder.icon.setImageDrawable(new BitmapDrawable(context.getResources(), iconBitmap));
 		} else {
 			holder.icon.setImageDrawable(null);
-		}
+		}*/
 
 		if (highlightedItems.contains(point)) {
 			view.setBackgroundColor(0xffffd700);
@@ -145,11 +170,17 @@ public class PointModelAdapter extends BaseAdapter implements Closeable, ModelLi
 	}
 
 	private static class PointHolder {
+		PointHolder() {
+			log.debug("PointHolder create");
+		}
+
 		Point point;
 		TextView text1;
 		TextView text2;
 
 		ImageView audioImage;
 		ImageView icon;
+
+		IconTask iconTask;
 	}
 }
