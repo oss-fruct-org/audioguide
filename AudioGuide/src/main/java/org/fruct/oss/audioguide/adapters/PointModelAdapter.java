@@ -52,7 +52,7 @@ public class PointModelAdapter extends BaseAdapter implements Closeable, ModelLi
 		this.trackManager = TrackManager.getInstance();
 		this.fileManager = FileManager.getInstance();
 
-		this.fileManager.addWeakIconListener(this);
+		this.fileManager.addWeakImageListener(this);
 
 		stackTraceException = new RuntimeException();
 	}

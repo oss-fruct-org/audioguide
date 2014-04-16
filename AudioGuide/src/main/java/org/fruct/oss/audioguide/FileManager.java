@@ -54,12 +54,16 @@ public class FileManager implements SharedPreferences.OnSharedPreferenceChangeLi
 	private List<FileContent> files = new ArrayList<FileContent>();
 
 	private Downloader imageDownloader;
+	private Downloader audioDownloader;
+
 	private IconCache iconCache;
 
 	public FileManager(Context context) {
 		this.context = context;
 
 		imageDownloader = new Downloader(context, "point-icons");
+		audioDownloader = new Downloader(context, "audio-tracks");
+
 		this.iconCache = new IconCache(1024);
 
 		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
@@ -159,7 +163,8 @@ public class FileManager implements SharedPreferences.OnSharedPreferenceChangeLi
 	}
 
 
-	public void addWeakIconListener(Downloader.Listener listener) {
+	// Image methods
+	public void addWeakImageListener(Downloader.Listener listener) {
 		imageDownloader.addWeakListener(listener);
 	}
 
@@ -188,6 +193,15 @@ public class FileManager implements SharedPreferences.OnSharedPreferenceChangeLi
 		imageDownloader.insertUri(uri);
 	}
 
+
+	// Audio methods
+	public void insertAudioUri(Uri uri) {
+		audioDownloader.insertUri(uri);
+	}
+
+	public Uri getAudioUri(Uri uri) {
+		return audioDownloader.getUri(uri);
+	}
 
 	public static FileManager instance;
 	public synchronized static FileManager getInstance() {

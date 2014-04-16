@@ -21,7 +21,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -40,7 +39,7 @@ public class FileModelAdapter extends BaseAdapter implements Closeable, ModelLis
 		this.model = files;
 
 		fileManager = FileManager.getInstance();
-		fileManager.addWeakIconListener(this);
+		fileManager.addWeakImageListener(this);
 
 		model.addListener(this);
 	}

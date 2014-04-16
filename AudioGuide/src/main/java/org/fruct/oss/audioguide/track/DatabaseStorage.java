@@ -18,7 +18,7 @@ public class DatabaseStorage implements ILocalStorage {
 	private final static Logger log = LoggerFactory.getLogger(DatabaseStorage.class);
 
 	public static final String DB_NAME = "tracksdb";
-	public static final int DB_VERSION = 7;
+	public static final int DB_VERSION = 1;
 	public static final String CREATE_TRACKS_SQL = "CREATE TABLE tracks " +
 			"(id INTEGER PRIMARY KEY AUTOINCREMENT," +
 			"name TEXT," +
@@ -109,13 +109,6 @@ public class DatabaseStorage implements ILocalStorage {
 		cv.put("trackId", track.getLocalId());
 
 		db.insert("points", null, cv);
-
-		// Send track's uri to AudioService to caching
-		if (point.hasAudio()) {
-			Intent intent = new Intent(AudioService.ACTION_CACHE,
-					Uri.parse(point.getAudioUrl()), context, AudioService.class);
-			context.startService(intent);
-		}
 	}
 
 	@Override

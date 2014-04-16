@@ -147,7 +147,7 @@ public class TrackingService extends Service implements TrackManager.Listener, D
 
 				locationReceiver.mockLocation(location);
 			}
-		}, 4000);
+		}, 100);
 
 	}
 

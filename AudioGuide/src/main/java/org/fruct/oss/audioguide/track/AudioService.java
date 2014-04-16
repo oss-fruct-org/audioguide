@@ -13,6 +13,7 @@ import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
 
 import org.fruct.oss.audioguide.BuildConfig;
+import org.fruct.oss.audioguide.FileManager;
 import org.fruct.oss.audioguide.util.Downloader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +25,6 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
 
 	public static final String ACTION_PLAY = "org.fruct.oss.audioguide.ACTION_PLAY";
 	public static final String ACTION_STOP = "org.fruct.oss.audioguide.ACTION_STOP";
-	public static final String ACTION_CACHE = "org.fruct.oss.audioguide.ACTION_CACHE";
 
 	public static final String ACTION_WATCH_POINTS = "org.fruct.oss.audioguide.ACTION_WATCH_POINTS";
 	public static final String ACTION_SEND_STATE = "org.fruct.oss.audioguide.ACTION_SEND_STATE";
@@ -32,13 +32,13 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
 	public static final String BC_START_WATCH_POINTS = "org.fruct.oss.audioguide.BC_START_WATCH_POINTS";
 	public static final String BC_STOP_SERVICE = "org.fruct.oss.audioguide.BC_STOP_SERVICE";
 
-	private Downloader downloader;
-
 	private BroadcastReceiver inReceiver;
 	private BroadcastReceiver outReceiver;
 
 	private MediaPlayer player;
 	private Uri currentUri;
+
+	private FileManager fileManager;
 
 	public AudioService() {
 	}
@@ -60,9 +60,6 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
 			watchPoints();
 		} else if (action.equals(ACTION_SEND_STATE)) {
 			sendState();
-		} else if (action.equals(ACTION_CACHE)) {
-			Uri uri = intent.getData();
-			downloader.insertUri(uri);
 		}
 
 		return START_STICKY;
@@ -81,7 +78,7 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
 		super.onCreate();
 		log.info("AudioService onCreate");
 
-		downloader = new Downloader(this, "audio-service-stored");
+		fileManager = FileManager.getInstance();
 	}
 
 	private void watchPoints() {
@@ -117,8 +114,6 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
 		LocalBroadcastManager.getInstance(this).unregisterReceiver(outReceiver);
 
 		LocalBroadcastManager.getInstance(this).sendBroadcast(new Intent(BC_STOP_SERVICE));
-
-		downloader = null;
 	}
 
 	private void startAudioTrack(Uri uri) {
@@ -132,8 +127,8 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
 		player.setAudioStreamType(AudioManager.STREAM_MUSIC);
 		try {
 			// Try to use cached uri
-			uri = downloader.getUri(uri);
-			player.setDataSource(this, uri);
+			Uri uriToPlay = fileManager.getAudioUri(uri);
+			player.setDataSource(this, uriToPlay);
 		} catch (IOException e) {
 			log.warn("Cannot set data source for player with url = '{}'", uri);
 			return;
@@ -154,15 +149,16 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
 
 	@Override
 	public void onCompletion(MediaPlayer mediaPlayer) {
-		assert player == mediaPlayer;
-		player.release();
-		player = null;
-		currentUri = null;
+		if (player != null) {
+			player.release();
+			player = null;
+			currentUri = null;
+		}
 	}
 
 	@Override
 	public boolean onError(MediaPlayer mediaPlayer, int what, int extra) {
-		log.warn("Player error with uri" + currentUri + " " + what + " " + extra);
+		log.warn("Player error with uri " + currentUri + " " + what + " " + extra);
 
 		player = null;
 		currentUri = null;
