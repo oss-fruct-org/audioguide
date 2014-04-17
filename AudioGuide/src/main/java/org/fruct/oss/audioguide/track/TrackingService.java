@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-public class TrackingService extends Service implements TrackManager.Listener, DistanceTracker.Listener, LocationReceiver.Listener {
+public class TrackingService extends Service implements DistanceTracker.Listener, LocationReceiver.Listener {
 	private final static Logger log = LoggerFactory.getLogger(TrackingService.class);
 
 	public static final String BC_ACTION_POINT_IN_RANGE = "BC_ACTION_POINT_IN_RANGE";
@@ -26,7 +26,6 @@ public class TrackingService extends Service implements TrackManager.Listener, D
 	public static final String ARG_LOCATION = "ARG_LOCATION";
 
 	private DistanceTracker distanceTracker;
-	private TrackManager trackManager;
 	private LocationReceiver locationReceiver;
 
 	public TrackingService() {
@@ -70,9 +69,8 @@ public class TrackingService extends Service implements TrackManager.Listener, D
 		log.info("TrackingService onCreate");
 
 		locationReceiver = new LocationReceiver(this);
-		trackManager = TrackManager.getInstance();
+		TrackManager trackManager = TrackManager.getInstance();
 
-		trackManager.addListener(this);
 
 		distanceTracker = new DistanceTracker(trackManager, locationReceiver);
 		distanceTracker.setRadius(50);
@@ -81,9 +79,6 @@ public class TrackingService extends Service implements TrackManager.Listener, D
 
 		locationReceiver.addListener(this);
 
-		// Insert points into distanceTracker
-		tracksUpdated();
-
 		//startLocationTrack();
 	}
 
@@ -91,23 +86,13 @@ public class TrackingService extends Service implements TrackManager.Listener, D
 	public void onDestroy() {
 		super.onDestroy();
 
-		trackManager.removeListener(this);
 		distanceTracker.stop();
+		distanceTracker.removeListener(this);
 
 		log.info("TrackingService onDestroy");
 	}
 
 	private TrackingServiceBinder binder = new TrackingServiceBinder();
-
-	@Override
-	public void tracksUpdated() {
-		distanceTracker.setTracks(trackManager.getActiveTracks());
-	}
-
-	@Override
-	public void pointsUpdated(Track track) {
-	}
-
 
 	@Override
 	public void pointInRange(Point point) {

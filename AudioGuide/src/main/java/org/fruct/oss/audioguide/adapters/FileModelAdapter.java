@@ -12,11 +12,12 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import org.fruct.oss.audioguide.files.FileListener;
 import org.fruct.oss.audioguide.files.FileManager;
 import org.fruct.oss.audioguide.models.Model;
 import org.fruct.oss.audioguide.models.ModelListener;
 import org.fruct.oss.audioguide.parsers.FileContent;
-import org.fruct.oss.audioguide.util.Downloader;
+import org.fruct.oss.audioguide.files.Downloader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,7 +25,7 @@ import java.io.Closeable;
 import java.util.HashSet;
 import java.util.Set;
 
-public class FileModelAdapter extends BaseAdapter implements Closeable, ModelListener, Downloader.Listener {
+public class FileModelAdapter extends BaseAdapter implements Closeable, ModelListener, FileListener {
 	private final static Logger log = LoggerFactory.getLogger(FileModelAdapter.class);
 	private final int resource;
 	private final Context context;
@@ -39,7 +40,7 @@ public class FileModelAdapter extends BaseAdapter implements Closeable, ModelLis
 		this.model = files;
 
 		fileManager = FileManager.getInstance();
-		fileManager.addWeakImageListener(this);
+		fileManager.addWeakListener(this);
 
 		model.addListener(this);
 	}
@@ -107,15 +108,8 @@ public class FileModelAdapter extends BaseAdapter implements Closeable, ModelLis
 
 	@Override
 	public void itemLoaded(final String uri) {
-		Handler handler = new Handler(Looper.getMainLooper());
-		handler.post(new Runnable() {
-			@Override
-			public void run() {
-				if (pendingIconUris.contains(uri))
-					notifyDataSetChanged();
-
-			}
-		});
+		if (pendingIconUris.contains(uri))
+			notifyDataSetChanged();
 	}
 
 

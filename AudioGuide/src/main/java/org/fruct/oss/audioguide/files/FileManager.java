@@ -7,9 +7,9 @@ import android.graphics.BitmapFactory;
 import android.media.ThumbnailUtils;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.preference.PreferenceManager;
-import android.support.v4.util.LruCache;
 
 import org.fruct.oss.audioguide.App;
 import org.fruct.oss.audioguide.models.FilterModel;
@@ -19,33 +19,41 @@ import org.fruct.oss.audioguide.parsers.FilesContent;
 import org.fruct.oss.audioguide.parsers.GetsException;
 import org.fruct.oss.audioguide.parsers.GetsResponse;
 import org.fruct.oss.audioguide.track.GetsStorage;
-import org.fruct.oss.audioguide.util.Downloader;
 import org.fruct.oss.audioguide.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
+import java.util.WeakHashMap;
 
-public class FileManager implements SharedPreferences.OnSharedPreferenceChangeListener {
+public class FileManager implements SharedPreferences.OnSharedPreferenceChangeListener, Closeable {
 	private final static Logger log = LoggerFactory.getLogger(FileManager.class);
 
 	private final Context context;
 	private String authToken;
-	private List<FileContent> files = new ArrayList<FileContent>();
 
-	private Downloader imageDownloader;
-	private Downloader audioDownloader;
+	private Downloader downloader;
 
 	private IconCache iconCache;
+
+	private FileStorage fileStorage;
+
+	private Thread downloadThread;
+
+	private WeakHashMap<FileListener, Object> fileListeners = new WeakHashMap<FileListener, Object>();
+
+	// Files available in GeTS
+	private List<FileContent> getsFiles = new ArrayList<FileContent>();
 
 	public FileManager(Context context) {
 		this.context = context;
 
-		imageDownloader = new Downloader(context, "point-icons");
-		audioDownloader = new Downloader(context, "audio-tracks");
+		fileStorage = new FileStorage(context);
 
 		this.iconCache = new IconCache(1024);
 
@@ -54,15 +62,28 @@ public class FileManager implements SharedPreferences.OnSharedPreferenceChangeLi
 
 		String authToken = pref.getString(GetsStorage.PREF_AUTH_TOKEN, null);
 		setNewAuthToken(authToken);
+
+		downloader = new Downloader(context, "files-downloaded");
+		downloadThread = new Thread(downloadRunnable);
+		downloadThread.setName("Downloader thread");
+		downloadThread.start();
 	}
 
-	public void close() {
+	public synchronized void close() {
 		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
 		pref.unregisterOnSharedPreferenceChangeListener(this);
+
+		downloadThread.interrupt();
+		downloadThread = null;
+	}
+
+	public void addWeakListener(FileListener listener) {
+		fileListeners.put(listener, log);
 	}
 
 	/**
-	 * Begins background loading of files
+	 * Downloads list of GeTS files
+	 * This method can be called many times to keep file list up to date
 	 */
 	public void startLoading() {
 		AsyncTask<Void, Void, FilesContent> filesTask = new AsyncTask<Void, Void, FilesContent>() {
@@ -98,8 +119,15 @@ public class FileManager implements SharedPreferences.OnSharedPreferenceChangeLi
 				if (filesContent == null)
 					return;
 
-				files.clear();
-				files.addAll(filesContent.getFiles());
+				// New GeTS files ready
+				// Store them in database
+				for (FileContent fileContent : filesContent.getFiles()) {
+					String remoteUrl = fileContent.getUrl();
+					fileStorage.insertRemoteUrl(remoteUrl);
+				}
+
+				getsFiles.clear();
+				getsFiles.addAll(filesContent.getFiles());
 
 				notifyFilesUpdated();
 			}
@@ -109,7 +137,7 @@ public class FileManager implements SharedPreferences.OnSharedPreferenceChangeLi
 	}
 
 	private void notifyFilesUpdated() {
-		imagesModel.setData(files);
+		imagesModel.setData(getsFiles);
 	}
 
 	public Model<FileContent> getImagesModel() {
@@ -125,7 +153,6 @@ public class FileManager implements SharedPreferences.OnSharedPreferenceChangeLi
 
 	private void setNewAuthToken(String token) {
 		authToken = token;
-		files.clear();
 		startLoading();
 	}
 
@@ -137,7 +164,8 @@ public class FileManager implements SharedPreferences.OnSharedPreferenceChangeLi
 	};
 
 	public void addFile(FileContent file) {
-		files.add(file);
+		getsFiles.add(file);
+
 		notifyFilesUpdated();
 
 		if (file.isImage()) {
@@ -145,27 +173,19 @@ public class FileManager implements SharedPreferences.OnSharedPreferenceChangeLi
 		}
 	}
 
-
-	// Image methods
-	public void addWeakImageListener(Downloader.Listener listener) {
-		imageDownloader.addWeakListener(listener);
-	}
-
-	public Bitmap getImageBitmap(String imageUrl) {
-		Bitmap bitmap = iconCache.get(imageUrl);
+	public Bitmap getImageBitmap(String remoteUrl) {
+		Bitmap bitmap = iconCache.get(remoteUrl);
 		if (bitmap != null)
 			return bitmap;
 
-		Uri remotePhotoUri = Uri.parse(imageUrl);
-		Uri localPhotoUri = imageDownloader.getUri(remotePhotoUri);
+		String localUrl = fileStorage.getLocalUrl(remoteUrl);
 
-		if (localPhotoUri != null && !localPhotoUri.equals(remotePhotoUri)) {
-			String localPhotoPath = localPhotoUri.getPath();
-			Bitmap newBitmap = BitmapFactory.decodeFile(localPhotoPath);
+		if (localUrl != null) {
+			Bitmap newBitmap = BitmapFactory.decodeFile(localUrl);
 			Bitmap thumbBitmap = ThumbnailUtils.extractThumbnail(newBitmap,
 					Utils.getDP(48), Utils.getDP(48));
 			newBitmap.recycle();
-			iconCache.put(imageUrl, thumbBitmap);
+			iconCache.put(remoteUrl, thumbBitmap);
 			return thumbBitmap;
 		}
 
@@ -173,18 +193,86 @@ public class FileManager implements SharedPreferences.OnSharedPreferenceChangeLi
 	}
 
 	public void insertImageUri(Uri uri) {
-		imageDownloader.insertUri(uri);
+		log.info("insert image uri {}", uri);
+		//imageDownloader.insertUri(uri);
+		fileStorage.insertRemoteUrl(uri.toString());
 	}
 
 
 	// Audio methods
 	public void insertAudioUri(Uri uri) {
-		audioDownloader.insertUri(uri);
+		log.info("insert audio uri {}", uri);
+
+		//audioDownloader.insertUri(uri);
+		fileStorage.insertRemoteUrl(uri.toString());
 	}
 
-	public Uri getAudioUri(Uri uri) {
-		return audioDownloader.getUri(uri);
+	public Uri getAudioUri(Uri remoteUri) {
+		String remoteUrl = remoteUri.toString();
+
+		String localUrl = fileStorage.getLocalUrl(remoteUrl);
+		if (localUrl == null) {
+			fileStorage.insertRemoteUrl(remoteUrl);
+			return remoteUri;
+		}
+
+		return Uri.parse(localUrl);
 	}
+
+	private Runnable downloadRunnable = new Runnable() {
+		private FileStorage fileStorage;
+		private Handler handler = new Handler(Looper.getMainLooper());
+		private Downloader downloader;
+
+		@Override
+		public void run() {
+			this.fileStorage = FileManager.this.fileStorage;
+			this.downloader = FileManager.this.downloader;
+
+			while (!Thread.interrupted()) {
+				if (!turn()) {
+					break;
+				}
+			}
+		}
+
+		private boolean turn() {
+			assert fileStorage != null;
+			final String pendingUrl= fileStorage.getPendingUrl();
+			if (pendingUrl == null) {
+				log.debug("No files to download, waiting");
+				synchronized (fileStorage) {
+					try {
+						fileStorage.wait();
+					} catch (InterruptedException ex) {
+						return false;
+					}
+				}
+			} else {
+				// Download url using downloader
+				log.debug("Loading {}", pendingUrl);
+				String localUrl = downloader.getUri(pendingUrl);
+				if (localUrl == null) {
+					log.error("Can't download file stopping thread");
+					return false;
+				}
+				log.debug("Successfully loaded {}: {}", pendingUrl, localUrl);
+
+				fileStorage.setFileLocal(pendingUrl, localUrl);
+
+				handler.post(new Runnable() {
+					@Override
+					public void run() {
+						for (FileListener listener : fileListeners.keySet()) {
+							listener.itemLoaded(pendingUrl);
+						}
+					}
+				});
+			}
+
+			return true;
+		}
+	};
 
 	public static FileManager instance;
 	public synchronized static FileManager getInstance() {
@@ -194,5 +282,4 @@ public class FileManager implements SharedPreferences.OnSharedPreferenceChangeLi
 
 		return instance;
 	}
-
 }

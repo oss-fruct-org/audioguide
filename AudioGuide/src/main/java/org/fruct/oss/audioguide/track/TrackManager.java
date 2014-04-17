@@ -330,6 +330,10 @@ public class TrackManager {
 			if (point.hasPhoto()) {
 				fileManager.insertImageUri(Uri.parse(point.getPhotoUrl()));
 			}
+
+			if (point.hasAudio()) {
+				fileManager.insertAudioUri(Uri.parse(point.getAudioUrl()));
+			}
 		}
 		notifyPointsUpdated(track);
 	}
