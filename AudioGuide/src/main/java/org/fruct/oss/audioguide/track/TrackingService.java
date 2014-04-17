@@ -129,6 +129,7 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 				location.setLatitude(latitude);
 				location.setLongitude(longitude);
 				location.setTime(System.currentTimeMillis());
+				location.setBearing((float) (Math.random() * 360));
 
 				locationReceiver.mockLocation(location);
 			}
