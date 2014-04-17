@@ -17,6 +17,7 @@ import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.files.FileListener;
 import org.fruct.oss.audioguide.files.FileManager;
 import org.fruct.oss.audioguide.track.Point;
+import org.fruct.oss.audioguide.util.Utils;
 
 public class PointDetailFragment extends Fragment implements FileListener {
     private static final String ARG_POINT = "point";
@@ -117,7 +118,7 @@ public class PointDetailFragment extends Fragment implements FileListener {
 	private void tryUpdateImage() {
 		if (point.hasPhoto()) {
 			String remoteUrl = point.getPhotoUrl();
-			Bitmap newBitmap = fileManager.getImageFullBitmap(remoteUrl);
+			Bitmap newBitmap = fileManager.getImageFullBitmap(remoteUrl, Utils.getDP(128), Utils.getDP(128));
 
 			if (newBitmap == null && pendingUrl == null) {
 				pendingUrl = remoteUrl;

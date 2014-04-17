@@ -5,14 +5,69 @@
     android:orientation="vertical"
     tools:context="org.fruct.oss.audioguide.fragments.PointDetailFragment">
 
-    <TextView
-        android:id="@android:id/text1"
-        style="@style/HeaderText"
-        android:text="@string/hello_blank_fragment" />
-
-    <ImageView
-        android:id="@android:id/icon"
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="wrap_content"
+        android:background="#fafafa"
+        android:paddingBottom="16dp"
+        >
+        <TextView
+            android:id="@android:id/text1"
+            style="@style/HeaderText"
+            android:layout_alignParentLeft="true"
+            android:layout_toLeftOf="@android:id/icon"
+
+            android:text="123 rewfvgr gbvtegcrt gvcegrt gcrecgtr" />
+
+        <ImageView
+            android:id="@android:id/icon"
+            android:src="@android:drawable/dialog_frame"
+            android:layout_width="128dp"
+            android:layout_alignParentRight="true"
+            android:layout_height="128dp"
+
+            android:padding="16dp"
+
+            />
+
+    </RelativeLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginBottom="16dp"
+        android:background="@android:color/darker_gray"/>
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_gravity="bottom"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingLeft="16dp"
+        >
+
+        <Button
+            android:id="@+id/button_play"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@null"
+            android:textColor="@color/button_selector"
+            android:textSize="24sp"
+            android:text="Listen"
+            android:drawableLeft="@drawable/ic_action_play"
+            android:paddingBottom="16dp"/>
+
+        <Button
+            android:id="@+id/button_map"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@null"
+            android:textColor="@color/button_selector"
+            android:textSize="24sp"
+            android:text="Show on map"
+            android:drawableLeft="@drawable/ic_action_place"
+            android:paddingBottom="16dp"/>
+    </LinearLayout>
+
 
 </LinearLayout>

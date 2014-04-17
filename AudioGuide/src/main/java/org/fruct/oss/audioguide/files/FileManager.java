@@ -192,11 +192,15 @@ public class FileManager implements SharedPreferences.OnSharedPreferenceChangeLi
 		return null;
 	}
 
-	public Bitmap getImageFullBitmap(String remoteUrl) {
+	public Bitmap getImageFullBitmap(String remoteUrl, int width, int height) {
 		String localUrl = fileStorage.getLocalUrl(remoteUrl);
 
 		if (localUrl != null) {
-			return BitmapFactory.decodeFile(localUrl);
+			Bitmap newBitmap = BitmapFactory.decodeFile(localUrl);
+			Bitmap thumbBitmap = ThumbnailUtils.extractThumbnail(newBitmap,
+					width, height);
+			newBitmap.recycle();
+			return thumbBitmap;
 		}
 
 		return null;
