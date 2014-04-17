@@ -192,6 +192,16 @@ public class FileManager implements SharedPreferences.OnSharedPreferenceChangeLi
 		return null;
 	}
 
+	public Bitmap getImageFullBitmap(String remoteUrl) {
+		String localUrl = fileStorage.getLocalUrl(remoteUrl);
+
+		if (localUrl != null) {
+			return BitmapFactory.decodeFile(localUrl);
+		}
+
+		return null;
+	}
+
 	public void insertImageUri(Uri uri) {
 		log.info("insert image uri {}", uri);
 		//imageDownloader.insertUri(uri);

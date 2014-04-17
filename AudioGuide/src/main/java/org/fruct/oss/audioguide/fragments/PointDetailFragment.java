@@ -1,25 +1,35 @@
 package org.fruct.oss.audioguide.fragments;
 
 import android.app.Activity;
-import android.net.Uri;
+import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import org.fruct.oss.audioguide.MultiPanel;
 import org.fruct.oss.audioguide.R;
+import org.fruct.oss.audioguide.files.FileListener;
+import org.fruct.oss.audioguide.files.FileManager;
 import org.fruct.oss.audioguide.track.Point;
 
-public class PointDetailFragment extends Fragment {
+public class PointDetailFragment extends Fragment implements FileListener {
     private static final String ARG_POINT = "point";
 	private static final String STATE_POINT = "point";
 
 	private Point point;
 
 	private MultiPanel multiPanel;
+	private FileManager fileManager;
+
+	private String pendingUrl;
+	private ImageView imageView;
+	private Bitmap imageBitmap;
 
 	/**
      * Use this factory method to create a new instance of
@@ -49,6 +59,9 @@ public class PointDetailFragment extends Fragment {
 		if (savedInstanceState != null) {
 			point = savedInstanceState.getParcelable(STATE_POINT);
 		}
+
+		fileManager = FileManager.getInstance();
+		fileManager.addWeakListener(this);
 	}
 
     @Override
@@ -58,7 +71,10 @@ public class PointDetailFragment extends Fragment {
 		assert view != null;
 
 		TextView textView = (TextView) view.findViewById(android.R.id.text1);
-		textView.setText(point.getName() + " " + point.getLatE6() + ":" + point.getLonE6());
+		textView.setText(point.getName());
+
+		imageView = (ImageView) view.findViewById(android.R.id.icon);
+		tryUpdateImage();
 
 		return view;
 	}
@@ -81,9 +97,48 @@ public class PointDetailFragment extends Fragment {
     }
 
 	@Override
+	public void onDestroyView() {
+		super.onDestroyView();
+
+		pendingUrl = null;
+		if (imageBitmap != null) {
+			imageBitmap.recycle();
+			imageBitmap = null;
+		}
+	}
+
+	@Override
 	public void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
 
 		outState.putParcelable(STATE_POINT, point);
+	}
+
+	private void tryUpdateImage() {
+		if (point.hasPhoto()) {
+			String remoteUrl = point.getPhotoUrl();
+			Bitmap newBitmap = fileManager.getImageFullBitmap(remoteUrl);
+
+			if (newBitmap == null && pendingUrl == null) {
+				pendingUrl = remoteUrl;
+				return;
+			}
+
+			imageView.setImageDrawable(new BitmapDrawable(Resources.getSystem(), newBitmap));
+
+			if (imageBitmap != null) {
+				imageBitmap.recycle();
+			}
+
+			imageBitmap = newBitmap;
+			pendingUrl = null;
+		}
+	}
+
+	@Override
+	public void itemLoaded(String url) {
+		if (url.equals(pendingUrl)) {
+			tryUpdateImage();
+		}
 	}
 }
