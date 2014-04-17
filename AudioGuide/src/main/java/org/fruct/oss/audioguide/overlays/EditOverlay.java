@@ -3,8 +3,14 @@ package org.fruct.oss.audioguide.overlays;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+
+import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.track.Point;
+
+import android.graphics.PorterDuff;
 import android.graphics.Rect;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.NinePatchDrawable;
 import android.view.MotionEvent;
 
 import org.fruct.oss.audioguide.models.Model;
@@ -24,6 +30,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class EditOverlay extends Overlay implements Closeable, ModelListener {
+	private final Context context;
+
 	public interface Listener {
 		void pointMoved(Point t, IGeoPoint geoPoint);
 		void pointPressed(Point t);
@@ -36,6 +44,7 @@ public class EditOverlay extends Overlay implements Closeable, ModelListener {
 
 	private Paint itemBackgroundPaint;
 	private Paint itemBackgroundDragPaint;
+	private Drawable markerDrawable;
 
 	private Paint linePaint;
 
@@ -58,9 +67,16 @@ public class EditOverlay extends Overlay implements Closeable, ModelListener {
 	public EditOverlay(Context ctx, Model<Point> model, int color) {
 		super(ctx);
 
+		this.context = ctx;
+
+		itemSize = Utils.getDP(24);
+
 		itemBackgroundPaint = new Paint();
 		itemBackgroundPaint.setColor(color);
 		itemBackgroundPaint.setStyle(Paint.Style.FILL);
+		itemBackgroundPaint.setTextSize(itemSize);
+		itemBackgroundPaint.setFakeBoldText(true);
+		itemBackgroundPaint.setTextAlign(Paint.Align.CENTER);
 
 		itemBackgroundDragPaint = new Paint();
 		itemBackgroundDragPaint.setColor(0xff1143fa);
@@ -72,17 +88,21 @@ public class EditOverlay extends Overlay implements Closeable, ModelListener {
 		linePaint.setStrokeWidth(2);
 		linePaint.setAntiAlias(true);
 
-		itemSize = Utils.getDP(16);
 
 		this.model = model;
 		this.model.addListener(this);
 
 		dataSetChanged();
+
+		setColor(color);
 	}
 
 	public void setColor(int color) {
 		linePaint.setColor(color);
 		itemBackgroundPaint.setColor(color);
+
+		markerDrawable = context.getResources().getDrawable(R.drawable.map_marker);
+		markerDrawable.setColorFilter(color, PorterDuff.Mode.SRC_ATOP);
 	}
 
 	public void setEditable(boolean isEditable) {
@@ -137,9 +157,10 @@ public class EditOverlay extends Overlay implements Closeable, ModelListener {
 
 		proj.toMapPixels(item.geoPoint, point);
 
-		canvas.drawRect(point.x - itemSize, point.y - itemSize,
-				point.x + itemSize, point.y + itemSize,
-				item == draggingItem ? itemBackgroundDragPaint : itemBackgroundPaint);
+		markerDrawable.setBounds(point.x - itemSize, point.y - 2 * itemSize, point.x + itemSize, point.y);
+		markerDrawable.draw(canvas);
+
+		canvas.drawText(String.valueOf(index), point.x, point.y - itemSize + itemSize / 3, itemBackgroundPaint);
 	}
 
 	public void addPoint(GeoPoint geoPoint, org.fruct.oss.audioguide.track.Point t) {
@@ -165,7 +186,7 @@ public class EditOverlay extends Overlay implements Closeable, ModelListener {
 			result.relHookY = iy;
 		}
 
-		return ix >= -itemSize && iy >= -itemSize && ix <= itemSize && iy <= itemSize;
+		return ix >= -itemSize && iy >= 0 && ix <= itemSize && iy <= 2 * itemSize;
 	}
 
 	public HitResult testHit(MotionEvent e, MapView mapView) {

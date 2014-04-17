@@ -42,7 +42,7 @@ public class FileManagerFragment extends ListFragment implements UploadFragment.
     }
 
     /**
-     * Mandatory empty constructor for the fragment manager to instantiate the
+     * Mandatory map_marker constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
      */
     public FileManagerFragment() {

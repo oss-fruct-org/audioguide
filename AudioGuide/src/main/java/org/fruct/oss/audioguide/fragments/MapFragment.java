@@ -339,8 +339,8 @@ public class MapFragment extends Fragment {
 		Track globalEditTrack = trackManager.getEditingTrack();
 		for (Track track : trackManager.getActiveTracks()) {
 
-			int hashR = (int) (Utils.longHash(track.getName() + "'") % 50);
-			int hashG = (int) (Utils.longHash(track.getName() + "4") % 50);
+			int hashR = 85 + (int) (Utils.longHash(track.getName() + "'") % 50);
+			int hashG = 85 + (int) (Utils.longHash(track.getName() + "4") % 50);
 			int hashB = (int) (Utils.longHash(track.getName() + "3") % 50);
 
 			EditOverlay trackOverlay = new EditOverlay(getActivity(),

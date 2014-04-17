@@ -88,7 +88,6 @@ public class PointDetailFragment extends Fragment implements FileListener {
 
 	private void setupAudioButton(View view) {
 		final Button buttonPlay = (Button) view.findViewById(R.id.button_play);
-		final Button buttonDetails = (Button) view.findViewById(R.id.button_details);
 		final Button buttonStop = (Button) view.findViewById(R.id.button_stop);
 
 		buttonPlay.setOnClickListener(new View.OnClickListener() {

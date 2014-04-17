@@ -41,7 +41,7 @@ public class GetsStorage implements IStorage, IRemoteStorage {
 	//public static final String GETS_SERVER = "http://oss.fruct.org/projects/gets/service";
 
 	public static final String LOAD_TRACKS_REQUEST = "<request><params>" +
-			"%s" + // Token may be empty
+			"%s" + // Token may be map_marker
 			"<!--<category_name>audio_tracks</category_name>-->" +
 			"</params></request>";
 

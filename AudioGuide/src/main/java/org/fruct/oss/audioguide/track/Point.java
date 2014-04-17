@@ -117,7 +117,7 @@ public class Point implements Parcelable {
 		if (cachedLocation != null)
 			return cachedLocation;
 
-		Location loc = new Location("empty-provider");
+		Location loc = new Location("map_marker-provider");
 
 		loc.setLatitude(latE6 / 1e6);
 		loc.setLongitude(lonE6 / 1e6);

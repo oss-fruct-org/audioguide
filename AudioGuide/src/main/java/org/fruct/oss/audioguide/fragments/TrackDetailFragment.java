@@ -48,7 +48,7 @@ public class TrackDetailFragment extends Fragment {
 	}
 
 	public TrackDetailFragment() {
-		// Required empty public constructor
+		// Required map_marker public constructor
 	}
 
 	@Override
