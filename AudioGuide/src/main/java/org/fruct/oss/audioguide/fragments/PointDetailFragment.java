@@ -1,14 +1,17 @@
 package org.fruct.oss.audioguide.fragments;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -16,6 +19,7 @@ import org.fruct.oss.audioguide.MultiPanel;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.files.FileListener;
 import org.fruct.oss.audioguide.files.FileManager;
+import org.fruct.oss.audioguide.track.AudioService;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.util.Utils;
 
@@ -77,10 +81,55 @@ public class PointDetailFragment extends Fragment implements FileListener {
 		imageView = (ImageView) view.findViewById(android.R.id.icon);
 		tryUpdateImage();
 
+		setupAudioButton(view);
+
 		return view;
 	}
 
-    @Override
+	private void setupAudioButton(View view) {
+		final Button buttonPlay = (Button) view.findViewById(R.id.button_play);
+		final Button buttonDetails = (Button) view.findViewById(R.id.button_details);
+		final Button buttonStop = (Button) view.findViewById(R.id.button_stop);
+
+		buttonPlay.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				if (point == null)
+					return;
+
+				Intent intent = new Intent(AudioService.ACTION_PLAY,
+						Uri.parse(point.getAudioUrl()),
+						getActivity(), AudioService.class);
+				getActivity().startService(intent);
+
+				buttonPlay.setVisibility(View.GONE);
+				buttonStop.setVisibility(View.VISIBLE);
+			}
+		});
+
+		buttonStop.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				Intent intent = new Intent(AudioService.ACTION_STOP,
+						null,
+						getActivity(), AudioService.class);
+				getActivity().startService(intent);
+
+				buttonPlay.setVisibility(View.VISIBLE);
+				buttonStop.setVisibility(View.GONE);
+			}
+		});
+
+		if (point.hasAudio()) {
+			buttonPlay.setVisibility(View.VISIBLE);
+		} else {
+			buttonPlay.setVisibility(View.GONE);
+		}
+
+		buttonStop.setVisibility(View.GONE);
+	}
+
+	@Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         try {

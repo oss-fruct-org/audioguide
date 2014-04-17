@@ -2,6 +2,7 @@ package org.fruct.oss.audioguide.fragments;
 
 
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -29,6 +30,7 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
 
+import org.fruct.oss.audioguide.MultiPanel;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.fragments.edit.EditPointDialog;
 import org.fruct.oss.audioguide.overlays.EditOverlay;
@@ -39,6 +41,7 @@ import org.fruct.oss.audioguide.track.Track;
 import org.fruct.oss.audioguide.track.TrackManager;
 import org.fruct.oss.audioguide.track.TrackingService;
 import org.fruct.oss.audioguide.util.AUtils;
+import org.fruct.oss.audioguide.util.Utils;
 import org.osmdroid.api.IGeoPoint;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.util.ResourceProxyImpl;
@@ -66,7 +69,6 @@ public class MapFragment extends Fragment {
 	private final static Logger log = LoggerFactory.getLogger(MapFragment.class);
 
 	private MapView mapView;
-	private ItemizedIconOverlay<OverlayItem> trackOverlay;
 	private TrackManager trackManager;
 	private TrackingService trackingService;
 	private TrackingServiceConnection serviceConnection = new TrackingServiceConnection();
@@ -75,6 +77,7 @@ public class MapFragment extends Fragment {
 	private BroadcastReceiver locationReceiver;
 
 	private ViewGroup bottomToolbar;
+	private MultiPanel multiPanel;
 
 	private Point selectedPoint;
 
@@ -210,6 +213,18 @@ public class MapFragment extends Fragment {
 		trackManager = null;
 	}
 
+	@Override
+	public void onAttach(Activity activity) {
+		super.onAttach(activity);
+		try {
+			multiPanel = (MultiPanel) activity;
+		} catch (ClassCastException e) {
+			throw new ClassCastException(activity.toString()
+					+ " must implement MultiPanel");
+		}
+	}
+
+
 	private void setupBottomPanel() {
 		bottomToolbar = (ViewGroup) getView().findViewById(R.id.map_toolbar);
 
@@ -322,18 +337,26 @@ public class MapFragment extends Fragment {
 		editTrack = null;
 
 		Track globalEditTrack = trackManager.getEditingTrack();
-		Random r = new Random();
 		for (Track track : trackManager.getActiveTracks()) {
+
+			int hashR = (int) (Utils.longHash(track.getName() + "'") % 50);
+			int hashG = (int) (Utils.longHash(track.getName() + "4") % 50);
+			int hashB = (int) (Utils.longHash(track.getName() + "3") % 50);
+
 			EditOverlay trackOverlay = new EditOverlay(getActivity(),
-					trackManager.getPointsModel(track), r.nextInt(0xffffff) + 0xff000000);
+					trackManager.getPointsModel(track),
+					Utils.color(hashR, hashG, 255 - hashB) + 0xff000000);
 			trackOverlays.add(trackOverlay);
 
 			if (globalEditTrack == track) {
 				// Save track that user edits
 				editOverlay = trackOverlay;
+				editOverlay.setColor(0xffaaccee);
 				editTrack = track;
 				trackOverlay.setEditable(true);
 				trackOverlay.setListener(editOverlayListener);
+			} else {
+				trackOverlay.setListener(trackOverlayListener);
 			}
 
 			mapView.getOverlays().add(trackOverlay);
@@ -341,50 +364,6 @@ public class MapFragment extends Fragment {
 
 		mapView.invalidate();
 	}
-
-	/*private void updatePointsOverlay() {
-		if (trackOverlay != null)
-			mapView.getOverlays().remove(trackOverlay);
-
-		ArrayList<OverlayItem> overlayItems = new ArrayList<OverlayItem>();
-
-		List<Track> tracks = trackManager.getActiveTracks();
-		for (Track track : tracks) {
-			List<Point> points = trackManager.getPoints(track);
-
-			for (Point point : points) {
-				OverlayItem overlayItem = new PointOverlayItem(point);
-				overlayItems.add(overlayItem);
-			}
-		}
-
-		trackOverlay = new ItemizedIconOverlay<OverlayItem>(getActivity(), overlayItems, new ItemizedIconOverlay.OnItemGestureListener<OverlayItem>() {
-			@Override
-			public boolean onItemSingleTapUp(int index, OverlayItem item) {
-				log.debug("onItemSingleTapUp");
-
-				MapFragment.this.selectedPoint = ((PointOverlayItem) item).getAGPoint();
-
-				setupBottomPanel();
-
-				if (bottomToolbar.getVisibility() != VISIBLE) {
-					Animation anim = AnimationUtils.loadAnimation(getActivity(), R.anim.bottom_up);
-					assert anim != null;
-					bottomToolbar.startAnimation(anim);
-					bottomToolbar.setVisibility(View.VISIBLE);
-				}
-
-				return true;
-			}
-
-			@Override
-			public boolean onItemLongPress(int index, OverlayItem item) {
-				return false;
-			}
-		});
-
-		mapView.getOverlays().add(trackOverlay);
-	}*/
 
 	private void createMyPositionOverlay() {
 		myPositionOverlay = new MyPositionOverlay(getActivity(), mapView);
@@ -458,21 +437,6 @@ public class MapFragment extends Fragment {
 		}
 	}
 
-	private class PointOverlayItem extends OverlayItem {
-		private final Point point;
-
-		public PointOverlayItem(Point point) {
-			super(point.getName(), point.getDescription(),
-					new GeoPoint(point.getLatE6(), point.getLonE6()));
-
-			this.point = point;
-		}
-
-		public Point getAGPoint() {
-			return point;
-		}
-	}
-
 	private EditPointDialog.Listener editDialogListener = new EditPointDialog.Listener() {
 		@Override
 		public void pointCreated(Point point) {
@@ -492,6 +456,21 @@ public class MapFragment extends Fragment {
 		}
 	};
 
+	private EditOverlay.Listener trackOverlayListener = new EditOverlay.Listener() {
+		@Override
+		public void pointMoved(Point point, IGeoPoint geoPoint) {
+			assert false;
+		}
+
+		@Override
+		public void pointPressed(Point point) {
+			log.debug("Simple point pressed");
+
+			PointDetailFragment frag = PointDetailFragment.newInstance(point);
+			multiPanel.replaceFragment(frag, MapFragment.this);
+		}
+	};
+
 	private EditOverlay.Listener editOverlayListener = new EditOverlay.Listener() {
 		@Override
 		public void pointMoved(Point point, IGeoPoint geoPoint) {
@@ -501,7 +480,7 @@ public class MapFragment extends Fragment {
 
 		@Override
 		public void pointPressed(Point point) {
-			log.debug("Point pressed");
+			log.debug("Editable point pressed");
 
 			EditPointDialog dialog = new EditPointDialog(point);
 			dialog.setListener(editDialogListener);

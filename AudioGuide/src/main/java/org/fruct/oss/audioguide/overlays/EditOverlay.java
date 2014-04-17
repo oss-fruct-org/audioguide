@@ -80,6 +80,11 @@ public class EditOverlay extends Overlay implements Closeable, ModelListener {
 		dataSetChanged();
 	}
 
+	public void setColor(int color) {
+		linePaint.setColor(color);
+		itemBackgroundPaint.setColor(color);
+	}
+
 	public void setEditable(boolean isEditable) {
 		this.isEditable = isEditable;
 	}

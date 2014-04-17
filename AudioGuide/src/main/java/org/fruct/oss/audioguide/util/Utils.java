@@ -365,4 +365,28 @@ public class Utils {
 		}
 	}
 
+	public static long longHash(String str) {
+		MessageDigest md5;
+		try {
+			md5 = MessageDigest.getInstance("MD5");
+		} catch (NoSuchAlgorithmException e) {
+			return str.hashCode();
+		}
+
+		md5.update(str.getBytes());
+
+		byte[] bytes = md5.digest();
+
+		long l = 0;
+
+		for (int i = 0; i < 8; i++) {
+			l = (l << 8) ^ (bytes[i] & 0xff);
+		}
+
+		return Math.abs(l);
+	}
+
+	public static int color(int r, int g, int b) {
+		return (r << 16) + (g << 8) + b;
+	}
 }

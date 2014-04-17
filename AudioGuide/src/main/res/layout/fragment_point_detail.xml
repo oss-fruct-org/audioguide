@@ -9,8 +9,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="#fafafa"
-        android:paddingBottom="16dp"
-        >
+        android:paddingBottom="16dp">
+
         <TextView
             android:id="@android:id/text1"
             style="@style/HeaderText"
@@ -27,7 +27,6 @@
             android:layout_height="128dp"
 
             android:padding="16dp"
-
             />
 
     </RelativeLayout>
@@ -56,6 +55,18 @@
             android:text="Listen"
             android:drawableLeft="@drawable/ic_action_play"
             android:paddingBottom="16dp"/>
+
+        <Button
+            android:id="@+id/button_stop"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@null"
+            android:textColor="@color/button_selector"
+            android:textSize="24sp"
+            android:text="Stop"
+            android:drawableLeft="@drawable/ic_action_stop"
+            android:paddingBottom="16dp"
+            android:visibility="gone"/>
 
         <Button
             android:id="@+id/button_map"
