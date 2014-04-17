@@ -12,9 +12,7 @@ import android.net.Uri;
 import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
 
-import org.fruct.oss.audioguide.BuildConfig;
-import org.fruct.oss.audioguide.FileManager;
-import org.fruct.oss.audioguide.util.Downloader;
+import org.fruct.oss.audioguide.files.FileManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -12,7 +12,7 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import org.fruct.oss.audioguide.FileManager;
+import org.fruct.oss.audioguide.files.FileManager;
 import org.fruct.oss.audioguide.models.Model;
 import org.fruct.oss.audioguide.models.ModelListener;
 import org.fruct.oss.audioguide.parsers.FileContent;

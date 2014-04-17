@@ -1,4 +1,4 @@
-package org.fruct.oss.audioguide;
+package org.fruct.oss.audioguide.files;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -11,6 +11,7 @@ import android.os.Build;
 import android.preference.PreferenceManager;
 import android.support.v4.util.LruCache;
 
+import org.fruct.oss.audioguide.App;
 import org.fruct.oss.audioguide.models.FilterModel;
 import org.fruct.oss.audioguide.models.Model;
 import org.fruct.oss.audioguide.parsers.FileContent;
@@ -18,7 +19,6 @@ import org.fruct.oss.audioguide.parsers.FilesContent;
 import org.fruct.oss.audioguide.parsers.GetsException;
 import org.fruct.oss.audioguide.parsers.GetsResponse;
 import org.fruct.oss.audioguide.track.GetsStorage;
-import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.util.Downloader;
 import org.fruct.oss.audioguide.util.Utils;
 import org.slf4j.Logger;
@@ -28,23 +28,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-
-class IconCache extends LruCache<String, Bitmap> {
-	public IconCache(int maxSize) {
-		super(maxSize);
-	}
-
-	@Override
-	protected int sizeOf(String key, Bitmap value) {
-		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB_MR1)
-			return 32;
-		else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT
-				&& Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR1)
-			return value.getByteCount() / 1024;
-		else
-			return value.getAllocationByteCount() / 1024;
-	}
-}
 
 public class FileManager implements SharedPreferences.OnSharedPreferenceChangeListener {
 	private final static Logger log = LoggerFactory.getLogger(FileManager.class);

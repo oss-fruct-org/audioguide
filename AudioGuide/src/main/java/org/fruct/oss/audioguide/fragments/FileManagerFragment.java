@@ -2,11 +2,8 @@ package org.fruct.oss.audioguide.fragments;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v4.app.ListFragment;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -15,21 +12,12 @@ import android.view.View;
 import android.widget.ListView;
 
 import org.fruct.oss.audioguide.FileChooserActivity;
-import org.fruct.oss.audioguide.FileManager;
+import org.fruct.oss.audioguide.files.FileManager;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.adapters.FileModelAdapter;
 import org.fruct.oss.audioguide.parsers.FileContent;
-import org.fruct.oss.audioguide.parsers.FilesContent;
-import org.fruct.oss.audioguide.parsers.GetsException;
-import org.fruct.oss.audioguide.parsers.GetsResponse;
-import org.fruct.oss.audioguide.track.GetsStorage;
-import org.fruct.oss.audioguide.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Locale;
 
 public class FileManagerFragment extends ListFragment implements UploadFragment.Listener {
 	public static final String ARG_PICKER_MODE = "arg-picker-mode";

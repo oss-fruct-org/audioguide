@@ -5,7 +5,7 @@ import android.net.Uri;
 import android.preference.PreferenceManager;
 
 import org.fruct.oss.audioguide.App;
-import org.fruct.oss.audioguide.FileManager;
+import org.fruct.oss.audioguide.files.FileManager;
 import org.fruct.oss.audioguide.models.FilterModel;
 import org.fruct.oss.audioguide.models.Model;
 import org.fruct.oss.audioguide.util.Utils;
