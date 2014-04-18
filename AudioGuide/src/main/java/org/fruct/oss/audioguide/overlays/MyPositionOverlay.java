@@ -1,5 +1,6 @@
 package org.fruct.oss.audioguide.overlays;
 
+import org.fruct.oss.audioguide.track.DistanceTracker;
 import org.fruct.oss.audioguide.util.AUtils;
 import org.osmdroid.api.IGeoPoint;
 import org.osmdroid.util.GeoPoint;
@@ -35,7 +36,8 @@ public class MyPositionOverlay extends Overlay {
 	private Paint paintAccuracy;
 	private Paint paintRad;
 
-	private boolean isPaintAccuracy;
+
+	private boolean isPaintAccuracy = true;
 
 	private int arrowWidth;
 	private int arrowHeight;
@@ -55,7 +57,7 @@ public class MyPositionOverlay extends Overlay {
 		paintRed.setAntiAlias(true);
 
 		paintAccuracy = new Paint();
-		paintAccuracy.setColor(0x1162A4B6);
+		paintAccuracy.setColor(0x2262A4B6);
 		paintAccuracy.setStyle(Style.FILL);
 		paintAccuracy.setAntiAlias(true);
 
@@ -87,7 +89,7 @@ public class MyPositionOverlay extends Overlay {
 		canvas.translate(point.x, point.y);
 
 		if (isPaintAccuracy) {
-			float pixels = 2 * proj.metersToEquatorPixels(location.getAccuracy());
+			float pixels = 2 * proj.metersToEquatorPixels(DistanceTracker.MIN_DISTANCE);
 			canvas.drawCircle(0, 0, pixels, paintAccuracy);
 		}/* else {
 float pixels = 2 * proj.metersToEquatorPixels(45);

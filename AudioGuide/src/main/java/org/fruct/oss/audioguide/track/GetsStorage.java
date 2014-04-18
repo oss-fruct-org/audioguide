@@ -37,8 +37,8 @@ public class GetsStorage implements IStorage, IRemoteStorage {
 	public static final String PREF_AUTH_TOKEN = "pref-auth-token";
 	public static final String PREF_AUTH_ANON = "pref-auth-anon";
 
-	public static final String GETS_SERVER = "http://getsi.no-ip.info/getslocal";
-	//public static final String GETS_SERVER = "http://oss.fruct.org/projects/gets/service";
+	//public static final String GETS_SERVER = "http://getsi.no-ip.info/getslocal";
+	public static final String GETS_SERVER = "http://oss.fruct.org/projects/gets/service";
 
 	public static final String LOAD_TRACKS_REQUEST = "<request><params>" +
 			"%s" + // Token may be map_marker

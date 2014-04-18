@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Set;
 
 public class DistanceTracker implements LocationReceiver.Listener, ModelListener {
-	private static final float MIN_DISTANCE = 50;
+	public static final float MIN_DISTANCE = 50;
 
 	private Set<Point> pointsInRange = new HashSet<Point>();
 
