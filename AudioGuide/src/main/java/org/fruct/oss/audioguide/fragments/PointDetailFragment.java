@@ -82,7 +82,7 @@ public class PointDetailFragment extends Fragment implements FileListener {
 
 		TextView description = (TextView) view.findViewById(android.R.id.text2);
 		description.setText(point.getDescription());
-		
+
 		imageView = (ImageView) view.findViewById(android.R.id.icon);
 		tryUpdateImage();
 
