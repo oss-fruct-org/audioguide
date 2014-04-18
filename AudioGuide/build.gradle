@@ -18,16 +18,57 @@ android {
     }
 
     buildTypes {
-        release {
+        /*release {
             runProguard false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
-        }
+        }*/
 
         debug {
             runProguard false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
     }
+
+    if (false) {
+        signingConfigs {
+            release {
+                storeFile file(System.getenv("KEYSTORE"))
+                storePassword System.getenv("KEYSTORE_PASSWORD")
+                keyAlias System.getenv("KEY_ALIAS")
+                keyPassword System.getenv("KEY_PASSWORD")
+            }
+        }
+
+        buildTypes {
+            /*debug {
+                runProguard true
+                proguardFile getDefaultProguardFile('proguard-android.txt')
+                proguardFile file('roadsigns-rules.txt')
+                zipAlign true
+            }*/
+
+            release {
+                signingConfig signingConfigs.release
+
+                if (false) {
+                    runProguard true
+                    proguardFile getDefaultProguardFile('proguard-android.txt')
+                    proguardFile file('roadsigns-rules.txt')
+                }
+            }
+        }
+
+        android {
+            lintOptions {
+                checkReleaseBuilds false
+                // Or, if you prefer, you can continue to check for errors in release builds,
+                // but continue the build even when errors are found:
+                abortOnError false
+            }
+        }
+
+    }
+
 }
 
 dependencies {
