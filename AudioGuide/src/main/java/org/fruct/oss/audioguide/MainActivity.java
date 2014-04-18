@@ -362,8 +362,31 @@ public class MainActivity extends ActionBarActivity
 			fragmentStack.add(new FragmentStorage(fragment).setFragmentManager(fragmentManager));
 			trans.commit();
 		} else {
-			// TODO: implement shifting fragments
-			throw new UnsupportedOperationException("Not implemented yet");
+			int indexOfLastKeepedFragment = size - 1;
+
+			for (int i = size - 1; i >= 0; i--) {
+				FragmentStorage storage = fragmentStack.get(i);
+				if (!storage.isStored()) {
+					if (storage.getFragment() == firstFragment) {
+						indexOfLastKeepedFragment = i;
+						break;
+					}
+				} else {
+					throw new UnsupportedOperationException(
+							"Shifting until off-screen fragment not supported yet");
+				}
+			}
+
+			FragmentTransaction trans = fragmentManager.beginTransaction();
+			removeFragments(trans);
+
+			for (int i = size - 1; i > indexOfLastKeepedFragment; i--) {
+				fragmentStack.remove(i);
+			}
+
+			fragmentStack.add(new FragmentStorage(fragment).setFragmentManager(fragmentManager));
+			recreateFragmentStack(trans);
+			trans.commit();
 		}
 	}
 
