@@ -15,7 +15,9 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import org.fruct.oss.audioguide.MainActivity;
 import org.fruct.oss.audioguide.MultiPanel;
+import org.fruct.oss.audioguide.NavigationDrawerFragment;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.files.FileListener;
 import org.fruct.oss.audioguide.files.FileManager;
@@ -82,8 +84,29 @@ public class PointDetailFragment extends Fragment implements FileListener {
 		tryUpdateImage();
 
 		setupAudioButton(view);
+		setupCenterButton(view);
 
 		return view;
+	}
+
+	private void setupCenterButton(View view) {
+		final Button buttonCenter = (Button) view.findViewById(R.id.button_map);
+		buttonCenter.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				MainActivity activity = (MainActivity) getActivity();
+
+				NavigationDrawerFragment frag =
+						(NavigationDrawerFragment)
+								activity.getSupportFragmentManager()
+										.findFragmentById(R.id.navigation_drawer);
+
+				Bundle params = new Bundle();
+				params.putParcelable("point", point);
+
+				frag.selectItem(2, params);
+			}
+		});
 	}
 
 	private void setupAudioButton(View view) {

@@ -190,6 +190,11 @@ public class MapFragment extends Fragment {
 	public void onResume() {
 		super.onResume();
 		log.trace("MapFragment onResume");
+
+		if (getArguments() != null) {
+			Point point = getArguments().getParcelable("point");
+			centerOn(new GeoPoint(point.getLatE6(), point.getLonE6()), 17);
+		}
 	}
 
 	@Override
@@ -424,6 +429,13 @@ public class MapFragment extends Fragment {
 		log.debug("MapFragment onActivityResult {}, {}", requestCode, resultCode);
 	}
 
+	public void centerOn(GeoPoint geoPoint, int zoom) {
+		if (mapView != null) {
+			mapView.getController().setZoom(zoom);
+			mapView.getController().animateTo(geoPoint);
+		}
+	}
+
 	private class TrackingServiceConnection implements ServiceConnection {
 		@Override
 		public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
@@ -487,5 +499,4 @@ public class MapFragment extends Fragment {
 			dialog.show(getFragmentManager(), "edit-track-dialog");
 		}
 	};
-
 }

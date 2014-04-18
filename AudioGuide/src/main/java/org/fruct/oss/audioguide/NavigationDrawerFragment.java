@@ -198,7 +198,11 @@ public class NavigationDrawerFragment extends Fragment {
 		mDrawerToggle.setDrawerIndicatorEnabled(enabled);
 	}
 
-	private void selectItem(int position) {
+	public void selectItem(int position) {
+		selectItem(position, null);
+	}
+
+	public void selectItem(int position, Bundle argumentParameters) {
 		mCurrentSelectedPosition = position;
 		if (mDrawerListView != null) {
 			mDrawerListView.setItemChecked(position, true);
@@ -207,7 +211,7 @@ public class NavigationDrawerFragment extends Fragment {
 			mDrawerLayout.closeDrawer(mFragmentContainerView);
 		}
 		if (mCallbacks != null) {
-			mCallbacks.onNavigationDrawerItemSelected(position);
+			mCallbacks.onNavigationDrawerItemSelected(position, argumentParameters);
 		}
 	}
 
@@ -282,6 +286,6 @@ public class NavigationDrawerFragment extends Fragment {
 		/**
 		 * Called when an item in the navigation drawer is selected.
 		 */
-		void onNavigationDrawerItemSelected(int position);
+		void onNavigationDrawerItemSelected(int position, Bundle fragmentArguments);
 	}
 }

@@ -94,6 +94,8 @@ public class MainActivity extends ActionBarActivity
 			FragmentTransaction trans = fragmentManager.beginTransaction();
 			recreateFragmentStack(trans);
 			trans.commit();
+		} else {
+			updateUpButton();
 		}
 	}
 
@@ -158,7 +160,7 @@ public class MainActivity extends ActionBarActivity
 	}
 
 	@Override
-	public void onNavigationDrawerItemSelected(int position) {
+	public void onNavigationDrawerItemSelected(int position, Bundle fragmentParameters) {
 		FragmentManager fragmentManager = getSupportFragmentManager();
 		FragmentTransaction trans = fragmentManager.beginTransaction();
 		try {
@@ -202,12 +204,29 @@ public class MainActivity extends ActionBarActivity
 			break;
 		}
 
+		if (fragmentParameters != null && fragment != null) {
+			fragment.setArguments(fragmentParameters);
+		}
+
 		fragmentStack.clear();
 		fragmentStack.add(new FragmentStorage(fragment).setFragmentManager(fragmentManager));
 
 		fragmentManager.beginTransaction()
 				.replace(R.id.panel1, fragment, TAG_PANEL_FRAGMENT)
 				.commit();
+
+		updateUpButton();
+	}
+
+	private void updateUpButton() {
+		if (mNavigationDrawerFragment == null)
+			return;
+
+		if (fragmentStack.size() <= panelsCount) {
+			mNavigationDrawerFragment.setUpEnabled(true);
+		} else {
+			mNavigationDrawerFragment.setUpEnabled(false);
+		}
 	}
 
 	public void onSectionAttached(int number) {
@@ -299,11 +318,7 @@ public class MainActivity extends ActionBarActivity
 			trans.add(panelIds[i], fragmentStorage.getFragment(), TAG_PANEL_FRAGMENT);
 		}
 
-		if (fragmentStack.size() <= panelsCount) {
-			mNavigationDrawerFragment.setUpEnabled(true);
-		} else {
-			mNavigationDrawerFragment.setUpEnabled(false);
-		}
+		updateUpButton();
 	}
 
 	@Override
