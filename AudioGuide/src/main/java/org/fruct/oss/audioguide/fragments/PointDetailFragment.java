@@ -77,9 +77,12 @@ public class PointDetailFragment extends Fragment implements FileListener {
 		View view = inflater.inflate(R.layout.fragment_point_detail, container, false);
 		assert view != null;
 
-		TextView textView = (TextView) view.findViewById(android.R.id.text1);
-		textView.setText(point.getName());
+		TextView title = (TextView) view.findViewById(android.R.id.text1);
+		title.setText(point.getName());
 
+		TextView description = (TextView) view.findViewById(android.R.id.text2);
+		description.setText(point.getDescription());
+		
 		imageView = (ImageView) view.findViewById(android.R.id.icon);
 		tryUpdateImage();
 

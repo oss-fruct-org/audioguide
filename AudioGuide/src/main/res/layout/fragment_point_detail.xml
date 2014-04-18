@@ -19,6 +19,15 @@
 
             android:text="123 rewfvgr gbvtegcrt gvcegrt gcrecgtr" />
 
+        <TextView
+            android:id="@android:id/text2"
+            style="@style/NormalText"
+            android:layout_alignParentLeft="true"
+            android:layout_toLeftOf="@android:id/icon"
+            android:layout_below="@android:id/text1"
+
+            android:text="123 rewfvgr gbvtegcrt gvcegrt gcrecgtr" />
+
         <ImageView
             android:id="@android:id/icon"
             android:src="@android:drawable/dialog_frame"
