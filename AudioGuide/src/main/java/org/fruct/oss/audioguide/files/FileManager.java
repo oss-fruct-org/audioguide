@@ -2,6 +2,7 @@ package org.fruct.oss.audioguide.files;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.ThumbnailUtils;
@@ -19,6 +20,7 @@ import org.fruct.oss.audioguide.parsers.FilesContent;
 import org.fruct.oss.audioguide.parsers.GetsException;
 import org.fruct.oss.audioguide.parsers.GetsResponse;
 import org.fruct.oss.audioguide.track.GetsStorage;
+import org.fruct.oss.audioguide.util.AUtils;
 import org.fruct.oss.audioguide.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -181,12 +183,10 @@ public class FileManager implements SharedPreferences.OnSharedPreferenceChangeLi
 		String localUrl = fileStorage.getLocalUrl(remoteUrl);
 
 		if (localUrl != null) {
-			Bitmap newBitmap = BitmapFactory.decodeFile(localUrl);
-			Bitmap thumbBitmap = ThumbnailUtils.extractThumbnail(newBitmap,
-					Utils.getDP(48), Utils.getDP(48));
-			newBitmap.recycle();
-			iconCache.put(remoteUrl, thumbBitmap);
-			return thumbBitmap;
+			Bitmap newBitmap = AUtils.decodeSampledBitmapFromResource(Resources.getSystem(),
+					localUrl, Utils.getDP(48), Utils.getDP(48));
+			iconCache.put(remoteUrl, newBitmap);
+			return newBitmap;
 		}
 
 		return null;
@@ -196,11 +196,8 @@ public class FileManager implements SharedPreferences.OnSharedPreferenceChangeLi
 		String localUrl = fileStorage.getLocalUrl(remoteUrl);
 
 		if (localUrl != null) {
-			Bitmap newBitmap = BitmapFactory.decodeFile(localUrl);
-			Bitmap thumbBitmap = ThumbnailUtils.extractThumbnail(newBitmap,
-					width, height);
-			newBitmap.recycle();
-			return thumbBitmap;
+			return AUtils.decodeSampledBitmapFromResource(Resources.getSystem(),
+					localUrl, width, height);
 		}
 
 		return null;
