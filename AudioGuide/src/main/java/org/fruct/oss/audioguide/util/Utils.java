@@ -338,6 +338,8 @@ public class Utils {
 			conn.setDoInput(true);
 			conn.setDoOutput(postQuery != null);
 			conn.setRequestProperty("User-Agent", "RoadSigns/0.2 (http://oss.fruct.org/projects/roadsigns/)");
+			conn.setRequestProperty("Content-Type", "Content-Type: text/xml;charset=utf-8");
+
 
 			if (postQuery != null) {
 				BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(conn.getOutputStream(), "UTF-8"));

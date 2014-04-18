@@ -76,7 +76,10 @@ public class TrackDetailFragment extends Fragment {
 		View view = inflater.inflate(R.layout.fragment_track_detail, container, false);
 
 		final TextView text = (TextView) view.findViewById(android.R.id.text1);
-		text.setText(track.getDescription());
+		text.setText(track.getHumanReadableName());
+
+		final TextView desc = (TextView) view.findViewById(android.R.id.text2);
+		desc.setText(track.getDescription());
 
 		final Button downloadButton = (Button) view.findViewById(R.id.localImage);
 		downloadButton.setOnClickListener(new View.OnClickListener() {
