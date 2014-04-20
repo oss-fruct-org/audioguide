@@ -54,6 +54,8 @@ public class MainActivity extends ActionBarActivity
 
 	private int maxPanelsCount = -1;
 	private int panelsCount = 0;
+	private int currentFragmentIndex = 0;
+
 	private ArrayList<FragmentStorage> fragmentStack = new ArrayList<FragmentStorage>();
 
 	private FragmentManager fragmentManager;
@@ -134,6 +136,7 @@ public class MainActivity extends ActionBarActivity
 		//fragmentManager.executePendingTransactions();
 	}
 
+	@SuppressWarnings("ResourceType")
 	private void initPanels(int maxCount) {
 		if (maxCount == -1)
 			maxCount = Integer.MAX_VALUE;
@@ -216,6 +219,7 @@ public class MainActivity extends ActionBarActivity
 				.commit();
 
 		updateUpButton();
+		currentFragmentIndex = position;
 	}
 
 	private void updateUpButton() {
@@ -259,8 +263,12 @@ public class MainActivity extends ActionBarActivity
 
 	public void restoreActionBar() {
 		ActionBar actionBar = getSupportActionBar();
-		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
-		log.debug("setNavigationMode STANDARD");
+
+		if (currentFragmentIndex == 0 && !fragmentStack.get(0).isStored())
+			actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
+		else
+			actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
+
 
 		actionBar.setDisplayShowTitleEnabled(true);
 		actionBar.setTitle(mTitle);
@@ -417,11 +425,6 @@ public class MainActivity extends ActionBarActivity
 		outState.putParcelableArrayList(STATE_STACK, fragmentStack);
 
 		super.onSaveInstanceState(outState);
-	}
-
-	@Override
-	protected void onRestoreInstanceState(Bundle savedInstanceState) {
-		super.onRestoreInstanceState(savedInstanceState);
 	}
 
 	@Override

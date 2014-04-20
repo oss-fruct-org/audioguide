@@ -15,4 +15,13 @@
     <string name="title_activity_file_chooser">Choose File</string>
     <string name="hello_world">Hello world!</string>
 
+
+    <string-array name="track_spinner_array">
+        <item>All</item>
+        <item>Private</item>
+        <item>Public</item>
+        <item>Local</item>
+        <item>Active</item>
+
+    </string-array>
 </resources>

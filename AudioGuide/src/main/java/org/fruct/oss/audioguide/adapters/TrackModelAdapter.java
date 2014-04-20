@@ -16,16 +16,29 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 public class TrackModelAdapter extends BaseAdapter implements ModelListener, Closeable {
+	public static interface Filter {
+		boolean check(Track track);
+	}
+
 	private final static Logger log = LoggerFactory.getLogger(TrackModelAdapter.class);
 
 	private final Context context;
 	private final int resource;
 	private final Model<Track> model;
 	private Map<String, Integer> highlight = new HashMap<String, Integer>();
+
+	private Filter trackFilter = new Filter() {
+		@Override
+		public boolean check(Track track) {
+			return true;
+		}
+	};
+	private ArrayList<Track> filteredTracks = new ArrayList<Track>();
 
 	private boolean closed = false;
 
@@ -57,12 +70,12 @@ public class TrackModelAdapter extends BaseAdapter implements ModelListener, Clo
 
 	@Override
 	public int getCount() {
-		return model.getCount();
+		return filteredTracks.size();
 	}
 
 	@Override
 	public Track getItem(int i) {
-		return model.getItem(i);
+		return filteredTracks.get(i);
 	}
 
 	@Override
@@ -135,7 +148,18 @@ public class TrackModelAdapter extends BaseAdapter implements ModelListener, Clo
 
 	@Override
 	public void dataSetChanged() {
+		filteredTracks.clear();
+		for (Track track : model) {
+			if (trackFilter.check(track))
+				filteredTracks.add(track);
+		}
+
 		notifyDataSetChanged();
+	}
+
+	public void setFilter(Filter filter) {
+		this.trackFilter = filter;
+		dataSetChanged();
 	}
 
 	private static class TrackHolder {
