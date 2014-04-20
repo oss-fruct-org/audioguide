@@ -64,7 +64,7 @@ public class PointFragment extends ListFragment {
 	}
 
 	/**
-	 * Mandatory map_marker constructor for the fragment manager to instantiate the
+	 * Mandatory empty constructor for the fragment manager to instantiate the
 	 * fragment (e.g. upon screen orientation changes).
 	 */
 	public PointFragment() {

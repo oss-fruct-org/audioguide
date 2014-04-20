@@ -13,6 +13,7 @@ public class Track implements Parcelable, Comparable<Track> {
 
 	private boolean isLocal;
 	private boolean isActive;
+	private boolean isPrivate;
 
 	private long localId;
 
@@ -51,6 +52,10 @@ public class Track implements Parcelable, Comparable<Track> {
 		return isActive;
 	}
 
+	public boolean isPrivate() {
+		return isPrivate;
+	}
+
 
 	// Setters
 	public void setName(String name) {
@@ -75,6 +80,10 @@ public class Track implements Parcelable, Comparable<Track> {
 
 	public void setActive(boolean isActive) {
 		this.isActive = isActive;
+	}
+
+	public void setPrivate(boolean isPrivate) {
+		this.isPrivate = isPrivate;
 	}
 
 
@@ -126,6 +135,8 @@ public class Track implements Parcelable, Comparable<Track> {
 		parcel.writeString(url);
 		parcel.writeInt(isActive ? 1 : 0);
 		parcel.writeInt(isLocal ? 1 : 0);
+		parcel.writeInt(isPrivate ? 1 : 0);
+
 		parcel.writeLong(localId);
 	}
 
@@ -139,6 +150,8 @@ public class Track implements Parcelable, Comparable<Track> {
 			Track track = new Track(name, description, url);
 			track.setActive(parcel.readInt() != 0);
 			track.setLocal(parcel.readInt() != 0);
+			track.setPrivate(parcel.readInt() != 0);
+
 			track.localId = parcel.readLong();
 
 			return track;

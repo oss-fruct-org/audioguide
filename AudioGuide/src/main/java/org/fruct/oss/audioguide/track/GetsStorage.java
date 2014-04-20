@@ -35,13 +35,12 @@ public class GetsStorage implements IStorage, IRemoteStorage {
 	private final static Logger log = LoggerFactory.getLogger(GetsStorage.class);
 
 	public static final String PREF_AUTH_TOKEN = "pref-auth-token";
-	public static final String PREF_AUTH_ANON = "pref-auth-anon";
 
 	public static final String GETS_SERVER = "http://getsi.no-ip.info/getslocal";
 	//public static final String GETS_SERVER = "http://oss.fruct.org/projects/gets/service";
 
 	public static final String LOAD_TRACKS_REQUEST = "<request><params>" +
-			"%s" + // Token may be map_marker
+			"%s" + // Token may be empty
 			"<!--<category_name>audio_tracks</category_name>-->" +
 			"</params></request>";
 
@@ -90,20 +89,51 @@ public class GetsStorage implements IStorage, IRemoteStorage {
 	@Override
 	public void load() {
 		try {
-			String responseString = Utils.downloadUrl(GETS_SERVER + "/loadTracks.php",
-					createLoadTracksRequest());
-			GetsResponse response = GetsResponse.parse(responseString, TracksContent.class);
+			List<Track> publicTracks = loadPublicTracks();
+			List<Track> privateTracks = loadPrivateTracks();
 
-			if (response.getCode() != 0) {
-				throw new RuntimeException("NOT IMPLEMENTED YET");
-			}
-
-			TracksContent tracksContent = ((TracksContent) response.getContent());
-			loadedTracks = new ArrayList<Track>(tracksContent.getTracks());
+			loadedTracks = new ArrayList<Track>();
+			loadedTracks.addAll(publicTracks);
+			loadedTracks.addAll(privateTracks);
 		} catch (Exception e) {
 			log.warn("Error: ", e);
 			loadedTracks = Collections.emptyList();
 		}
+	}
+
+	private List<Track> loadPublicTracks() throws Exception {
+		String responseString = Utils.downloadUrl(GETS_SERVER + "/loadTracks.php",
+				String.format(Locale.ROOT, LOAD_TRACKS_REQUEST, "<!-- public request -->"));
+		GetsResponse response = GetsResponse.parse(responseString, TracksContent.class);
+
+		if (response.getCode() != 0) {
+			throw new RuntimeException("Error code from GetsServer " + response.getCode());
+		}
+
+		TracksContent tracksContent = ((TracksContent) response.getContent());
+		return tracksContent.getTracks();
+	}
+
+	private List<Track> loadPrivateTracks() throws Exception {
+		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(App.getContext());
+		String token = pref.getString(PREF_AUTH_TOKEN, null);
+		if (token == null)
+			return Collections.emptyList();
+
+		String responseString = Utils.downloadUrl(GETS_SERVER + "/loadTracks.php",
+				createLoadTracksRequest());
+		GetsResponse response = GetsResponse.parse(responseString, TracksContent.class);
+
+		if (response.getCode() != 0) {
+			return Collections.emptyList();
+		}
+
+		TracksContent tracksContent = ((TracksContent) response.getContent());
+		for (Track track : tracksContent.getTracks()) {
+			track.setPrivate(true);
+		}
+
+		return tracksContent.getTracks();
 	}
 
 	@Override

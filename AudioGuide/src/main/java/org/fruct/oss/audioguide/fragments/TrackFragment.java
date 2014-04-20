@@ -100,21 +100,21 @@ public class TrackFragment extends ListFragment {
 					break;
 
 				case 1: // Private tracks
-					/*trackAdapter.setFilter(new TrackModelAdapter.Filter() {
+					trackAdapter.setFilter(new TrackModelAdapter.Filter() {
 						@Override
 						public boolean check(Track track) {
-							return true;
+							return track.isPrivate();
 						}
-					});*/
+					});
 					break;
 
 				case 2: // Public tracks
-					/*trackAdapter.setFilter(new TrackModelAdapter.Filter() {
+					trackAdapter.setFilter(new TrackModelAdapter.Filter() {
 						@Override
 						public boolean check(Track track) {
-							return true;
+							return !track.isPrivate();
 						}
-					});*/
+					});
 					break;
 
 				case 3: // Local tracks
