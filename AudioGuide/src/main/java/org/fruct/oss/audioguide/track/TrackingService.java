@@ -133,7 +133,7 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 
 				locationReceiver.mockLocation(location);
 			}
-		}, 100);
+		}, 2000);
 
 	}
 

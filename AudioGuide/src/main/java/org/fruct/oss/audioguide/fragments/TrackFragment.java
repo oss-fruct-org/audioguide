@@ -2,11 +2,16 @@ package org.fruct.oss.audioguide.fragments;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.ListFragment;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.ActionBarActivity;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ListView;
 
 import org.fruct.oss.audioguide.MultiPanel;
@@ -45,6 +50,11 @@ public class TrackFragment extends ListFragment {
 	}
 
 	@Override
+	public void onStart() {
+		super.onStart();
+	}
+
+	@Override
 	public void onDestroy() {
 		trackAdapter.close();
 		super.onDestroy();
@@ -78,6 +88,12 @@ public class TrackFragment extends ListFragment {
 		super.onCreateOptionsMenu(menu, inflater);
 
 		inflater.inflate(R.menu.refresh, menu);
+	}
+
+	@Override
+	public void onActivityCreated(Bundle savedInstanceState) {
+		super.onActivityCreated(savedInstanceState);
+
 	}
 
 	@Override

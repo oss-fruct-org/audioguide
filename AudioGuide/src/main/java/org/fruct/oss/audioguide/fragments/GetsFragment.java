@@ -38,6 +38,10 @@ public class GetsFragment extends Fragment implements WebViewDialog.Listener, Sh
 
 	// TODO: store between screen rotations
 	private String sessionId;
+	private SharedPreferences pref;
+	private Button logoutButton;
+	private Button manageFilesButton;
+	private Button signInButton;
 
 	public static GetsFragment newInstance() {
 		return new GetsFragment();
@@ -45,10 +49,9 @@ public class GetsFragment extends Fragment implements WebViewDialog.Listener, Sh
 	public GetsFragment() {
 	}
 
-	private void setAnonBoxState(Button signInButton, CheckBox anonCheckBox) {
-		signInButton.setEnabled(!anonCheckBox.isChecked());
-		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getActivity());
-		pref.edit().putBoolean(GetsStorage.PREF_AUTH_ANON, anonCheckBox.isChecked()).apply();
+	private void logout() {
+		pref.edit().remove(GetsStorage.PREF_AUTH_TOKEN).apply();
+		initializeLoginLabel();
 	}
 
 	@Override
@@ -57,15 +60,15 @@ public class GetsFragment extends Fragment implements WebViewDialog.Listener, Sh
 		View view = inflater.inflate(R.layout.fragment_gets, container, false);
 		assert view != null;
 
-		final Button signInButton = (Button) view.findViewById(R.id.sign_in_button);
-		final Button manageFilesButton = (Button) view.findViewById(R.id.manage_files_button);
-		final CheckBox anonCheckBox = ((CheckBox) view.findViewById(R.id.anon_check));
+		signInButton = (Button) view.findViewById(R.id.sign_in_button);
+		manageFilesButton = (Button) view.findViewById(R.id.manage_files_button);
+		logoutButton = ((Button) view.findViewById(R.id.logout_button));
 		loginLabel = ((TextView) view.findViewById(R.id.login_label));
 
-		anonCheckBox.setOnClickListener(new View.OnClickListener() {
+		logoutButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View view) {
-				setAnonBoxState(signInButton, anonCheckBox);
+				logout();
 			}
 		});
 
@@ -88,14 +91,10 @@ public class GetsFragment extends Fragment implements WebViewDialog.Listener, Sh
 			}
 		});
 
-		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getActivity());
-		anonCheckBox.setChecked(pref.getBoolean(GetsStorage.PREF_AUTH_ANON, false));
-		setAnonBoxState(signInButton, anonCheckBox);
-
+		pref = PreferenceManager.getDefaultSharedPreferences(getActivity());
 		pref.registerOnSharedPreferenceChangeListener(this);
 
 		initializeLoginLabel();
-
 		return view;
 	}
 
@@ -203,13 +202,20 @@ public class GetsFragment extends Fragment implements WebViewDialog.Listener, Sh
 	}
 
 	private void initializeLoginLabel() {
-		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getActivity());
 		String token = pref.getString(GetsStorage.PREF_AUTH_TOKEN, null);
 
 		if (token == null) {
 			loginLabel.setText("Not signed in");
 		} else {
 			loginLabel.setText("Signed in");
+		}
+
+		if (pref.getString(GetsStorage.PREF_AUTH_TOKEN, null) != null) {
+			logoutButton.setVisibility(View.VISIBLE);
+			manageFilesButton.setVisibility(View.VISIBLE);
+		} else {
+			logoutButton.setVisibility(View.GONE);
+			manageFilesButton.setVisibility(View.GONE);
 		}
 	}
 

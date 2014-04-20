@@ -300,8 +300,7 @@ public class GetsStorage implements IStorage, IRemoteStorage {
 	private String createTokenTag() {
 		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(App.getContext());
 		String token = pref.getString(PREF_AUTH_TOKEN, null);
-		boolean anonAccount = pref.getBoolean(PREF_AUTH_ANON, false);
-		if (token == null || anonAccount)
+		if (token == null)
 			return "";
 		else
 			return "<auth_token>" + token + "</auth_token>";
@@ -310,9 +309,7 @@ public class GetsStorage implements IStorage, IRemoteStorage {
 	private void writeTokenTag(XmlSerializer serializer) throws IOException {
 		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(App.getContext());
 		String token = pref.getString(PREF_AUTH_TOKEN, null);
-		boolean anonAccount = pref.getBoolean(PREF_AUTH_ANON, false);
-
-		if (token != null && !anonAccount) {
+		if (token != null) {
 			serializer.startTag(null, "auth_token").text(token).endTag(null, "auth_token");
 		}
 	}
