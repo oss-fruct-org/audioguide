@@ -190,19 +190,11 @@ public class MainActivity extends ActionBarActivity
 			initPanels(-1);
 			break;
 		case 1:
-			fragment = NavigateFragment.newInstance();
-			initPanels(-1);
-			break;
-		case 2:
 			fragment = MapFragment.newInstance();
 			initPanels(1);
 			break;
-		case 3:
+		case 2:
 			fragment = GetsFragment.newInstance();
-			initPanels(-1);
-			break;
-		case 4:
-			fragment = EditTrackFragment.newInstance();
 			initPanels(-1);
 			break;
 		}
@@ -243,12 +235,6 @@ public class MainActivity extends ActionBarActivity
 			break;
 		case 3:
 			mTitle = getString(R.string.title_section3);
-			break;
-		case 4:
-			mTitle = getString(R.string.title_section4);
-			break;
-		case 5:
-			mTitle = getString(R.string.title_section5);
 			break;
 		}
 	}

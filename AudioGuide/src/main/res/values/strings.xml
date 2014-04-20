@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
     <string name="app_name">AudioGuide</string>
-    <string name="title_section1">Download</string>
-    <string name="title_section2">Navigating</string>
-    <string name="title_section3">Map</string>
-    <string name="title_section4">GeTS</string>
-    <string name="title_section5">Editing</string>
+
+    <string name="title_section1">Tracks</string>
+    <string name="title_section2">Map</string>
+    <string name="title_section3">GeTS</string>
+
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="action_example">Example action</string>

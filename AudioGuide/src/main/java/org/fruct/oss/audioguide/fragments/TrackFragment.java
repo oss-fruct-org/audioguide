@@ -1,15 +1,19 @@
 package org.fruct.oss.audioguide.fragments;
 
 import android.app.Activity;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.ListFragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
+import android.support.v7.widget.PopupMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.SubMenu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -19,21 +23,36 @@ import android.widget.SpinnerAdapter;
 import org.fruct.oss.audioguide.MultiPanel;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.adapters.TrackModelAdapter;
+import org.fruct.oss.audioguide.fragments.edit.EditTrackDialog;
+import org.fruct.oss.audioguide.track.GetsStorage;
 import org.fruct.oss.audioguide.track.Track;
 import org.fruct.oss.audioguide.track.TrackManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TrackFragment extends ListFragment {
+public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemClickListener {
 	private final static Logger log = LoggerFactory.getLogger(TrackFragment.class);
 
 	public static final String STATE_SPINNER_STATE = "spinner-state";
+	private static final int HIGHLIGHT_COLOR = 0xff99ff99;
+
+	private SharedPreferences pref;
 
 	private MultiPanel multiPanel;
 	private TrackManager trackManager;
 	private int selectedSpinnerItem = 0;
 
 	private TrackModelAdapter trackAdapter;
+
+	private MenuItem popupShowPoints;
+	private MenuItem popupItemEdit;
+	private MenuItem popupItemEditPoints;
+	private MenuItem popupItemDeactivate;
+	private MenuItem popupItemActivate;
+	private MenuItem popupItemDownload;
+	private MenuItem popupItemSend;
+
+	private Track selectedTrack;
 
 	public static TrackFragment newInstance() {
 		return new TrackFragment();
@@ -46,9 +65,12 @@ public class TrackFragment extends ListFragment {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
+		pref = PreferenceManager.getDefaultSharedPreferences(getActivity());
+
 		trackManager = TrackManager.getInstance();
 
 		trackAdapter = new TrackModelAdapter(getActivity(), R.layout.list_track_item, trackManager.getTracksModel());
+		trackAdapter.addTrackHighlight(trackManager.getEditingTrack(), HIGHLIGHT_COLOR);
 
 		setListAdapter(trackAdapter);
 
@@ -57,8 +79,9 @@ public class TrackFragment extends ListFragment {
 		if (savedInstanceState != null) {
 			selectedSpinnerItem = savedInstanceState.getInt(STATE_SPINNER_STATE);
 		}
+		
+		
 	}
-
 
 	@Override
 	public void onResume() {
@@ -174,7 +197,38 @@ public class TrackFragment extends ListFragment {
 	@Override
 	public void onListItemClick(ListView l, View v, int position, long id) {
 		Track track = trackAdapter.getItem(position);
-		trackClicked(track);
+
+		PopupMenu popupMenu = new PopupMenu(getActivity(), v);
+		Menu menu = popupMenu.getMenu();
+
+		if (track.isLocal()) {
+			popupShowPoints = menu.add("Show points");
+
+			if (track.isActive()) {
+				popupItemDeactivate = menu.add("Deactivate");
+			} else {
+				popupItemActivate = menu.add("Activate");
+			}
+		} else {
+			popupItemDownload = menu.add("Download");
+		}
+
+		if (track.isPrivate() && track.isLocal()) {
+			SubMenu editingMenu = menu.addSubMenu("Editing");
+
+			popupItemEdit = editingMenu.add("Edit description");
+			popupItemEditPoints = editingMenu.add("Edit points");
+
+			if (pref.getString(GetsStorage.PREF_AUTH_TOKEN, null) != null) {
+				popupItemSend = editingMenu.add("Send to server");
+			}
+		}
+
+		selectedTrack = track;
+		popupMenu.setOnMenuItemClickListener(this);
+		popupMenu.show();
+
+		//trackClicked(track);
 	}
 
 	@Override
@@ -212,6 +266,52 @@ public class TrackFragment extends ListFragment {
 	}
 
 	public void trackClicked(Track track) {
+
 		multiPanel.replaceFragment(TrackDetailFragment.newInstance(track), this);
 	}
+
+	@Override
+	public boolean onMenuItemClick(MenuItem menuItem) {
+		if (menuItem == popupItemActivate) {
+			trackManager.activateTrack(selectedTrack);
+		} else if (menuItem == popupItemDeactivate) {
+			trackManager.deactivateTrack(selectedTrack);
+		} else if (menuItem == popupItemDownload) {
+			trackManager.storeLocal(selectedTrack);
+		} else if (menuItem == popupShowPoints) {
+			multiPanel.replaceFragment(PointFragment.newInstance(selectedTrack), this);
+		} else if (menuItem == popupItemEdit) {
+			EditTrackDialog dialog = new EditTrackDialog(selectedTrack);
+			dialog.setListener(editDialogListener);
+			dialog.show(getFragmentManager(), "edit-track-dialog");
+		} else if (menuItem == popupItemEditPoints) {
+			trackManager.setEditingTrack(selectedTrack);
+
+			trackAdapter.clearTrackHighlights();
+			trackAdapter.addTrackHighlight(trackManager.getEditingTrack(), HIGHLIGHT_COLOR);
+			trackAdapter.notifyDataSetChanged();
+		} else if (menuItem == popupItemSend) {
+			trackManager.sendTrack(selectedTrack);
+			trackManager.setEditingTrack(null);
+			trackAdapter.clearTrackHighlights();
+			trackAdapter.notifyDataSetChanged();
+		}
+
+		return false;
+	}
+
+	private EditTrackDialog.Listener editDialogListener = new EditTrackDialog.Listener() {
+		@Override
+		public void trackCreated(Track track) {
+			log.debug("Track created callback");
+			trackManager.storeLocal(track);
+		}
+
+		@Override
+		public void trackUpdated(Track track) {
+			log.debug("Track updated callback");
+			trackManager.storeLocal(track);
+		}
+	};
+
 }

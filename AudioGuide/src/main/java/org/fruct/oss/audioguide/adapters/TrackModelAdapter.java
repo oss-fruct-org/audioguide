@@ -51,6 +51,7 @@ public class TrackModelAdapter extends BaseAdapter implements ModelListener, Clo
 		this.model.addListener(this);
 
 		stackTraceException = new RuntimeException();
+		dataSetChanged();
 	}
 
 	public void close() {
@@ -108,7 +109,7 @@ public class TrackModelAdapter extends BaseAdapter implements ModelListener, Clo
 			view.setTag(holder);
 		}
 
-		Track track = (Track) getItem(position);
+		Track track = getItem(position);
 		holder.track = track;
 
 		holder.text1.setText(track.getHumanReadableName());
