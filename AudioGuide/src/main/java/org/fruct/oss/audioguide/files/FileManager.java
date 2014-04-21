@@ -4,8 +4,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.media.ThumbnailUtils;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Handler;
@@ -30,7 +28,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.WeakHashMap;
 
 public class FileManager implements SharedPreferences.OnSharedPreferenceChangeListener, Closeable {
@@ -43,7 +40,7 @@ public class FileManager implements SharedPreferences.OnSharedPreferenceChangeLi
 
 	private IconCache iconCache;
 
-	private FileStorage fileStorage;
+	private PendingFiles pendingFiles;
 
 	private Thread downloadThread;
 
@@ -55,7 +52,7 @@ public class FileManager implements SharedPreferences.OnSharedPreferenceChangeLi
 	public FileManager(Context context) {
 		this.context = context;
 
-		fileStorage = new FileStorage(context);
+		pendingFiles = new PendingFiles(context);
 
 		this.iconCache = new IconCache(1024);
 
@@ -122,10 +119,9 @@ public class FileManager implements SharedPreferences.OnSharedPreferenceChangeLi
 					return;
 
 				// New GeTS files ready
-				// Store them in database
 				for (FileContent fileContent : filesContent.getFiles()) {
 					String remoteUrl = fileContent.getUrl();
-					fileStorage.insertRemoteUrl(remoteUrl);
+					pendingFiles.insert(remoteUrl);
 				}
 
 				getsFiles.clear();
@@ -180,24 +176,28 @@ public class FileManager implements SharedPreferences.OnSharedPreferenceChangeLi
 		if (bitmap != null)
 			return bitmap;
 
-		String localUrl = fileStorage.getLocalUrl(remoteUrl);
+		String localUrl = downloader.getUrl(remoteUrl);
 
 		if (localUrl != null) {
 			Bitmap newBitmap = AUtils.decodeSampledBitmapFromResource(Resources.getSystem(),
 					localUrl, Utils.getDP(48), Utils.getDP(48));
 			iconCache.put(remoteUrl, newBitmap);
 			return newBitmap;
+		} else {
+			pendingFiles.insert(remoteUrl);
 		}
 
 		return null;
 	}
 
 	public Bitmap getImageFullBitmap(String remoteUrl, int width, int height) {
-		String localUrl = fileStorage.getLocalUrl(remoteUrl);
+		String localUrl = downloader.getUrl(remoteUrl);
 
 		if (localUrl != null) {
 			return AUtils.decodeSampledBitmapFromResource(Resources.getSystem(),
 					localUrl, width, height);
+		} else {
+			pendingFiles.insert(remoteUrl);
 		}
 
 		return null;
@@ -206,7 +206,7 @@ public class FileManager implements SharedPreferences.OnSharedPreferenceChangeLi
 	public void insertImageUri(Uri uri) {
 		log.info("insert image uri {}", uri);
 		//imageDownloader.insertUri(uri);
-		fileStorage.insertRemoteUrl(uri.toString());
+		pendingFiles.insert(uri.toString());
 	}
 
 
@@ -215,15 +215,15 @@ public class FileManager implements SharedPreferences.OnSharedPreferenceChangeLi
 		log.info("insert audio uri {}", uri);
 
 		//audioDownloader.insertUri(uri);
-		fileStorage.insertRemoteUrl(uri.toString());
+		pendingFiles.insert(uri.toString());
 	}
 
 	public Uri getAudioUri(Uri remoteUri) {
 		String remoteUrl = remoteUri.toString();
 
-		String localUrl = fileStorage.getLocalUrl(remoteUrl);
+		String localUrl = downloader.getUrl(remoteUrl);
 		if (localUrl == null) {
-			fileStorage.insertRemoteUrl(remoteUrl);
+			pendingFiles.insert(remoteUrl);
 			return remoteUri;
 		}
 
@@ -231,13 +231,13 @@ public class FileManager implements SharedPreferences.OnSharedPreferenceChangeLi
 	}
 
 	private Runnable downloadRunnable = new Runnable() {
-		private FileStorage fileStorage;
+		private PendingFiles pendingFiles;
 		private Handler handler = new Handler(Looper.getMainLooper());
 		private Downloader downloader;
 
 		@Override
 		public void run() {
-			this.fileStorage = FileManager.this.fileStorage;
+			this.pendingFiles = FileManager.this.pendingFiles;
 			this.downloader = FileManager.this.downloader;
 
 			while (!Thread.interrupted()) {
@@ -248,13 +248,13 @@ public class FileManager implements SharedPreferences.OnSharedPreferenceChangeLi
 		}
 
 		private boolean turn() {
-			assert fileStorage != null;
-			final String pendingUrl= fileStorage.getPendingUrl();
+			assert pendingFiles != null;
+			final String pendingUrl= pendingFiles.getPendingUrl();
 			if (pendingUrl == null) {
 				log.debug("No files to download, waiting");
-				synchronized (fileStorage) {
+				synchronized (pendingFiles) {
 					try {
-						fileStorage.wait();
+						pendingFiles.wait();
 					} catch (InterruptedException ex) {
 						return false;
 					}
@@ -262,14 +262,14 @@ public class FileManager implements SharedPreferences.OnSharedPreferenceChangeLi
 			} else {
 				// Download url using downloader
 				log.debug("Loading {}", pendingUrl);
-				String localUrl = downloader.getUri(pendingUrl);
+				String localUrl = downloader.downloadRemoteUrl(pendingUrl);
 				if (localUrl == null) {
-					log.error("Can't download file stopping thread");
+					log.error("Can't download file. Stopping thread");
 					return false;
 				}
 				log.debug("Successfully loaded {}: {}", pendingUrl, localUrl);
 
-				fileStorage.setFileLocal(pendingUrl, localUrl);
+				pendingFiles.remove(pendingUrl);
 
 				handler.post(new Runnable() {
 					@Override

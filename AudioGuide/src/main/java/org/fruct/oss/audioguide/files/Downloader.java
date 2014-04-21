@@ -52,7 +52,7 @@ public class Downloader {
 		return context.getExternalFilesDir(dir);
 	}
 
-	public String getUri(final String url) {
+	public String downloadRemoteUrl(final String url) {
 		String uriHash = Utils.hashString(url);
 		if (files.contains(uriHash)) {
 			return getLocalPath(uriHash);
@@ -60,6 +60,15 @@ public class Downloader {
 			return download(url, uriHash);
 		}
 	}
+
+	public String getUrl(final String url) {
+		String uriHash = Utils.hashString(url);
+		if (files.contains(uriHash))
+			return getLocalPath(uriHash);
+		else
+			return null;
+	}
+
 
 	private String getLocalPath(String urlHash) {
 		return localFileDir.getPath() + "/" + urlHash;
