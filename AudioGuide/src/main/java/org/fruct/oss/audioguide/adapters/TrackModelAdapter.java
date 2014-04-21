@@ -142,9 +142,9 @@ public class TrackModelAdapter extends BaseAdapter implements ModelListener, Clo
 
 	private void setupButton(ImageView button, boolean isHighlighted) {
 		if (isHighlighted)
-			button.setColorFilter(0xff999911);
+			button.setVisibility(View.VISIBLE);
 		else
-			button.setColorFilter(0xff000000);
+			button.setVisibility(View.INVISIBLE);
 	}
 
 	@Override

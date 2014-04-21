@@ -86,6 +86,7 @@ public class TrackDetailFragment extends Fragment {
 			@Override
 			public void onClick(View view) {
 				trackManager.storeLocal(track);
+				trackManager.refreshPoints(track);
 			}
 		});
 

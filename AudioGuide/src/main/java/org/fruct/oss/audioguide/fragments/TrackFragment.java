@@ -278,6 +278,7 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 			trackManager.deactivateTrack(selectedTrack);
 		} else if (menuItem == popupItemDownload) {
 			trackManager.storeLocal(selectedTrack);
+			trackManager.refreshPoints(selectedTrack);
 		} else if (menuItem == popupShowPoints) {
 			multiPanel.replaceFragment(PointFragment.newInstance(selectedTrack), this);
 		} else if (menuItem == popupItemEdit) {

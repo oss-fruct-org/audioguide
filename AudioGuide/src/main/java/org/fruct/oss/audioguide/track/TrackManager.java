@@ -118,7 +118,6 @@ public class TrackManager {
 		});
 	}
 
-
 	public synchronized void addListener(Listener listener) {
 		listeners.add(listener);
 	}
@@ -211,26 +210,11 @@ public class TrackManager {
 	public void storeLocal(final Track track) {
 		checkInitialized();
 
-		boolean isWasRemote = !track.isLocal();
-		synchronized (localStorage) {
-			localStorage.storeLocalTrack(track);
-		}
-
 		track.setLocal(true);
 		allTracks.put(track.getId(), track);
 
-		// Don't download track again
-		if (isWasRemote) {
-			synchronized (allTracks) {
-				if (localStorage.getPoints(track).isEmpty()) {
-					executor.execute(new Runnable() {
-						@Override
-						public void run() {
-							doLoadRemotePoints(track);
-						}
-					});
-				}
-			}
+		synchronized (localStorage) {
+			localStorage.storeLocalTrack(track);
 		}
 
 		notifyTracksUpdated();

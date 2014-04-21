@@ -111,7 +111,7 @@ public class Downloader {
 			conn = (HttpURLConnection) url.openConnection();
 			conn.setDoInput(true);
 			conn.setConnectTimeout(5000);
-			conn.setReadTimeout(5000);
+			conn.setReadTimeout(15000);
 			conn.setRequestMethod("GET");
 			conn.connect();
 
