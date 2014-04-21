@@ -4,12 +4,12 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
-import android.os.Handler;
-import android.os.Looper;
+import android.net.Uri;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import org.fruct.oss.audioguide.files.FileListener;
@@ -19,11 +19,11 @@ import org.fruct.oss.audioguide.models.Model;
 import org.fruct.oss.audioguide.models.ModelListener;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.TrackManager;
-import org.fruct.oss.audioguide.files.Downloader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -40,7 +40,9 @@ public class PointModelAdapter extends BaseAdapter implements Closeable, ModelLi
 	private final int resource;
 	private final Model<Point> model;
 	private Set<Point> highlightedItems = new HashSet<Point>();
-	private Set<String> pendingIconUris = new HashSet<String>();
+
+	private Set<String> pendingIconUrls = new HashSet<String>();
+	private HashMap<String, PointHolder> pendingAudioUrls = new HashMap<String, PointHolder>();
 
 	private boolean closed = false;
 
@@ -61,6 +63,7 @@ public class PointModelAdapter extends BaseAdapter implements Closeable, ModelLi
 	@Override
 	public void close() {
 		model.removeListener(this);
+
 		closed = true;
 	}
 
@@ -108,6 +111,7 @@ public class PointModelAdapter extends BaseAdapter implements Closeable, ModelLi
 			holder.text2 = (TextView) view.findViewById(android.R.id.text2);
 			holder.audioImage = (ImageView) view.findViewById(R.id.audioImage);
 			holder.icon = (ImageView) view.findViewById(android.R.id.icon);
+			holder.progressBar = (ProgressBar) view.findViewById(R.id.progress_bar);
 		}
 
 		Point point = getItem(position);
@@ -120,16 +124,32 @@ public class PointModelAdapter extends BaseAdapter implements Closeable, ModelLi
 
 		if (point.hasPhoto()) {
 			String photoUrl = point.getPhotoUrl();
-			if (pendingIconUris.contains(photoUrl)) {
-				pendingIconUris.remove(photoUrl);
+			if (pendingIconUrls.contains(photoUrl)) {
+				pendingIconUrls.remove(photoUrl);
 			}
 
 			Bitmap iconBitmap = fileManager.getImageBitmap(photoUrl);
 			if (iconBitmap != null) {
 				holder.icon.setImageDrawable(new BitmapDrawable(context.getResources(), iconBitmap));
 			} else {
-				pendingIconUris.add(photoUrl);
+				pendingIconUrls.add(photoUrl);
 				holder.icon.setImageDrawable(null);
+			}
+		}
+
+		if (point.hasAudio()) {
+			String audioUrl = point.getAudioUrl();
+			if (pendingAudioUrls.containsKey(audioUrl)) {
+				pendingAudioUrls.remove(audioUrl);
+			}
+
+			if (fileManager.isFileLocal(audioUrl)) {
+				holder.progressBar.setVisibility(View.GONE);
+			} else {
+				holder.progressBar.setVisibility(View.VISIBLE);
+				holder.progressBar.setProgress(0);
+				pendingAudioUrls.put(audioUrl, holder);
+				fileManager.insertAudioUri(audioUrl);
 			}
 		}
 
@@ -164,21 +184,34 @@ public class PointModelAdapter extends BaseAdapter implements Closeable, ModelLi
 	}
 
 	@Override
-	public void itemLoaded(final String uri) {
-		if (pendingIconUris.contains(uri))
+	public void itemLoaded(final String url) {
+		if (pendingIconUrls.contains(url))
 			notifyDataSetChanged();
+
+		PointHolder holder = pendingAudioUrls.get(url);
+		if (holder != null) {
+			holder.progressBar.setVisibility(View.GONE);
+			pendingAudioUrls.remove(url);
+		}
+	}
+
+	@Override
+	public void itemDownloadProgress(String url, int current, int max) {
+		PointHolder holder = pendingAudioUrls.get(url);
+
+		if (holder != null) {
+			holder.progressBar.setMax(max);
+			holder.progressBar.setProgress(current);
+		}
 	}
 
 	private static class PointHolder {
-		PointHolder() {
-			log.debug("PointHolder create");
-		}
-
 		Point point;
 		TextView text1;
 		TextView text2;
 
 		ImageView audioImage;
 		ImageView icon;
+		ProgressBar progressBar;
 	}
 }

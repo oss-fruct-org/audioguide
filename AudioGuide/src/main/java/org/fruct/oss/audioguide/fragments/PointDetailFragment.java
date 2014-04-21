@@ -216,4 +216,9 @@ public class PointDetailFragment extends Fragment implements FileListener {
 			tryUpdateImage();
 		}
 	}
+
+	@Override
+	public void itemDownloadProgress(String url, int current, int max) {
+
+	}
 }

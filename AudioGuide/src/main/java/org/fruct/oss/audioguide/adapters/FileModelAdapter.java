@@ -112,6 +112,11 @@ public class FileModelAdapter extends BaseAdapter implements Closeable, ModelLis
 			notifyDataSetChanged();
 	}
 
+	@Override
+	public void itemDownloadProgress(String url, int current, int max) {
+
+	}
+
 
 	@Override
 	public void dataSetChanged() {

@@ -1,6 +1,5 @@
 package org.fruct.oss.audioguide.test;
 
-import android.content.Context;
 import android.test.AndroidTestCase;
 import android.test.RenamingDelegatingContext;
 
@@ -139,8 +138,8 @@ public class TestDatabaseStorage extends AndroidTestCase {
 		storage.storeLocalTrack(track2 = new Track("BBB", "CCC", "DDD"));
 
 		Point point1, point2;
-		storage.storePoint(track1, point1 = new Point("ZZZ1", "XXX", "CCC", 46, 64));
-		storage.storePoint(track1, point2 = new Point("ZZZ2", "YYY", "CCC", 12, 13));
+		storage.updatePoint(track1, point1 = new Point("ZZZ1", "XXX", "CCC", 46, 64));
+		storage.updatePoint(track1, point2 = new Point("ZZZ2", "YYY", "CCC", 12, 13));
 
 		reopen();
 
@@ -153,7 +152,7 @@ public class TestDatabaseStorage extends AndroidTestCase {
 
 		// Update point
 		point2.setDescription("QWERTY");
-		storage.storePoint(track1, point2);
+		storage.updatePoint(track1, point2);
 		reopen();
 
 		points = storage.getPoints(track1);

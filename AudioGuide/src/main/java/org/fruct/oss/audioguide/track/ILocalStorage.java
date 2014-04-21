@@ -19,5 +19,5 @@ public interface ILocalStorage extends IStorage {
 	/**
 	 * Update point of track
 	 */
-	void storePoint(Track track, Point point);
+	void updatePoint(Track track, Point point);
 }

@@ -2,6 +2,7 @@ package org.fruct.oss.audioguide.files;
 
 import android.content.Context;
 
+import org.fruct.oss.audioguide.util.ProgressInputStream;
 import org.fruct.oss.audioguide.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,6 +11,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Collections;
@@ -26,6 +28,7 @@ public class Downloader {
 	private final Set<String> files;
 
 	private final File localFileDir;
+	private ProgressInputStream.ProgressListener progressListener;
 
 	public Downloader(Context context, String storageName) {
 		this.context = context;
@@ -43,6 +46,10 @@ public class Downloader {
 				files.add(file.getName());
 			}
 		}
+	}
+
+	public void setProgressListener(ProgressInputStream.ProgressListener listener) {
+		this.progressListener = listener;
 	}
 
 	protected File openDir(String dir) {
@@ -104,7 +111,7 @@ public class Downloader {
 	private void downloadUrl(String uri, String localFile) throws IOException {
 		URL url = new URL(uri);
 
-		FileOutputStream output = null;
+		OutputStream output = null;
 		InputStream input = null;
 		HttpURLConnection conn = null;
 		try {
@@ -116,9 +123,15 @@ public class Downloader {
 			conn.connect();
 
 			int code = conn.getResponseCode();
+			int fileSize = Integer.parseInt(conn.getHeaderField("Content-Length"));
 			if (code == 200) {
 				output = new FileOutputStream(localFile);
 				input = conn.getInputStream();
+
+				if (progressListener != null && fileSize > 0) {
+					input = new ProgressInputStream(input, fileSize, fileSize / 10, progressListener);
+				}
+
 				Utils.copyStream(input, output);
 			}
 		} finally {

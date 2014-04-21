@@ -248,14 +248,14 @@ public class TrackManager {
 	@DatasetModifier
 	public void storePoint(Track track, Point point) {
 		log.trace("Store point to track " + track.getName() + ": " + point.getName());
-		localStorage.storePoint(track, point);
+		localStorage.updatePoint(track, point);
 
 		if (point.hasPhoto()) {
 			fileManager.insertImageUri(Uri.parse(point.getPhotoUrl()));
 		}
 
 		if (point.hasAudio()) {
-			fileManager.insertAudioUri(Uri.parse(point.getAudioUrl()));
+			fileManager.insertAudioUri(Uri.parse(point.getAudioUrl()).toString());
 		}
 
 		notifyPointsUpdated(track);
@@ -316,7 +316,7 @@ public class TrackManager {
 			}
 
 			if (point.hasAudio()) {
-				fileManager.insertAudioUri(Uri.parse(point.getAudioUrl()));
+				fileManager.insertAudioUri(Uri.parse(point.getAudioUrl()).toString());
 			}
 		}
 		notifyPointsUpdated(track);

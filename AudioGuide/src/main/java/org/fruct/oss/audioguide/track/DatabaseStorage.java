@@ -83,7 +83,7 @@ public class DatabaseStorage implements ILocalStorage {
 	}
 
 	@Override
-	public void storePoint(Track track, Point point) {
+	public void updatePoint(Track track, Point point) {
 		ContentValues cv = new ContentValues(7);
 		cv.put("name", point.getName());
 		cv.put("description", point.getDescription());

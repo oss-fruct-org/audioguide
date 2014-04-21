@@ -38,20 +38,21 @@
         android:gravity="center_vertical"
         android:orientation="horizontal">
         <ImageView
-            android:src="@drawable/ic_drawer"
-            android:layout_width="16dp"
-            android:layout_height="match_parent"
+            android:src="@drawable/ic_action_save"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:id="@+id/localImage"
-            android:contentDescription="Download"
+            android:contentDescription="Local"
             android:background="@null"
             android:layout_margin="8dp"
             />
+
         <ImageView
             android:src="@drawable/ic_action_accept"
-            android:layout_width="16dp"
-            android:layout_height="match_parent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:id="@+id/activeImage"
-            android:contentDescription="Activate"
+            android:contentDescription="Active"
             android:background="@null"
             android:layout_margin="8dp"
             />

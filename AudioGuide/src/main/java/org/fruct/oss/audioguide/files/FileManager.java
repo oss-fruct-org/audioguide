@@ -19,6 +19,7 @@ import org.fruct.oss.audioguide.parsers.GetsException;
 import org.fruct.oss.audioguide.parsers.GetsResponse;
 import org.fruct.oss.audioguide.track.GetsStorage;
 import org.fruct.oss.audioguide.util.AUtils;
+import org.fruct.oss.audioguide.util.ProgressInputStream;
 import org.fruct.oss.audioguide.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +46,7 @@ public class FileManager implements SharedPreferences.OnSharedPreferenceChangeLi
 	private Thread downloadThread;
 
 	private WeakHashMap<FileListener, Object> fileListeners = new WeakHashMap<FileListener, Object>();
+
 
 	// Files available in GeTS
 	private List<FileContent> getsFiles = new ArrayList<FileContent>();
@@ -79,6 +81,8 @@ public class FileManager implements SharedPreferences.OnSharedPreferenceChangeLi
 	public void addWeakListener(FileListener listener) {
 		fileListeners.put(listener, log);
 	}
+
+
 
 	/**
 	 * Downloads list of GeTS files
@@ -203,19 +207,22 @@ public class FileManager implements SharedPreferences.OnSharedPreferenceChangeLi
 		return null;
 	}
 
+	public boolean isFileLocal(String remoteUrl) {
+		return null != downloader.getUrl(remoteUrl);
+	}
+
 	public void insertImageUri(Uri uri) {
 		log.info("insert image uri {}", uri);
 		//imageDownloader.insertUri(uri);
 		pendingFiles.insert(uri.toString());
 	}
 
-
-	// Audio methods
-	public void insertAudioUri(Uri uri) {
+	public void insertAudioUri(String uri) {
 		log.info("insert audio uri {}", uri);
 
 		//audioDownloader.insertUri(uri);
-		pendingFiles.insert(uri.toString());
+		pendingFiles.insert(uri);
+
 	}
 
 	public Uri getAudioUri(Uri remoteUri) {
@@ -234,11 +241,26 @@ public class FileManager implements SharedPreferences.OnSharedPreferenceChangeLi
 		private PendingFiles pendingFiles;
 		private Handler handler = new Handler(Looper.getMainLooper());
 		private Downloader downloader;
+		private String currentRemoteUrl;
 
 		@Override
 		public void run() {
 			this.pendingFiles = FileManager.this.pendingFiles;
 			this.downloader = FileManager.this.downloader;
+
+			downloader.setProgressListener(new ProgressInputStream.ProgressListener() {
+				@Override
+				public void update(final int current, final int max) {
+					handler.post(new Runnable() {
+						@Override
+						public void run() {
+							for (FileListener listener : fileListeners.keySet()) {
+								listener.itemDownloadProgress(currentRemoteUrl, current, max);
+							}
+						}
+					});
+				}
+			});
 
 			while (!Thread.interrupted()) {
 				if (!turn()) {
@@ -262,6 +284,7 @@ public class FileManager implements SharedPreferences.OnSharedPreferenceChangeLi
 			} else {
 				// Download url using downloader
 				log.debug("Loading {}", pendingUrl);
+				currentRemoteUrl = pendingUrl;
 				String localUrl = downloader.downloadRemoteUrl(pendingUrl);
 				if (localUrl == null) {
 					log.error("Can't download file. Stopping thread");
@@ -279,6 +302,7 @@ public class FileManager implements SharedPreferences.OnSharedPreferenceChangeLi
 						}
 					}
 				});
+				currentRemoteUrl = null;
 			}
 
 			return true;
