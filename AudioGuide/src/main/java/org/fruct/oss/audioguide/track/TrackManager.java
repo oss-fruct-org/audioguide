@@ -309,7 +309,9 @@ public class TrackManager {
 		if (points == null || points.isEmpty())
 			return;
 
+		localStorage.storeLocalTrack(track);
 		localStorage.storeLocalPoints(track, points);
+
 		for (Point point : points) {
 			if (point.hasPhoto()) {
 				fileManager.insertImageUri(Uri.parse(point.getPhotoUrl()));
@@ -319,6 +321,7 @@ public class TrackManager {
 				fileManager.insertAudioUri(Uri.parse(point.getAudioUrl()).toString());
 			}
 		}
+		notifyTracksUpdated();
 		notifyPointsUpdated(track);
 	}
 
@@ -340,10 +343,6 @@ public class TrackManager {
 		allTracksModel.setData(allTracks.values());
 		activeTracksModel.setData(allTracks.values());
 		localTracksModel.setData(allTracks.values());
-	}
-
-	private synchronized void notifyTrackUpdated(Track track) {
-
 	}
 
 	private void checkInitialized() {
