@@ -11,6 +11,7 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.track.AudioService;
@@ -22,10 +23,14 @@ import org.slf4j.LoggerFactory;
 public class CommonFragment extends Fragment {
 	private final static Logger log = LoggerFactory.getLogger(CommonFragment.class);
 
+	public static final String BC_ERROR_MESSAGE = "org.fruct.oss.audioguide.CommonFragment.BC_ERROR_MESSAGE";
+	public static final String BC_ARG_MESSAGE = "message";
+
 	private MenuItem navigateAction;
 	private boolean isWatchActive;
 	private BroadcastReceiver watchReceiver;
 	private BroadcastReceiver audioStopReceiver;
+	private BroadcastReceiver errorReceiver;
 
 	public static CommonFragment newInstance() {
 		return new CommonFragment();
@@ -59,6 +64,14 @@ public class CommonFragment extends Fragment {
 				updateMenuIcon(false);
 			}
 		}, new IntentFilter(AudioService.BC_STOP_SERVICE));
+
+		LocalBroadcastManager.getInstance(getActivity()).registerReceiver(errorReceiver = new BroadcastReceiver() {
+			@Override
+			public void onReceive(Context context, Intent intent) {
+				String message = intent.getStringExtra(BC_ARG_MESSAGE);
+				Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
+			}
+		}, new IntentFilter(CommonFragment.BC_ERROR_MESSAGE));
 	}
 
 	@Override
@@ -70,6 +83,7 @@ public class CommonFragment extends Fragment {
 
 		LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(watchReceiver);
 		LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(audioStopReceiver);
+		LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(errorReceiver);
 	}
 
 	@Override

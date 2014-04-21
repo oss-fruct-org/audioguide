@@ -64,9 +64,10 @@
 
         style="?android:attr/progressBarStyleHorizontal"
         android:layout_width="match_parent"
-        android:layout_height="4dp"
+        android:layout_height="8dp"
         android:layout_alignParentBottom="true"
         android:layout_below="@id/text_layout"
+        android:paddingBottom="2dp"
         android:visibility="invisible"
         />
 </RelativeLayout>

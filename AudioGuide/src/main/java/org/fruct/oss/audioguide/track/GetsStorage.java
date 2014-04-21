@@ -1,13 +1,10 @@
 package org.fruct.oss.audioguide.track;
 
-import android.content.Intent;
 import android.content.SharedPreferences;
-import android.net.Uri;
 import android.preference.PreferenceManager;
 import android.util.Xml;
 
 import org.fruct.oss.audioguide.App;
-import org.fruct.oss.audioguide.parsers.AuthRedirectResponse;
 import org.fruct.oss.audioguide.parsers.GetsException;
 import org.fruct.oss.audioguide.parsers.GetsResponse;
 import org.fruct.oss.audioguide.parsers.IContent;
@@ -22,7 +19,6 @@ import org.xmlpull.v1.XmlSerializer;
 
 import java.io.IOException;
 import java.io.StringWriter;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -142,21 +138,20 @@ public class GetsStorage implements IStorage, IRemoteStorage {
 	}
 
 	@Override
-	public List<Point> getPoints(Track track) {
+	public List<Point> getPoints(Track track) throws IOException {
 		try {
 			String responseString = Utils.downloadUrl(GETS_SERVER + "/loadTrack.php",
 					createLoadTrackRequest(track.getName()));
 			GetsResponse response = GetsResponse.parse(responseString, Kml.class);
 
 			if (response.getCode() != 0) {
-				throw new RuntimeException("NOT IMPLEMENTED YET");
+				throw new RuntimeException("Wrong code from GeTS");
 			}
 
 			Kml kml = ((Kml) response.getContent());
 			return new ArrayList<Point>(kml.getPoints());
-		} catch (Exception e) {
-			log.error("Error: ", e);
-			return Collections.emptyList();
+		} catch (GetsException e) {
+			throw new IOException("Wrong response from GeTS server", e);
 		}
 	}
 

@@ -116,15 +116,27 @@ public class TestDatabaseStorage extends AndroidTestCase {
 
 		assertTrue(track.isLocal());
 		storage.storeLocalPoints(track, points);
-		points = storage.getPoints(track2);
+		try {
+			points = storage.getPoints(track2);
+		} catch (java.io.IOException e) {
+			e.printStackTrace();
+		}
 		assertEquals(0, points.size());
 
-		points = storage.getPoints(track);
+		try {
+			points = storage.getPoints(track);
+		} catch (java.io.IOException e) {
+			e.printStackTrace();
+		}
 		assertEquals(2, points.size());
 
 		reopen();
 
-		points = storage.getPoints(track);
+		try {
+			points = storage.getPoints(track);
+		} catch (java.io.IOException e) {
+			e.printStackTrace();
+		}
 		assertEquals(2, points.size());
 
 		sort(points);
@@ -143,7 +155,10 @@ public class TestDatabaseStorage extends AndroidTestCase {
 
 		reopen();
 
-		List<Point> points = storage.getPoints(track1);
+		try {List<Point> points = storage.getPoints(track1);
+		} catch (java.io.IOException e) {
+			e.printStackTrace();
+		}
 		sort(points);
 
 		assertEquals("XXX", points.get(0).getDescription());
@@ -155,7 +170,11 @@ public class TestDatabaseStorage extends AndroidTestCase {
 		storage.updatePoint(track1, point2);
 		reopen();
 
-		points = storage.getPoints(track1);
+		try {
+			points = storage.getPoints(track1);
+		} catch (java.io.IOException e) {
+			e.printStackTrace();
+		}
 		sort(points);
 
 		assertEquals(2, points.size());

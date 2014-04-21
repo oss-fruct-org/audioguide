@@ -104,6 +104,7 @@ public class FileManager implements SharedPreferences.OnSharedPreferenceChangeLi
 
 					if (response.getCode() != 0) {
 						log.error("Error code returned while downloading files");
+						AUtils.reportError(context, "Can't download GeTS file list");
 						return null;
 					}
 
@@ -264,7 +265,11 @@ public class FileManager implements SharedPreferences.OnSharedPreferenceChangeLi
 
 			while (!Thread.interrupted()) {
 				if (!turn()) {
-					break;
+					try {
+						Thread.sleep(10000);
+					} catch (InterruptedException e) {
+						break;
+					}
 				}
 			}
 		}
@@ -288,6 +293,7 @@ public class FileManager implements SharedPreferences.OnSharedPreferenceChangeLi
 				String localUrl = downloader.downloadRemoteUrl(pendingUrl);
 				if (localUrl == null) {
 					log.error("Can't download file. Stopping thread");
+					AUtils.reportError(context, "Error downloading file");
 					return false;
 				}
 				log.debug("Successfully loaded {}: {}", pendingUrl, localUrl);

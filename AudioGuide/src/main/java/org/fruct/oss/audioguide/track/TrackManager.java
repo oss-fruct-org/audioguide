@@ -8,10 +8,12 @@ import org.fruct.oss.audioguide.App;
 import org.fruct.oss.audioguide.files.FileManager;
 import org.fruct.oss.audioguide.models.FilterModel;
 import org.fruct.oss.audioguide.models.Model;
+import org.fruct.oss.audioguide.util.AUtils;
 import org.fruct.oss.audioguide.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -113,7 +115,11 @@ public class TrackManager {
 		executor.execute(new Runnable() {
 			@Override
 			public void run() {
-				doLoadRemotePoints(track);
+				try {
+					doLoadRemotePoints(track);
+				} catch (IOException e) {
+					AUtils.reportError(App.getContext(), "Can't download points");
+				}
 			}
 		});
 	}
@@ -304,8 +310,9 @@ public class TrackManager {
 	}
 
 	@DatasetModifier
-	private void doLoadRemotePoints(final Track track) {
+	private void doLoadRemotePoints(final Track track) throws IOException {
 		List<Point> points = remoteStorage.getPoints(track);
+
 		if (points == null || points.isEmpty())
 			return;
 

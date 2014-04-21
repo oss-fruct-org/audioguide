@@ -9,6 +9,8 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.support.v4.content.LocalBroadcastManager;
 
+import com.sonyericsson.illumination.IlluminationIntent;
+
 import org.fruct.oss.audioguide.LocationReceiver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -100,6 +102,12 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 		intent.putExtra(ARG_POINT, point);
 
 		LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+/*
+		Intent ledIntent = new Intent(IlluminationIntent.ACTION_START_LED);
+		ledIntent.putExtra(IlluminationIntent.EXTRA_LED_ID, IlluminationIntent.VALUE_BUTTON_RGB);
+		ledIntent.putExtra(IlluminationIntent.EXTRA_LED_COLOR, 0xff00ff00);
+		ledIntent.putExtra(IlluminationIntent.EXTRA_PACKAGE_NAME, "org.fruct.oss.audioguide");
+		startService(ledIntent);*/
 	}
 
 	@Override
@@ -108,6 +116,11 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 		intent.putExtra(ARG_POINT, point);
 
 		LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+/*
+		Intent ledIntent = new Intent(IlluminationIntent.ACTION_STOP_LED);
+		ledIntent.putExtra(IlluminationIntent.EXTRA_PACKAGE_NAME, "org.fruct.oss.audioguide");
+		ledIntent.putExtra(IlluminationIntent.EXTRA_LED_ID, IlluminationIntent.VALUE_BUTTON_RGB);
+		startService(ledIntent);*/
 	}
 
 

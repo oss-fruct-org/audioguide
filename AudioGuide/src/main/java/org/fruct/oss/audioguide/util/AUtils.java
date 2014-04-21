@@ -2,14 +2,17 @@ package org.fruct.oss.audioguide.util;
 
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Build;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.TypedValue;
 import android.view.ContextThemeWrapper;
 
 import org.fruct.oss.audioguide.App;
+import org.fruct.oss.audioguide.fragments.CommonFragment;
 import org.osmdroid.api.IGeoPoint;
 import org.osmdroid.util.GeoPoint;
 
@@ -83,5 +86,11 @@ public class AUtils {
 		// Decode bitmap with inSampleSize set
 		options.inJustDecodeBounds = false;
 		return BitmapFactory.decodeFile(filename, options);
+	}
+
+	public static void reportError(Context context, String errorMessage) {
+		LocalBroadcastManager.getInstance(context).sendBroadcast(
+				new Intent(CommonFragment.BC_ERROR_MESSAGE)
+						.putExtra(CommonFragment.BC_ARG_MESSAGE, errorMessage));
 	}
 }

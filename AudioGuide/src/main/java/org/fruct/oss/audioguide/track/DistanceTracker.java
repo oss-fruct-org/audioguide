@@ -1,6 +1,9 @@
 package org.fruct.oss.audioguide.track;
 
+import android.content.Intent;
 import android.location.Location;
+
+import com.sonyericsson.illumination.IlluminationIntent;
 
 import org.fruct.oss.audioguide.LocationReceiver;
 import org.fruct.oss.audioguide.models.Model;
@@ -104,6 +107,8 @@ public class DistanceTracker implements LocationReceiver.Listener, ModelListener
 	private void notifyPointOutRange(Point point) {
 		for (Listener listener : listeners)
 			listener.pointOutRange(point);
+
+
 
 	}
 

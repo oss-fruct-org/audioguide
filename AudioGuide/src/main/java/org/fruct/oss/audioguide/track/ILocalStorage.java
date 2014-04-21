@@ -1,5 +1,6 @@
 package org.fruct.oss.audioguide.track;
 
+import java.io.IOException;
 import java.util.List;
 
 public interface ILocalStorage extends IStorage {
@@ -20,4 +21,6 @@ public interface ILocalStorage extends IStorage {
 	 * Update point of track
 	 */
 	void updatePoint(Track track, Point point);
+
+	List<Point> getPoints(Track track);
 }
