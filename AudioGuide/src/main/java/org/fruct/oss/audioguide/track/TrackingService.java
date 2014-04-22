@@ -129,7 +129,8 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 		TrackManager trackManager = TrackManager.getInstance();
 
 		distanceTracker = new DistanceTracker(trackManager, locationReceiver);
-		distanceTracker.setRadius(50);
+
+		distanceTracker.setRadius(pref.getInt(SettingsActivity.PREF_RANGE, 50));
 		distanceTracker.addListener(this);
 		distanceTracker.start();
 
