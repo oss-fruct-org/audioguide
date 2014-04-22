@@ -10,6 +10,8 @@ import com.sonyericsson.illumination.IlluminationIntent;
 import org.fruct.oss.audioguide.LocationReceiver;
 import org.fruct.oss.audioguide.models.Model;
 import org.fruct.oss.audioguide.models.ModelListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.util.ArrayList;
@@ -19,6 +21,8 @@ import java.util.List;
 import java.util.Set;
 
 public class DistanceTracker implements LocationReceiver.Listener, ModelListener {
+	private final static Logger log = LoggerFactory.getLogger(DistanceTracker.class);
+
 	private Set<Point> pointsInRange = new HashSet<Point>();
 
 	private TrackManager trackManager;
@@ -54,6 +58,8 @@ public class DistanceTracker implements LocationReceiver.Listener, ModelListener
 	}
 
 	public void start() {
+		log.debug("DistanceTracker stop");
+
 		activeTrackModel.addListener(this);
 
 		locationReceiver.addListener(this);
@@ -63,6 +69,8 @@ public class DistanceTracker implements LocationReceiver.Listener, ModelListener
 	}
 
 	public void stop() {
+		log.debug("DistanceTracker stop");
+
 		clearPointModels();
 		activeTrackModel.removeListener(this);
 

@@ -1,6 +1,9 @@
 package org.fruct.oss.audioguide.track;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.location.Location;
@@ -8,6 +11,7 @@ import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
+import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 
@@ -30,8 +34,20 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 	public static final String ARG_POINT = "ARG_POINT";
 	public static final String ARG_LOCATION = "ARG_LOCATION";
 
+	public static final String ACTION_WAKE = "org.fruct.oss.audioguide.TrackingService.ACTION_WAKE";
+	public static final String ACTION_START = "org.fruct.oss.audioguide.TrackingService.ACTION_START";
+
+	public static final String ACTION_ACQUIRE_WAKE_LOCK = "org.fruct.oss.audioguide.TrackingService.ACTION_ACQUIRE_WAKE_LOCK";
+	public static final String ACTION_RELEASE_WAKE_LOCK = "org.fruct.oss.audioguide.TrackingService.ACTION_RELEASE_WAKE_LOCK";
+
+	private boolean isWakeMode = false;
+	
 	private DistanceTracker distanceTracker;
 	private LocationReceiver locationReceiver;
+	private AlarmManager alarmManager;
+	private PendingIntent pendingIntent;
+	private PowerManager powerManager;
+	private PowerManager.WakeLock wakeLock;
 
 	public TrackingService() {
 	}
@@ -69,6 +85,27 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 	}
 
 	@Override
+	public int onStartCommand(Intent intent, int flags, int startId) {
+		String action = intent.getAction();
+		if (action != null) {
+			if (action.equals(ACTION_WAKE)) {
+				log.debug("ACTION_WAKE triggered");
+
+				if (wakeLock != null && wakeLock.isHeld()) {
+					wakeLock.acquire(30000);
+				}
+			} else if (action.equals(ACTION_ACQUIRE_WAKE_LOCK)) {
+				acquireWakeLock();
+				isWakeMode = true;
+			} else if (action.equals(ACTION_RELEASE_WAKE_LOCK)) {
+				releaseWakeLock();
+				isWakeMode = false;
+			}
+		}
+		return super.onStartCommand(intent, flags, startId);
+	}
+
+	@Override
 	public void onCreate() {
 		super.onCreate();
 		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
@@ -99,7 +136,38 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 		distanceTracker.removeListener(this);
 
 		log.info("TrackingService onDestroy");
+		releaseWakeLock();
+	}
 
+	private void acquireWakeLock() {
+		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
+		if (!pref.getBoolean(SettingsActivity.PREF_WAKE, true)) {
+			return;
+		}
+
+		// Schedule periodical service wake
+		Intent wakeIntent = new Intent(ACTION_WAKE, null, this, TrackingService.class);
+		pendingIntent = PendingIntent.getService(this, 0, wakeIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+		alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+		alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 10000, 10000, pendingIntent);
+
+		powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
+		wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "audio-guide-wake-lock");
+		wakeLock.setReferenceCounted(false);
+		wakeLock.acquire(30000);
+	}
+
+	private void releaseWakeLock() {
+		if (pendingIntent != null) {
+			alarmManager.cancel(pendingIntent);
+			pendingIntent = null;
+		}
+
+		if (powerManager != null) {
+			wakeLock.release();
+			log.debug("Wake lock state after release: {}", wakeLock.isHeld() ? "Still acquired!" : "Released");
+			powerManager = null;
+		}
 	}
 
 	private TrackingServiceBinder binder = new TrackingServiceBinder();
@@ -176,6 +244,16 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 			int newRange = sharedPreferences.getInt(s, 50);
 			if (distanceTracker != null)
 				distanceTracker.setRadius(newRange);
+		} else if (s.equals(SettingsActivity.PREF_WAKE)) {
+			if (sharedPreferences.getBoolean(s, true)) {
+				if (isWakeMode) {
+					acquireWakeLock();
+				}
+			} else {
+				if (!isWakeMode) {
+					releaseWakeLock();
+				}
+			}
 		}
 	}
 

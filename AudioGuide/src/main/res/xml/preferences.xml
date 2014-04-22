@@ -8,4 +8,11 @@
         android:key="pref-range"
         android:max="1000"
         android:defaultValue="50"/>
+
+    <CheckBoxPreference
+        android:title="Wake mode"
+        android:summary="Keep device awake while tracking"
+        android:key="pref_wake"
+        android:defaultValue="true"
+        />
 </PreferenceScreen>

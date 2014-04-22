@@ -101,11 +101,16 @@ public class CommonFragment extends Fragment {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case R.id.action_navigate:
-			if (isWatchActive)
+			if (isWatchActive) {
+				getActivity().startService(new Intent(TrackingService.ACTION_RELEASE_WAKE_LOCK,
+								null, getActivity(), TrackingService.class));
 				getActivity().stopService(new Intent(getActivity(), AudioService.class));
-			else
+			} else {
 				getActivity().startService(new Intent(AudioService.ACTION_WATCH_POINTS, null,
 						getActivity(), AudioService.class));
+				getActivity().startService(new Intent(TrackingService.ACTION_ACQUIRE_WAKE_LOCK,
+						null, getActivity(), TrackingService.class));
+			}
 
 			return true;
 
