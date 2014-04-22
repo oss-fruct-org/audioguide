@@ -263,6 +263,7 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 
 	@Override
 	public void onSaveInstanceState(Bundle outState) {
+		log.debug("MapFragment onSaveInstanceState");
 		super.onSaveInstanceState(outState);
 
 		IGeoPoint screenPos = mapView.getMapCenter();

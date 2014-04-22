@@ -513,7 +513,7 @@ public class MainActivity extends ActionBarActivity
 			return fragment;
 		}
 
-		public Fragment.SavedState getStage() {
+		public Fragment.SavedState getState() {
 			if (fragment == null) {
 				return state;
 			} else {
@@ -529,7 +529,7 @@ public class MainActivity extends ActionBarActivity
 		@Override
 		public void writeToParcel(Parcel parcel, int i) {
 			if (state == null && fragment != null) {
-				state = getStage();
+				state = getState();
 			}
 
 			parcel.writeParcelable(state, i);
