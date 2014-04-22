@@ -118,6 +118,10 @@ canvas.drawCircle(0, 0, pixels, paintRad);
 		this.location = myLocation;
 	}
 
+	public Location getLocation() {
+		return location;
+	}
+
 	public void setShowAccuracy(boolean isShow) {
 		this.isPaintAccuracy = isShow;
 	}

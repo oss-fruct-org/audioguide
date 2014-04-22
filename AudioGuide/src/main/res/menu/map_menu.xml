@@ -6,8 +6,14 @@
           android:icon="@drawable/ic_action_accept"
           android:title="Place"
           app:showAsAction="ifRoom"/>
+
     <item android:id="@+id/action_add"
           android:icon="@drawable/ic_action_new"
           android:title="Add point"
+          app:showAsAction="ifRoom" />
+
+    <item android:id="@+id/action_find_me"
+          android:icon="@drawable/ic_action_location_found"
+          android:title="Find me"
           app:showAsAction="always" />
 </menu>

@@ -129,6 +129,16 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 		case R.id.action_add:
 			startAddingPoint();
 			break;
+		case R.id.action_find_me:
+			if (myPositionOverlay != null) {
+				GeoPoint newMapCenter = new GeoPoint(myPositionOverlay.getLocation());
+				if (mapView.getZoomLevel() < 15) {
+					mapView.getController().setZoom(15);
+				}
+
+				mapView.getController().animateTo(newMapCenter);
+			}
+			break;
 		}
 		return super.onOptionsItemSelected(item);
 	}
@@ -151,6 +161,8 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 							 Bundle savedInstanceState) {
+		log.debug("MapFragment.onCreateView");
+
 		// Inflate the layout for this fragment
 		View view = inflater.inflate(R.layout.fragment_map, container, false);
 		assert view != null;
@@ -162,6 +174,18 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 		createCenterOverlay();
 		updatePointsOverlay();
 		createMyPositionOverlay();
+
+		if (savedInstanceState != null) {
+			GeoPoint mapCenter = new GeoPoint(savedInstanceState.getInt("map-center-lat"),
+					savedInstanceState.getInt("map-center-lon"));
+			int zoom = savedInstanceState.getInt("zoom");
+
+			mapView.getController().setZoom(zoom);
+			mapView.getController().setCenter(mapCenter);
+		} else {
+			mapView.getController().setZoom(15);
+			mapView.getController().setCenter(new GeoPoint(61.783333, 34.35));
+		}
 
 		for (Overlay overlay : mapView.getOverlays()) {
 			log.debug("OVERLAY: {}", overlay.getClass().getName());
@@ -237,6 +261,17 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 		}
 	}
 
+	@Override
+	public void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
+
+		IGeoPoint screenPos = mapView.getMapCenter();
+		int zoom = mapView.getZoomLevel();
+
+		outState.putInt("map-center-lat", screenPos.getLatitudeE6());
+		outState.putInt("map-center-lon", screenPos.getLongitudeE6());
+		outState.putInt("zoom", zoom);
+	}
 
 	private void setupBottomPanel() {
 		bottomToolbar = (ViewGroup) getView().findViewById(R.id.map_toolbar);
@@ -308,8 +343,6 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 		mapView.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
 
 		mapView.setMultiTouchControls(true);
-		mapView.getController().setZoom(15);
-		mapView.getController().setCenter(new GeoPoint(61.783333, 34.35));
 
 		layout.addView(mapView);
 
