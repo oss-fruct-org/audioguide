@@ -7,8 +7,8 @@ import android.preference.PreferenceActivity;
 import org.fruct.oss.audioguide.R;
 
 public class SettingsActivity extends PreferenceActivity implements SharedPreferences.OnSharedPreferenceChangeListener {
-	public static final String PREF_RANGE = "pref-range";
-	public static final String PREF_WAKE = "pref-wake";
+	public static final String PREF_RANGE = "pref_range";
+	public static final String PREF_WAKE = "pref_wake";
 	private SliderPreference rangePreference;
 	private SharedPreferences pref;
 

@@ -91,6 +91,19 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 			if (action.equals(ACTION_WAKE)) {
 				log.debug("ACTION_WAKE triggered");
 
+				// This normally shouldn't be executed, only after application crash
+				if (!isWakeMode) {
+					log.debug("Disabling wake alarm");
+					alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+					alarmManager.cancel(createWakePendingIntent());
+
+					if (wakeLock != null && wakeLock.isHeld()) {
+						wakeLock.release();
+					}
+
+					stopSelf();
+				}
+
 				if (wakeLock != null && wakeLock.isHeld()) {
 					wakeLock.acquire(30000);
 				}
@@ -146,15 +159,23 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 		}
 
 		// Schedule periodical service wake
-		Intent wakeIntent = new Intent(ACTION_WAKE, null, this, TrackingService.class);
-		pendingIntent = PendingIntent.getService(this, 0, wakeIntent, PendingIntent.FLAG_CANCEL_CURRENT);
-		alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-		alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 10000, 10000, pendingIntent);
+		if (pendingIntent == null) {
+			pendingIntent = createWakePendingIntent();
+			alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+			alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 10000, 10000, pendingIntent);
+		}
 
-		powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
-		wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "audio-guide-wake-lock");
-		wakeLock.setReferenceCounted(false);
-		wakeLock.acquire(30000);
+		if (powerManager == null) {
+			powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
+			wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "audio-guide-wake-lock");
+			wakeLock.setReferenceCounted(false);
+			wakeLock.acquire(30000);
+		}
+	}
+
+	private PendingIntent createWakePendingIntent() {
+		Intent wakeIntent = new Intent(ACTION_WAKE, null, this, TrackingService.class);
+		return PendingIntent.getService(this, 0, wakeIntent, PendingIntent.FLAG_CANCEL_CURRENT);
 	}
 
 	private void releaseWakeLock() {
@@ -250,7 +271,7 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 					acquireWakeLock();
 				}
 			} else {
-				if (!isWakeMode) {
+				if (isWakeMode) {
 					releaseWakeLock();
 				}
 			}

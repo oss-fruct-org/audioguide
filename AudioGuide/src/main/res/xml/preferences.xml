@@ -5,7 +5,7 @@
         android:title="Range"
         android:summary="@plurals/pref_seek_bar_summary"
         android:text="@plurals/pref_seek_bar_summary"
-        android:key="pref-range"
+        android:key="pref_range"
         android:max="1000"
         android:defaultValue="50"/>
 
