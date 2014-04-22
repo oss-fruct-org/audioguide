@@ -13,6 +13,7 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="title_activity_file_chooser">Choose File</string>
     <string name="hello_world">Hello world!</string>
+    <string name="settings">Settings</string>
 
 
     <string-array name="track_spinner_array">
@@ -23,4 +24,9 @@
         <item>Active</item>
 
     </string-array>
+    
+    <plurals name="pref_seek_bar_summary">
+        <item quantity="one">Play sound if point nearer than %d meter</item>
+        <item quantity="other">Play sound if point nearer than %d meters</item>
+    </plurals>
 </resources>

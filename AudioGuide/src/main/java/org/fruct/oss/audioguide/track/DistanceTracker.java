@@ -1,7 +1,9 @@
 package org.fruct.oss.audioguide.track;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.location.Location;
+import android.preference.PreferenceManager;
 
 import com.sonyericsson.illumination.IlluminationIntent;
 
@@ -17,14 +19,12 @@ import java.util.List;
 import java.util.Set;
 
 public class DistanceTracker implements LocationReceiver.Listener, ModelListener {
-	public static final float MIN_DISTANCE = 50;
-
 	private Set<Point> pointsInRange = new HashSet<Point>();
 
 	private TrackManager trackManager;
 	private LocationReceiver locationReceiver;
 	private List<Listener> listeners = new ArrayList<Listener>();
-	private float radius = MIN_DISTANCE;
+	private int radius;
 
 	private final Model<Track> activeTrackModel;
 	private List<PointModelHolder> pointModels = new ArrayList<PointModelHolder>();
@@ -112,7 +112,7 @@ public class DistanceTracker implements LocationReceiver.Listener, ModelListener
 
 	}
 
-	public void setRadius(float radius) {
+	public void setRadius(int radius) {
 		this.radius = radius;
 	}
 

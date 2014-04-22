@@ -2,22 +2,25 @@ package org.fruct.oss.audioguide.track;
 
 import android.app.Service;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.location.Location;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
+import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 
 import com.sonyericsson.illumination.IlluminationIntent;
 
 import org.fruct.oss.audioguide.LocationReceiver;
+import org.fruct.oss.audioguide.preferences.SettingsActivity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-public class TrackingService extends Service implements DistanceTracker.Listener, LocationReceiver.Listener {
+public class TrackingService extends Service implements DistanceTracker.Listener, LocationReceiver.Listener, SharedPreferences.OnSharedPreferenceChangeListener {
 	private final static Logger log = LoggerFactory.getLogger(TrackingService.class);
 
 	public static final String BC_ACTION_POINT_IN_RANGE = "BC_ACTION_POINT_IN_RANGE";
@@ -68,11 +71,12 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 	@Override
 	public void onCreate() {
 		super.onCreate();
+		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
+
 		log.info("TrackingService onCreate");
 
 		locationReceiver = new LocationReceiver(this);
 		TrackManager trackManager = TrackManager.getInstance();
-
 
 		distanceTracker = new DistanceTracker(trackManager, locationReceiver);
 		distanceTracker.setRadius(50);
@@ -81,17 +85,21 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 
 		locationReceiver.addListener(this);
 
+		pref.registerOnSharedPreferenceChangeListener(this);
 		//startLocationTrack();
 	}
 
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
+		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
+		pref.unregisterOnSharedPreferenceChangeListener(this);
 
 		distanceTracker.stop();
 		distanceTracker.removeListener(this);
 
 		log.info("TrackingService onDestroy");
+
 	}
 
 	private TrackingServiceBinder binder = new TrackingServiceBinder();
@@ -160,6 +168,15 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 
 	public void sendLastLocation() {
 		locationReceiver.sendLastLocation();
+	}
+
+	@Override
+	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
+		if (s.equals(SettingsActivity.PREF_RANGE)) {
+			int newRange = sharedPreferences.getInt(s, 50);
+			if (distanceTracker != null)
+				distanceTracker.setRadius(newRange);
+		}
 	}
 
 	public class TrackingServiceBinder extends Binder {

@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -17,6 +18,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.view.LayoutInflater;
@@ -35,6 +37,7 @@ import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.fragments.edit.EditPointDialog;
 import org.fruct.oss.audioguide.overlays.EditOverlay;
 import org.fruct.oss.audioguide.overlays.MyPositionOverlay;
+import org.fruct.oss.audioguide.preferences.SettingsActivity;
 import org.fruct.oss.audioguide.track.AudioService;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.Track;
@@ -65,7 +68,7 @@ import static android.view.ViewGroup.LayoutParams;
  * create an instance of this fragment.
  *
  */
-public class MapFragment extends Fragment {
+public class MapFragment extends Fragment implements SharedPreferences.OnSharedPreferenceChangeListener {
 	private final static Logger log = LoggerFactory.getLogger(MapFragment.class);
 
 	private MapView mapView;
@@ -106,6 +109,9 @@ public class MapFragment extends Fragment {
 
 		trackManager = TrackManager.getInstance();
 		setHasOptionsMenu(true);
+
+		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getActivity());
+		pref.registerOnSharedPreferenceChangeListener(this);
 	}
 
 	@Override
@@ -156,7 +162,6 @@ public class MapFragment extends Fragment {
 		createCenterOverlay();
 		updatePointsOverlay();
 		createMyPositionOverlay();
-		createEditOverlay();
 
 		for (Overlay overlay : mapView.getOverlays()) {
 			log.debug("OVERLAY: {}", overlay.getClass().getName());
@@ -210,6 +215,9 @@ public class MapFragment extends Fragment {
 	public void onDestroy() {
 		log.trace("MapFragment onDestroy");
 		super.onDestroy();
+
+		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getActivity());
+		pref.unregisterOnSharedPreferenceChangeListener(this);
 
 		for (EditOverlay trackOverlay : trackOverlays) {
 			trackOverlay.close();
@@ -373,6 +381,9 @@ public class MapFragment extends Fragment {
 	private void createMyPositionOverlay() {
 		myPositionOverlay = new MyPositionOverlay(getActivity(), mapView);
 		mapView.getOverlays().add(myPositionOverlay);
+
+		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getActivity());
+		myPositionOverlay.setRange(pref.getInt(SettingsActivity.PREF_RANGE, 50));
 	}
 
 	private void createClickHandlerOverlay() {
@@ -398,24 +409,6 @@ public class MapFragment extends Fragment {
 		mapView.getOverlays().add(clickHandlerOverlay);
 	}
 
-	private void createEditOverlay() {
-		/*Track globalEditTrack = trackManager.getEditingTrack();
-
-		if (globalEditTrack != null) {
-			editTrack = globalEditTrack;
-
-			Model<Point> pointsModel = trackManager.getPointsModel(editTrack);
-			editOverlay = new EditOverlay<Point>(getActivity(), pointsModel);
-
-			for (Point point : pointsModel) {
-				editOverlay.addPoint(new GeoPoint(point.getLatE6(), point.getLonE6()), point);
-			}
-
-			editOverlay.setListener(editOverlayListener);
-			mapView.getOverlays().add(editOverlay);
-		}*/
-	}
-
 	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 	private void setHardwareAccelerationOff() {
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
@@ -433,6 +426,15 @@ public class MapFragment extends Fragment {
 		if (mapView != null) {
 			mapView.getController().setZoom(zoom);
 			mapView.getController().animateTo(geoPoint);
+		}
+	}
+
+	@Override
+	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
+		if (s.equals(SettingsActivity.PREF_RANGE)) {
+			if (myPositionOverlay != null) {
+				myPositionOverlay.setRange(sharedPreferences.getInt(s, 50));
+			}
 		}
 	}
 

@@ -118,7 +118,8 @@ public class TrackManager {
 				try {
 					doLoadRemotePoints(track);
 				} catch (IOException e) {
-					AUtils.reportError(App.getContext(), "Can't download points");
+					log.error("Can't refresh points: ", e);
+					AUtils.reportError(App.getContext(), "Can't download points: " + e.getMessage());
 				}
 			}
 		});

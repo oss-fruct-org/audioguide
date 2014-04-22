@@ -26,6 +26,11 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name="org.fruct.oss.audioguide.preferences.SettingsActivity"
+            android:label="@string/settings" >
+        </activity>
+
         <service
             android:name="org.fruct.oss.audioguide.track.TrackingService"
             android:enabled="true"
@@ -36,11 +41,6 @@
             android:enabled="true"
             android:exported="false" >
         </service>
-
-        <activity
-            android:name="org.fruct.oss.audioguide.FileChooserActivity"
-            android:label="@string/title_activity_file_chooser" >
-        </activity>
     </application>
 
 </manifest>

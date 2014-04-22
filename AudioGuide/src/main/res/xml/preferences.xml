@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <org.fruct.oss.audioguide.preferences.SliderPreference
+        android:title="Range"
+        android:summary="@plurals/pref_seek_bar_summary"
+        android:text="@plurals/pref_seek_bar_summary"
+        android:key="pref-range"
+        android:max="1000"
+        android:defaultValue="50"/>
+</PreferenceScreen>

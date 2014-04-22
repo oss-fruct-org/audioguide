@@ -36,11 +36,12 @@ public class MyPositionOverlay extends Overlay {
 	private Paint paintAccuracy;
 	private Paint paintRad;
 
-
 	private boolean isPaintAccuracy = true;
 
 	private int arrowWidth;
 	private int arrowHeight;
+
+	private int range = 50;
 
 	public MyPositionOverlay(Context ctx, MapView mapView) {
 		super(ctx);
@@ -89,7 +90,7 @@ public class MyPositionOverlay extends Overlay {
 		canvas.translate(point.x, point.y);
 
 		if (isPaintAccuracy) {
-			float pixels = 2 * proj.metersToEquatorPixels(DistanceTracker.MIN_DISTANCE);
+			float pixels = 2 * proj.metersToEquatorPixels(range);
 			canvas.drawCircle(0, 0, pixels, paintAccuracy);
 		}/* else {
 float pixels = 2 * proj.metersToEquatorPixels(45);
@@ -135,5 +136,9 @@ canvas.drawCircle(0, 0, pixels, paintRad);
 
 	public void clearListener() {
 		this.listener = null;
+	}
+
+	public void setRange(int range) {
+		this.range = range;
 	}
 }
