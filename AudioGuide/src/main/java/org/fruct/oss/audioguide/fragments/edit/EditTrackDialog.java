@@ -35,6 +35,7 @@ public class EditTrackDialog extends DialogFragment implements DialogInterface.O
 	public EditTrackDialog(Track track) {
 		if (track == null) {
 			this.track = new Track();
+			this.track.setPrivate(true);
 			isNewTracks = true;
 		} else {
 			this.track = track;

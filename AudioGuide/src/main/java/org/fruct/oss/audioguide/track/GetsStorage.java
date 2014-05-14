@@ -32,8 +32,8 @@ public class GetsStorage implements IStorage, IRemoteStorage {
 
 	public static final String PREF_AUTH_TOKEN = "pref-auth-token";
 
-	//public static final String GETS_SERVER = "http://getsi.no-ip.info/getslocal";
-	public static final String GETS_SERVER = "http://oss.fruct.org/projects/gets/service";
+	public static final String GETS_SERVER = "http://getsi.no-ip.info/getslocal";
+	//public static final String GETS_SERVER = "http://oss.fruct.org/projects/gets/service";
 
 	public static final String LOAD_TRACK_REQUEST = "<request><params>" +
 			"%s" +
@@ -91,17 +91,12 @@ public class GetsStorage implements IStorage, IRemoteStorage {
 	}
 
 	private List<Track> loadPrivateTracks() throws Exception {
-		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(App.getContext());
-		String token = pref.getString(PREF_AUTH_TOKEN, null);
-		if (token == null)
-			return Collections.emptyList();
-
 		String responseString = Utils.downloadUrl(GETS_SERVER + "/loadTracks.php",
 				createLoadTracksRequest());
 		GetsResponse response = GetsResponse.parse(responseString, TracksContent.class);
 
 		if (response.getCode() != 0) {
-			return Collections.emptyList();
+			throw new RuntimeException("Wrong code from GeTS");
 		}
 
 		TracksContent tracksContent = ((TracksContent) response.getContent());

@@ -86,6 +86,10 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
+		if (intent == null) {
+			return super.onStartCommand(intent, flags, startId);
+		}
+
 		String action = intent.getAction();
 		if (action != null) {
 			if (action.equals(ACTION_WAKE)) {

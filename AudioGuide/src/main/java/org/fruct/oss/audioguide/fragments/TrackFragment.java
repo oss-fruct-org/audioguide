@@ -79,8 +79,6 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 		if (savedInstanceState != null) {
 			selectedSpinnerItem = savedInstanceState.getInt(STATE_SPINNER_STATE);
 		}
-		
-		
 	}
 
 	@Override
@@ -236,6 +234,7 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 		super.onCreateOptionsMenu(menu, inflater);
 
 		inflater.inflate(R.menu.refresh, menu);
+		inflater.inflate(R.menu.edit_track_menu, menu);
 	}
 
 	@Override
@@ -249,6 +248,11 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 		switch (item.getItemId()) {
 		case R.id.action_refresh:
 			trackManager.refresh();
+			break;
+		case R.id.action_add:
+			EditTrackDialog dialog = new EditTrackDialog(null);
+			dialog.setListener(editDialogListener);
+			dialog.show(getFragmentManager(), "edit-track-dialog");
 			break;
 		}
 
