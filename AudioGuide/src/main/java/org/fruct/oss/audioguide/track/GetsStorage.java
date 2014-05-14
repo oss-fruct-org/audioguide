@@ -35,11 +35,6 @@ public class GetsStorage implements IStorage, IRemoteStorage {
 	//public static final String GETS_SERVER = "http://getsi.no-ip.info/getslocal";
 	public static final String GETS_SERVER = "http://oss.fruct.org/projects/gets/service";
 
-	public static final String LOAD_TRACKS_REQUEST = "<request><params>" +
-			"%s" + // Token may be empty
-			"<!--<category_name>audio_tracks</category_name>-->" +
-			"</params></request>";
-
 	public static final String LOAD_TRACK_REQUEST = "<request><params>" +
 			"%s" +
 			"<name>%s</name>" +
@@ -85,29 +80,14 @@ public class GetsStorage implements IStorage, IRemoteStorage {
 	@Override
 	public void load() {
 		try {
-			List<Track> publicTracks = loadPublicTracks();
-			List<Track> privateTracks = loadPrivateTracks();
+			List<Track> allTracks = loadPrivateTracks();
 
 			loadedTracks = new ArrayList<Track>();
-			loadedTracks.addAll(publicTracks);
-			loadedTracks.addAll(privateTracks);
+			loadedTracks.addAll(allTracks);
 		} catch (Exception e) {
 			log.warn("Error: ", e);
 			loadedTracks = Collections.emptyList();
 		}
-	}
-
-	private List<Track> loadPublicTracks() throws Exception {
-		String responseString = Utils.downloadUrl(GETS_SERVER + "/loadTracks.php",
-				String.format(Locale.ROOT, LOAD_TRACKS_REQUEST, "<!-- public request -->"));
-		GetsResponse response = GetsResponse.parse(responseString, TracksContent.class);
-
-		if (response.getCode() != 0) {
-			throw new RuntimeException("Error code from GetsServer " + response.getCode());
-		}
-
-		TracksContent tracksContent = ((TracksContent) response.getContent());
-		return tracksContent.getTracks();
 	}
 
 	private List<Track> loadPrivateTracks() throws Exception {
@@ -125,10 +105,6 @@ public class GetsStorage implements IStorage, IRemoteStorage {
 		}
 
 		TracksContent tracksContent = ((TracksContent) response.getContent());
-		for (Track track : tracksContent.getTracks()) {
-			track.setPrivate(true);
-		}
-
 		return tracksContent.getTracks();
 	}
 
@@ -272,7 +248,24 @@ public class GetsStorage implements IStorage, IRemoteStorage {
 	}
 
 	private String createLoadTracksRequest() {
-		return String.format(LOAD_TRACKS_REQUEST, createTokenTag());
+		try {
+			XmlSerializer serializer = Xml.newSerializer();
+			StringWriter writer = new StringWriter();
+			serializer.setOutput(writer);
+
+			serializer.startDocument("UTF-8", true);
+			serializer.startTag(null, "request").startTag(null, "params");
+
+			writeTokenTag(serializer);
+			serializer.startTag(null, "space").text("all").endTag(null, "space");
+			serializer.endTag(null, "params").endTag(null, "request");
+			serializer.flush();
+
+			return writer.toString();
+		} catch (IOException e) {
+			log.error("Can't create xml document: ", e);
+			return null;
+		}
 	}
 
 	private String createLoadTrackRequest(String trackName) {
@@ -323,8 +316,7 @@ public class GetsStorage implements IStorage, IRemoteStorage {
 	}
 
 	private String createTokenTag() {
-		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(App.getContext());
-		String token = pref.getString(PREF_AUTH_TOKEN, null);
+		String token = getAuthToken();
 		if (token == null)
 			return "";
 		else
@@ -332,10 +324,14 @@ public class GetsStorage implements IStorage, IRemoteStorage {
 	}
 
 	private void writeTokenTag(XmlSerializer serializer) throws IOException {
-		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(App.getContext());
-		String token = pref.getString(PREF_AUTH_TOKEN, null);
+		String token = getAuthToken();
 		if (token != null) {
 			serializer.startTag(null, "auth_token").text(token).endTag(null, "auth_token");
 		}
+	}
+
+	private String getAuthToken() {
+		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(App.getContext());
+		return pref.getString(PREF_AUTH_TOKEN, null);
 	}
 }

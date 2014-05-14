@@ -52,14 +52,16 @@ public class TracksContent implements IContent {
 		String description = "";
 		String url = "";
 		String hname = null;
+		String access = "r";
 
 		while (parser.next() != XmlPullParser.END_TAG) {
 			if (parser.getEventType() != XmlPullParser.START_TAG)
 				continue;
 
 			String tagName = parser.getName();
-
-			if (tagName.equals("hname")) {
+			if (tagName.equals("rw")) {
+				access = GetsResponse.readText(parser);
+			} if (tagName.equals("hname")) {
 				hname = GetsResponse.readText(parser);
 			} else if (tagName.equals("name")) {
 				name = GetsResponse.readText(parser);
@@ -73,6 +75,7 @@ public class TracksContent implements IContent {
 		parser.require(XmlPullParser.END_TAG, null, "track");
 		track = new Track(name, description, url);
 		track.setHname(hname);
+		track.setPrivate(access.equals("rw"));
 		return track;
 	}
 }
