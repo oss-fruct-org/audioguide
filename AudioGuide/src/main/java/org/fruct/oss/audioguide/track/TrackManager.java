@@ -275,13 +275,8 @@ public class TrackManager {
 	@DatasetModifier
 	public void sendTrack(final Track track) {
 		if (remoteStorage instanceof IRemoteStorage) {
-			executor.execute(new Runnable() {
-				@Override
-				public void run() {
-					List<Point> points = localStorage.getPoints(track);
-					((IRemoteStorage) remoteStorage).sendTrack(track, points);
-				}
-			});
+			List<Point> points = localStorage.getPoints(track);
+			((IRemoteStorage) remoteStorage).sendTrack(track, points);
 		}
 	}
 
