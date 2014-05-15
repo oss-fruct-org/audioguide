@@ -1,11 +1,16 @@
 package org.fruct.oss.audioguide.track;
 
 import android.content.SharedPreferences;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.preference.PreferenceManager;
 import android.util.Xml;
 
 import org.fruct.oss.audioguide.App;
 import org.fruct.oss.audioguide.gets.Gets;
+import org.fruct.oss.audioguide.gets.LoadTrackRequest;
+import org.fruct.oss.audioguide.gets.LoadTracksRequest;
 import org.fruct.oss.audioguide.parsers.GetsException;
 import org.fruct.oss.audioguide.parsers.GetsResponse;
 import org.fruct.oss.audioguide.parsers.IContent;
@@ -33,12 +38,6 @@ public class GetsStorage implements IStorage, IRemoteStorage {
 
 	public static final String PREF_AUTH_TOKEN = "pref-auth-token";
 
-
-	public static final String LOAD_TRACK_REQUEST = "<request><params>" +
-			"%s" +
-			"<name>%s</name>" +
-			"</params></request>";
-
 	public static final String CREATE_TRACK = "<request><params>" +
 			"%s" +
 			"<name>%s</name>" +
@@ -52,9 +51,6 @@ public class GetsStorage implements IStorage, IRemoteStorage {
 			"<name>%s</name>" +
 			"</params></request>";
 
-	public static final String LOGIN_STAGE_1 = "<request><params></params></request>";
-	public static final String LOGIN_STAGE_2 = "<request><params><id>%s</id></params></request>";
-
 	public static final String LIST_FILES = "<request><params>" +
 			"<auth_token>%s</auth_token>" +
 			"</params></request>";
@@ -64,7 +60,7 @@ public class GetsStorage implements IStorage, IRemoteStorage {
 			"<title>%s</title>" +
 			"</params></request>";
 
-	private List<Track> loadedTracks;
+	private ArrayList<Track> loadedTracks;
 
 	@Override
 	public void initialize() {
@@ -77,52 +73,41 @@ public class GetsStorage implements IStorage, IRemoteStorage {
 	}
 
 	@Override
-	public void load() {
-		try {
-			List<Track> allTracks = loadPrivateTracks();
+	public void loadAsync(final Handler handler) {
+		Gets gets = Gets.getInstance();
+		gets.addRequest(new LoadTracksRequest(gets) {
+			@Override
+			protected void onPostProcess(GetsResponse response) {
+				TracksContent tracksContent = ((TracksContent) response.getContent());
+				loadedTracks = new ArrayList<Track>(tracksContent.getTracks());
 
-			loadedTracks = new ArrayList<Track>();
-			loadedTracks.addAll(allTracks);
-		} catch (Exception e) {
-			log.warn("Error: ", e);
-			loadedTracks = Collections.emptyList();
-		}
-	}
+				Message message = new Message();
+				Bundle data = new Bundle();
+				data.putParcelableArrayList("tracks", loadedTracks);
+				message.setData(data);
 
-	private List<Track> loadPrivateTracks() throws Exception {
-		String responseString = Utils.downloadUrl(Gets.GETS_SERVER + "/loadTracks.php",
-				createLoadTracksRequest());
-		GetsResponse response = GetsResponse.parse(responseString, TracksContent.class);
-
-		if (response.getCode() != 0) {
-			throw new RuntimeException("Wrong code from GeTS");
-		}
-
-		TracksContent tracksContent = ((TracksContent) response.getContent());
-		return tracksContent.getTracks();
-	}
-
-	@Override
-	public List<Track> getTracks() {
-		return loadedTracks;
-	}
-
-	@Override
-	public List<Point> getPoints(Track track) throws IOException {
-		try {
-			String responseString = Utils.downloadUrl(Gets.GETS_SERVER + "/loadTrack.php",
-					createLoadTrackRequest(track.getName()));
-			GetsResponse response = GetsResponse.parse(responseString, Kml.class);
-
-			if (response.getCode() != 0) {
-				throw new RuntimeException("Wrong code from GeTS");
+				handler.sendMessage(message);
 			}
+		});
+	}
 
-			Kml kml = ((Kml) response.getContent());
-			return new ArrayList<Point>(kml.getPoints());
-		} catch (GetsException e) {
-			throw new IOException("Wrong response from GeTS server", e);
-		}
+	@Override
+	public void loadPoints(Track track, final Handler handler) {
+		Gets gets = Gets.getInstance();
+		gets.addRequest(new LoadTrackRequest(gets, track.getName()) {
+			@Override
+			protected void onPostProcess(GetsResponse response) {
+				Kml kml = ((Kml) response.getContent());
+				ArrayList<Point> ret = new ArrayList<Point>(kml.getPoints());
+
+				Message message = new Message();
+				Bundle data = new Bundle();
+				data.putParcelableArrayList("points", ret);
+				message.setData(data);
+
+				handler.sendMessage(message);
+			}
+		});
 	}
 
 	@Override
@@ -240,45 +225,6 @@ public class GetsStorage implements IStorage, IRemoteStorage {
 		else
 			return "";
 	}
-
-	private String createLoadTracksRequest() {
-		try {
-			XmlSerializer serializer = Xml.newSerializer();
-			StringWriter writer = new StringWriter();
-			serializer.setOutput(writer);
-
-			serializer.startDocument("UTF-8", true);
-			serializer.startTag(null, "request").startTag(null, "params");
-
-			writeTokenTag(serializer);
-			serializer.startTag(null, "space").text("all").endTag(null, "space");
-			serializer.endTag(null, "params").endTag(null, "request");
-			serializer.flush();
-
-			return writer.toString();
-		} catch (IOException e) {
-			log.error("Can't create xml document: ", e);
-			return null;
-		}
-	}
-
-	private String createLoadTrackRequest(String trackName) {
-		return String.format(LOAD_TRACK_REQUEST, createTokenTag(), trackName);
-	}
-
-	/*
-			"<request><params>" +
-			"%s" +
-			"<channel>%s</channel>" +
-			"<title>%s</title>" +
-			"<description>%s</description>" +
-			"<link>%s</link>" +
-			"<latitude>%f</latitude>" +
-			"<longitude>%f</longitude>" +
-			"<altitude>%f</altitude>" +
-			"<time>%s</time>" +
-			"</params></request>"
-	 */
 
 	private String createAddPointRequest(String trackName, String pointName, String description,
 										 String url, double lat, double lon, double alt, String timeStr) {

@@ -1,5 +1,8 @@
 package org.fruct.oss.audioguide.track;
 
+import android.os.Handler;
+import android.os.Message;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -64,13 +67,19 @@ public class ArrayStorage implements ILocalStorage {
 	public void close() {
 	}
 
+
 	@Override
-	public void load() {
+	public void loadAsync(final Handler handler) {
 	}
 
 	@Override
 	public List<Track> getTracks() {
 		return new ArrayList<Track>(tracks.values());
+	}
+
+	@Override
+	public void loadPoints(Track track, Handler handler) {
+		handler.sendMessage(new Message());
 	}
 
 	@Override

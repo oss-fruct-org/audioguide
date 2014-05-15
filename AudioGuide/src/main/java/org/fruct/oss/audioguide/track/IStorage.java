@@ -1,5 +1,7 @@
 package org.fruct.oss.audioguide.track;
 
+import android.os.Handler;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.List;
@@ -17,21 +19,13 @@ public interface IStorage extends Closeable {
 
 	/**
 	 * Load or reload track list from storage
-	 * This method can do long asynchronous work
-	 */
-	void load();
-
-	/**
-	 * Get list of tracks
 	 * This method should return immediately
-	 * @return list of tracks
 	 */
-	List<Track> getTracks();
+	void loadAsync(Handler handler);
 
 	/**
-	 * Get content of track
-	 * This method can do long asynchronous work
-	 * @param track Track
+	 * Load or reload track list from storage
+	 * This method should return immediately
 	 */
-	List<Point> getPoints(Track track) throws IOException;
+	void loadPoints(Track track, Handler handler);
 }

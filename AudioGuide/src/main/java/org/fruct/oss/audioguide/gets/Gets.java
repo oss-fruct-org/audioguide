@@ -13,6 +13,7 @@ import org.fruct.oss.audioguide.track.GetsStorage;
 import org.fruct.oss.audioguide.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xmlpull.v1.XmlSerializer;
 
 import java.io.IOException;
 import java.util.Comparator;
@@ -25,6 +26,7 @@ public class Gets implements Runnable {
 	private final static Logger log = LoggerFactory.getLogger(Gets.class);
 
 	private final PriorityQueue<GetsRequest> requestQueue;
+
 	private final Context context;
 
 	public Gets(Context context) {
@@ -40,6 +42,27 @@ public class Gets implements Runnable {
 		new Thread(this).start();
 	}
 
+	public GetsResponse addRequestSync(final GetsRequest request) {
+		synchronized (requestQueue) {
+			requestQueue.add(request);
+			requestQueue.notifyAll();
+			Handler handler = new Handler();
+			request.setHandler(handler);
+		}
+
+		synchronized (request) {
+			while (!request.isCompleted()) {
+				try {
+					request.wait();
+				} catch (InterruptedException e) {
+					return null;
+				}
+			}
+		}
+
+		return request.getResponse();
+	}
+
 	public void addRequest(GetsRequest request) {
 		synchronized (requestQueue) {
 			requestQueue.add(request);
@@ -52,7 +75,7 @@ public class Gets implements Runnable {
 	@Override
 	public void run() {
 		while (!Thread.interrupted()) {
-			GetsRequest request = null;
+			GetsRequest request;
 
 			synchronized (requestQueue) {
 				while (requestQueue.isEmpty()) {
@@ -66,7 +89,14 @@ public class Gets implements Runnable {
 				request = requestQueue.poll();
 			}
 
-			processRequest(request);
+			try {
+				processRequest(request);
+			} finally {
+				synchronized (request) {
+					request.setCompleted();
+					request.notifyAll();
+				}
+			}
 		}
 	}
 
@@ -97,6 +127,7 @@ public class Gets implements Runnable {
 			return;
 		}
 
+		request.setResponse(response);
 		notifyOnPostProcess(request, response);
 	}
 
@@ -148,5 +179,12 @@ public class Gets implements Runnable {
 	public String getToken() {
 		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
 		return pref.getString(GetsStorage.PREF_AUTH_TOKEN, null);
+	}
+
+	void writeTokenTag(XmlSerializer serializer) throws IOException {
+		String token = getToken();
+		if (token != null) {
+			serializer.startTag(null, "auth_token").text(token).endTag(null, "auth_token");
+		}
 	}
 }

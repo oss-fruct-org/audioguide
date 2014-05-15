@@ -22,5 +22,17 @@ public interface ILocalStorage extends IStorage {
 	 */
 	void updatePoint(Track track, Point point);
 
+	/**
+	 * Get content of track
+	 * This method should return immediately
+	 * @param track Track
+	 */
 	List<Point> getPoints(Track track);
+
+	/**
+	 * Get list of tracks
+	 * This method should return immediately
+	 * @return list of tracks
+	 */
+	List<Track> getTracks();
 }

@@ -5,6 +5,8 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.os.Handler;
+import android.os.Message;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -143,8 +145,7 @@ public class DatabaseStorage implements ILocalStorage {
 		}
 	}
 
-	@Override
-	public void load() {
+	private void load() {
 		Cursor cursor = db.query("tracks", SELECT_TRACK_COLUMNS, null, null, null, null, null);
 
 		tracks = new ArrayList<Track>(cursor.getCount());
@@ -166,8 +167,24 @@ public class DatabaseStorage implements ILocalStorage {
 	}
 
 	@Override
+	public void loadAsync(final Handler handler) {
+		new Thread() {
+			@Override
+			public void run() {
+				load();
+				handler.sendMessage(new Message());
+			}
+		}.start();
+	}
+
+	@Override
 	public List<Track> getTracks() {
 		return tracks;
+	}
+
+	@Override
+	public void loadPoints(Track track, Handler handler) {
+		handler.sendMessage(new Message());
 	}
 
 	@Override

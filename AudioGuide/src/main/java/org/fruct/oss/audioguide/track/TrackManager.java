@@ -2,18 +2,18 @@ package org.fruct.oss.audioguide.track;
 
 import android.content.SharedPreferences;
 import android.net.Uri;
+import android.os.Handler;
+import android.os.Message;
 import android.preference.PreferenceManager;
 
 import org.fruct.oss.audioguide.App;
 import org.fruct.oss.audioguide.files.FileManager;
 import org.fruct.oss.audioguide.models.FilterModel;
 import org.fruct.oss.audioguide.models.Model;
-import org.fruct.oss.audioguide.util.AUtils;
 import org.fruct.oss.audioguide.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -72,16 +72,20 @@ public class TrackManager {
 
 		fileManager = FileManager.getInstance();
 
+		// TODO: storages should be closed
 		localStorage.initialize();
 		remoteStorage.initialize();
 
-		// TODO: storages should be closed
-		localStorage.load();
-
-		for (Track track : localStorage.getTracks()) {
-			track.setLocal(true);
-			allTracks.put(track.getId(), track);
-		}
+		localStorage.loadAsync(new Handler() {
+			@Override
+			public void handleMessage(Message msg) {
+				for (Track track : localStorage.getTracks()) {
+					track.setLocal(true);
+					allTracks.put(track.getId(), track);
+					notifyTracksUpdated();
+				}
+			}
+		});
 
 		isInitialized = true;
 	}
@@ -98,31 +102,24 @@ public class TrackManager {
 		log.trace("loadRemoteTracks");
 		checkInitialized();
 
-		executor.execute(new Runnable() {
+		remoteStorage.loadAsync(new Handler() {
 			@Override
-			public void run() {
-				doLoadRemoteTracks();
+			public void handleMessage(Message msg) {
+				ArrayList<Track> tracks = msg.getData().getParcelableArrayList("tracks");
+				processLoadedRemoteTracks(tracks);
 			}
 		});
-	}
-
-
-	public void refresh() {
-		loadRemoteTracks();
 	}
 
 	public void refreshPoints(final Track track) {
-		executor.execute(new Runnable() {
+		remoteStorage.loadPoints(track, new Handler() {
 			@Override
-			public void run() {
-				try {
-					doLoadRemotePoints(track);
-				} catch (IOException e) {
-					log.error("Can't refresh points: ", e);
-					AUtils.reportError(App.getContext(), "Can't download points: " + e.getMessage());
-				}
+			public void handleMessage(Message msg) {
+				ArrayList<Point> points = msg.getData().getParcelableArrayList("points");
+				processLoadedRemotePoints(track, points);
 			}
 		});
+
 	}
 
 	public synchronized void addListener(Listener listener) {
@@ -288,11 +285,7 @@ public class TrackManager {
 		}
 	}
 
-	@DatasetModifier
-	private void doLoadRemoteTracks() {
-		remoteStorage.load();
-
-		List<Track> tracks = remoteStorage.getTracks();
+	private void processLoadedRemoteTracks(List<Track> tracks) {
 		synchronized (allTracks) {
 			for (Iterator<Map.Entry<String, Track>> iter = allTracks.entrySet().iterator(); iter.hasNext();) {
 				Track track = iter.next().getValue();
@@ -311,9 +304,7 @@ public class TrackManager {
 	}
 
 	@DatasetModifier
-	private void doLoadRemotePoints(final Track track) throws IOException {
-		List<Point> points = remoteStorage.getPoints(track);
-
+	private void processLoadedRemotePoints(Track track, ArrayList<Point> points) {
 		if (points == null || points.isEmpty())
 			return;
 
@@ -329,6 +320,7 @@ public class TrackManager {
 				fileManager.insertAudioUri(Uri.parse(point.getAudioUrl()).toString());
 			}
 		}
+
 		notifyTracksUpdated();
 		notifyPointsUpdated(track);
 	}
