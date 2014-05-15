@@ -28,6 +28,7 @@ public class Gets implements Runnable {
 	private final PriorityQueue<GetsRequest> requestQueue;
 
 	private final Context context;
+	private int index = 0;
 
 	public Gets(Context context) {
 		this.context = context;
@@ -35,40 +36,28 @@ public class Gets implements Runnable {
 		requestQueue = new PriorityQueue<GetsRequest>(10, new Comparator<GetsRequest>() {
 			@Override
 			public int compare(GetsRequest getsRequest, GetsRequest getsRequest2) {
-				return getsRequest.getPriority() - getsRequest2.getPriority();
+				final int priority1 = getsRequest.getPriority();
+				final int priority2 = getsRequest2.getPriority();
+				if (priority1 == priority2) {
+					return getsRequest.getIndex() - getsRequest2.getIndex();
+				} else {
+					return priority1 - priority2;
+				}
 			}
 		});
 
-		new Thread(this).start();
-	}
-
-	public GetsResponse addRequestSync(final GetsRequest request) {
-		synchronized (requestQueue) {
-			requestQueue.add(request);
-			requestQueue.notifyAll();
-			Handler handler = new Handler();
-			request.setHandler(handler);
-		}
-
-		synchronized (request) {
-			while (!request.isCompleted()) {
-				try {
-					request.wait();
-				} catch (InterruptedException e) {
-					return null;
-				}
-			}
-		}
-
-		return request.getResponse();
+		Thread thread = new Thread(this);
+		thread.setDaemon(true);
+		thread.start();
 	}
 
 	public void addRequest(GetsRequest request) {
 		synchronized (requestQueue) {
+			request.setHandler(new Handler());
+			request.setIndex(index++);
+
 			requestQueue.add(request);
 			requestQueue.notifyAll();
-
-			request.setHandler(new Handler());
 		}
 	}
 
@@ -89,21 +78,14 @@ public class Gets implements Runnable {
 				request = requestQueue.poll();
 			}
 
-			try {
-				processRequest(request);
-			} finally {
-				synchronized (request) {
-					request.setCompleted();
-					request.notifyAll();
-				}
-			}
+			processRequest(request);
 		}
 	}
 
 	private void processRequest(GetsRequest request) {
 		String requestString = request.createRequestString();
 		String requestUrl = request.getRequestUrl();
-		String responseString = null;
+		String responseString;
 
 		try {
 			responseString = Utils.downloadUrl(requestUrl, requestString);
@@ -127,7 +109,6 @@ public class Gets implements Runnable {
 			return;
 		}
 
-		request.setResponse(response);
 		notifyOnPostProcess(request, response);
 	}
 
@@ -151,6 +132,7 @@ public class Gets implements Runnable {
 
 	private boolean checkTokenError(GetsResponse response) {
 		// TODO: Gets should return more specific codes
+		//noinspection RedundantIfStatement
 		if (response.getCode() != 0 && response.getMessage().toLowerCase().contains("token")) {
 			return true;
 		} else {

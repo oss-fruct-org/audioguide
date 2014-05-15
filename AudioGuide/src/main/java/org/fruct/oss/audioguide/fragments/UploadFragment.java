@@ -61,6 +61,8 @@ public class UploadFragment extends DialogFragment {
 	public UploadFragment() {
 	}
 
+
+
 	@Override
 	public Dialog onCreateDialog(Bundle savedInstanceState) {
 		if (savedInstanceState != null) {

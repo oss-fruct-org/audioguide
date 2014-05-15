@@ -2,15 +2,15 @@
 
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
       xmlns:app="http://schemas.android.com/apk/res-auto">
-    <item android:id="@+id/action_place"
-          android:icon="@drawable/ic_action_accept"
-          android:title="Place"
-          app:showAsAction="ifRoom"/>
-
     <item android:id="@+id/action_add"
           android:icon="@drawable/ic_action_new"
           android:title="Add point"
           app:showAsAction="ifRoom" />
+
+    <item android:id="@+id/action_place"
+          android:icon="@drawable/ic_action_accept"
+          android:title="Place"
+          app:showAsAction="ifRoom"/>
 
     <item android:id="@+id/action_find_me"
           android:icon="@drawable/ic_action_location_found"
