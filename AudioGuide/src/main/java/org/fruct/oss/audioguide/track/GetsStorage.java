@@ -5,6 +5,7 @@ import android.preference.PreferenceManager;
 import android.util.Xml;
 
 import org.fruct.oss.audioguide.App;
+import org.fruct.oss.audioguide.gets.Gets;
 import org.fruct.oss.audioguide.parsers.GetsException;
 import org.fruct.oss.audioguide.parsers.GetsResponse;
 import org.fruct.oss.audioguide.parsers.IContent;
@@ -32,8 +33,6 @@ public class GetsStorage implements IStorage, IRemoteStorage {
 
 	public static final String PREF_AUTH_TOKEN = "pref-auth-token";
 
-	public static final String GETS_SERVER = "http://getsi.no-ip.info/getslocal";
-	//public static final String GETS_SERVER = "http://oss.fruct.org/projects/gets/service";
 
 	public static final String LOAD_TRACK_REQUEST = "<request><params>" +
 			"%s" +
@@ -91,7 +90,7 @@ public class GetsStorage implements IStorage, IRemoteStorage {
 	}
 
 	private List<Track> loadPrivateTracks() throws Exception {
-		String responseString = Utils.downloadUrl(GETS_SERVER + "/loadTracks.php",
+		String responseString = Utils.downloadUrl(Gets.GETS_SERVER + "/loadTracks.php",
 				createLoadTracksRequest());
 		GetsResponse response = GetsResponse.parse(responseString, TracksContent.class);
 
@@ -111,7 +110,7 @@ public class GetsStorage implements IStorage, IRemoteStorage {
 	@Override
 	public List<Point> getPoints(Track track) throws IOException {
 		try {
-			String responseString = Utils.downloadUrl(GETS_SERVER + "/loadTrack.php",
+			String responseString = Utils.downloadUrl(Gets.GETS_SERVER + "/loadTrack.php",
 					createLoadTrackRequest(track.getName()));
 			GetsResponse response = GetsResponse.parse(responseString, Kml.class);
 
@@ -145,7 +144,7 @@ public class GetsStorage implements IStorage, IRemoteStorage {
 		log.debug("sendPoint request {}", request);
 
 		try {
-			String responseString = Utils.downloadUrl(GETS_SERVER + "/addPoint.php", request);
+			String responseString = Utils.downloadUrl(Gets.GETS_SERVER + "/addPoint.php", request);
 			// TODO: parse response
 		} catch (IOException e) {
 			log.error("Error: ", e);
@@ -180,13 +179,13 @@ public class GetsStorage implements IStorage, IRemoteStorage {
 				track.getName(), createHnameTag(track),  track.getDescription(), track.getUrl());
 
 		try {
-			String responseString = Utils.downloadUrl(GETS_SERVER + "/createTrack.php", request);
+			String responseString = Utils.downloadUrl(Gets.GETS_SERVER + "/createTrack.php", request);
 			GetsResponse response = GetsResponse.parse(responseString, IContent.class);
 
 			// Track already exists
 			if (response.getCode() == 2) {
 				if (deleteTrack(track)) {
-					responseString = Utils.downloadUrl(GETS_SERVER + "/createTrack.php", request);
+					responseString = Utils.downloadUrl(Gets.GETS_SERVER + "/createTrack.php", request);
 					response = GetsResponse.parse(responseString, IContent.class);
 				} else {
 					log.error("Cannot update track {}", track.getName());
@@ -217,7 +216,7 @@ public class GetsStorage implements IStorage, IRemoteStorage {
 		String request = String.format(Locale.ROOT, DELETE_TRACK, createTokenTag(),
 				track.getName());
 		try {
-			String responseString = Utils.downloadUrl(GETS_SERVER + "/deleteTrack.php", request);
+			String responseString = Utils.downloadUrl(Gets.GETS_SERVER + "/deleteTrack.php", request);
 			GetsResponse response = GetsResponse.parse(responseString, IContent.class);
 
 			if (response.getCode() != 0) {

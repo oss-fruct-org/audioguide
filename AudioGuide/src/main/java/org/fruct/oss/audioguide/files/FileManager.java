@@ -11,6 +11,7 @@ import android.os.Looper;
 import android.preference.PreferenceManager;
 
 import org.fruct.oss.audioguide.App;
+import org.fruct.oss.audioguide.gets.Gets;
 import org.fruct.oss.audioguide.models.FilterModel;
 import org.fruct.oss.audioguide.models.Model;
 import org.fruct.oss.audioguide.parsers.FileContent;
@@ -99,7 +100,7 @@ public class FileManager implements SharedPreferences.OnSharedPreferenceChangeLi
 
 				String request = String.format(Locale.ROOT, GetsStorage.LIST_FILES, authToken);
 				try {
-					String responseString = Utils.downloadUrl(GetsStorage.GETS_SERVER + "/files/listFiles.php", request);
+					String responseString = Utils.downloadUrl(Gets.GETS_SERVER + "/files/listFiles.php", request);
 					GetsResponse response = GetsResponse.parse(responseString, FilesContent.class);
 
 					if (response.getCode() != 0) {

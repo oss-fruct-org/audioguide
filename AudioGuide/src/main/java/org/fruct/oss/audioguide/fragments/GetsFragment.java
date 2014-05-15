@@ -11,7 +11,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -20,6 +19,9 @@ import com.android.internal.util.Predicate;
 import org.fruct.oss.audioguide.MultiPanel;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.WebViewDialog;
+import org.fruct.oss.audioguide.gets.Gets;
+import org.fruct.oss.audioguide.gets.LoginStage1Request;
+import org.fruct.oss.audioguide.gets.LoginStage2Request;
 import org.fruct.oss.audioguide.parsers.AuthRedirectResponse;
 import org.fruct.oss.audioguide.parsers.GetsException;
 import org.fruct.oss.audioguide.parsers.GetsResponse;
@@ -27,7 +29,6 @@ import org.fruct.oss.audioguide.parsers.TokenContent;
 import org.fruct.oss.audioguide.track.GetsStorage;
 import org.fruct.oss.audioguide.util.Utils;
 
-import java.io.File;
 import java.io.IOException;
 
 public class GetsFragment extends Fragment implements WebViewDialog.Listener, SharedPreferences.OnSharedPreferenceChangeListener {
@@ -124,76 +125,38 @@ public class GetsFragment extends Fragment implements WebViewDialog.Listener, Sh
 	}
 
 	private void authenticate() {
-		AsyncTask<Void, Void, String> stage1Task = new AsyncTask<Void, Void, String>() {
+		Gets gets = Gets.getInstance();
+		gets.addRequest(new LoginStage1Request(gets) {
 			@Override
-			protected String doInBackground(Void... voids) {
-				GetsResponse response;
-				try {
-					String responseString = Utils.downloadUrl(GetsStorage.GETS_SERVER + "/userLogin.php", GetsStorage.LOGIN_STAGE_1);
-					response = GetsResponse.parse(responseString, AuthRedirectResponse.class);
-				} catch (IOException e) {
-					e.printStackTrace();
-					return null;
-				} catch (GetsException e) {
-					e.printStackTrace();
-					return null;
-				}
-				AuthRedirectResponse redirect = ((AuthRedirectResponse) response.getContent());
-
+			protected void onPostProcess(GetsResponse response) {
+				AuthRedirectResponse redirect = (AuthRedirectResponse) response.getContent();
 				sessionId = redirect.getSessionId();
-				return redirect.getRedirectUrl();
-			}
 
-			@Override
-			protected void onPostExecute(String redirectUrl) {
-				WebViewDialog authDialog = new WebViewDialog(redirectUrl, new Predicate<String>() {
+				WebViewDialog authDialog = new WebViewDialog(redirect.getRedirectUrl(), new Predicate<String>() {
 					@Override
 					public boolean apply(String url) {
-						return url.startsWith(GetsStorage.GETS_SERVER + "/include/GoogleAuth.php");
+						return url.startsWith(Gets.GETS_SERVER + "/include/GoogleAuth.php");
 					}
 				});
 				authDialog.show(getFragmentManager(), "auth-dialog");
 				authDialog.setListener(GetsFragment.this);
-
 			}
-		};
-		stage1Task.execute();
+
+			@Override
+			protected void onError() {
+				showError("Error login");
+			}
+		});
 	}
 
 	private void authenticateStage2() {
-		AsyncTask<Void, Void, String> stage2Task = new AsyncTask<Void, Void, String>() {
+		Gets gets = Gets.getInstance();
+		gets.addRequest(new LoginStage2Request(gets, sessionId) {
 			@Override
-			protected String doInBackground(Void... voids) {
-				GetsResponse response;
-				try {
-					String responseString = Utils.downloadUrl(GetsStorage.GETS_SERVER + "/userLogin.php",
-							String.format(GetsStorage.LOGIN_STAGE_2, sessionId));
-					response = GetsResponse.parse(responseString, TokenContent.class);
-				} catch (IOException e) {
-					e.printStackTrace();
-					return null;
-				} catch (GetsException e) {
-					e.printStackTrace();
-					return null;
-				}
-
-				if (response.getCode() != 0) {
-					showError("Error: " + response.getMessage());
-					return null;
-				}
-
-				TokenContent tokenContent = ((TokenContent) response.getContent());
-				return tokenContent.getAccessToken();
+			protected void onError() {
+				showError("Error login");
 			}
-
-			@Override
-			protected void onPostExecute(String accessToken) {
-				FragmentActivity activity = getActivity();
-				SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(activity);
-				pref.edit().putString(GetsStorage.PREF_AUTH_TOKEN, accessToken).apply();
-			}
-		};
-		stage2Task.execute();
+		});
 	}
 
 	@Override
