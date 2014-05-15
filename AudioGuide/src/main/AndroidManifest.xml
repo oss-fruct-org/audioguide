@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="org.fruct.oss.audioguide" >
+          package="org.fruct.oss.audioguide" >
 
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
@@ -9,9 +9,9 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
-<!--
-    <uses-permission android:name="com.sonyericsson.illumination.permission.ILLUMINATION"/>
--->
+    <!--
+        <uses-permission android:name="com.sonyericsson.illumination.permission.ILLUMINATION"/>
+    -->
     <application
         android:name="org.fruct.oss.audioguide.App"
         android:allowBackup="true"
@@ -26,6 +26,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity android:name=".FileChooserActivity"
+                  android:label="File chooser" />
+
 
         <activity
             android:name="org.fruct.oss.audioguide.preferences.SettingsActivity"
