@@ -90,7 +90,12 @@ public class Gets implements Runnable {
 		try {
 			responseString = Utils.downloadUrl(requestUrl, requestString);
 		} catch (IOException e) {
-			log.error("Error processing request " + request.getClass().getSimpleName(), e);
+			String simpleName = request.getClass().getSimpleName();
+			if (simpleName.isEmpty()) {
+				simpleName = request.getClass().getSuperclass().getSimpleName();
+			}
+
+			log.error("Error processing request " + simpleName, e);
 			notifyOnError(request);
 			return;
 		}

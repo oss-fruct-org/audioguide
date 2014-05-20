@@ -347,13 +347,13 @@ public class Utils {
 				writer.close();
 			}
 
+			log.trace("Request url {} data {}", urlString, postQuery);
 			conn.connect();
 
 			int responseCode = conn.getResponseCode();
 			responseStream = conn.getInputStream();
 			String response = Utils.inputStreamToString(responseStream);
 
-			log.trace("Request url {} data {}", urlString, postQuery);
 			log.trace("Response code {}, response {}", responseCode, response);
 
 			return response;
