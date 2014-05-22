@@ -68,6 +68,10 @@ public class GetsStorage implements IStorage, IRemoteStorage {
 		gets.addRequest(new LoadTracksRequest(gets) {
 			@Override
 			protected void onPostProcess(GetsResponse response) {
+				if (response.getCode() != 0) {
+					return;
+				}
+
 				TracksContent tracksContent = ((TracksContent) response.getContent());
 				loadedTracks = new ArrayList<Track>(tracksContent.getTracks());
 
@@ -87,6 +91,10 @@ public class GetsStorage implements IStorage, IRemoteStorage {
 		gets.addRequest(new LoadTrackRequest(gets, track.getName()) {
 			@Override
 			protected void onPostProcess(GetsResponse response) {
+				if (response.getCode() != 0) {
+					return;
+				}
+
 				Kml kml = ((Kml) response.getContent());
 				ArrayList<Point> ret = new ArrayList<Point>(kml.getPoints());
 
@@ -133,6 +141,10 @@ public class GetsStorage implements IStorage, IRemoteStorage {
 		gets.addRequest(new CreateTrackRequest(gets, track) {
 			@Override
 			protected void onPostProcess(GetsResponse response) {
+				if (response.getCode() != 0) {
+					return;
+				}
+				
 				processCreateTrackResponse(response, track, points);
 			}
 		});

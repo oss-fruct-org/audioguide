@@ -129,6 +129,10 @@ public class GetsFragment extends Fragment implements WebViewDialog.Listener, Sh
 		gets.addRequest(new LoginStage1Request(gets) {
 			@Override
 			protected void onPostProcess(GetsResponse response) {
+				if (response.getCode() == 1) {
+					return;
+				}
+
 				AuthRedirectResponse redirect = (AuthRedirectResponse) response.getContent();
 				sessionId = redirect.getSessionId();
 
