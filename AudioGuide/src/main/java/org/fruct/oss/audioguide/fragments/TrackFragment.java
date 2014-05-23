@@ -110,6 +110,7 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 		actionBar.setListNavigationCallbacks(spinnerAdapter, new ActionBar.OnNavigationListener() {
 			@Override
 			public boolean onNavigationItemSelected(int i, long l) {
+				selectedSpinnerItem = i;
 				switch (i) {
 				case 0: // All tracks
 					trackAdapter.setFilter(new TrackModelAdapter.Filter() {
@@ -250,7 +251,7 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 			trackManager.loadRemoteTracks();
 			break;
 		case R.id.action_add:
-			EditTrackDialog dialog = new EditTrackDialog(null);
+			EditTrackDialog dialog = EditTrackDialog.newInstance(null);
 			dialog.setListener(editDialogListener);
 			dialog.show(getFragmentManager(), "edit-track-dialog");
 			break;
@@ -266,12 +267,7 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 		ActionBarActivity activity = (ActionBarActivity) getActivity();
 		ActionBar actionBar = activity.getSupportActionBar();
 
-		outState.putInt(STATE_SPINNER_STATE, actionBar.getSelectedNavigationIndex());
-	}
-
-	public void trackClicked(Track track) {
-
-		multiPanel.replaceFragment(TrackDetailFragment.newInstance(track), this);
+		outState.putInt(STATE_SPINNER_STATE, selectedSpinnerItem);
 	}
 
 	@Override
@@ -285,7 +281,7 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 		} else if (menuItem == popupShowPoints) {
 			multiPanel.replaceFragment(PointFragment.newInstance(selectedTrack), this);
 		} else if (menuItem == popupItemEdit) {
-			EditTrackDialog dialog = new EditTrackDialog(selectedTrack);
+			EditTrackDialog dialog = EditTrackDialog.newInstance(selectedTrack);
 			dialog.setListener(editDialogListener);
 			dialog.show(getFragmentManager(), "edit-track-dialog");
 		} else if (menuItem == popupItemEditPoints) {

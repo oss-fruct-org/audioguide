@@ -121,19 +121,12 @@ public class PointFragment extends ListFragment {
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
 		super.onCreateOptionsMenu(menu, inflater);
 
-		inflater.inflate(R.menu.points_menu, menu);
 		inflater.inflate(R.menu.refresh, menu);
 	}
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-		case R.id.action_add:
-			log.debug("Action add selected");
-			AddPointFragment dialogFragment = new AddPointFragment(track);
-			dialogFragment.show(getFragmentManager(), "add-point-dialog");
-			break;
-
 		case R.id.action_refresh:
 			log.debug("Action refresh selected from PointFragment");
 			trackManager.refreshPoints(track);

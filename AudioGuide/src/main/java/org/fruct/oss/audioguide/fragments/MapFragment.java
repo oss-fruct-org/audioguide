@@ -141,7 +141,7 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 
 	private void startAddingPoint() {
 		if (editTrack != null) {
-			EditPointDialog dialog = new EditPointDialog(null);
+			EditPointDialog dialog = EditPointDialog.newInstance(null);
 			dialog.setListener(editDialogListener);
 			dialog.show(getFragmentManager(), "edit-track-dialog");
 		}
@@ -481,7 +481,7 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 		public void pointPressed(Point point) {
 			log.debug("Editable point pressed");
 
-			EditPointDialog dialog = new EditPointDialog(point);
+			EditPointDialog dialog = EditPointDialog.newInstance(point);
 			dialog.setListener(editDialogListener);
 			dialog.show(getFragmentManager(), "edit-track-dialog");
 		}

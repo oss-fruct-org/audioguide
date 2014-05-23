@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
  * Activities containing this fragment MUST implement the {@link org.fruct.oss.audioguide.MultiPanel}
  * interface.
  */
+@Deprecated
 public class NavigateFragment extends ListFragment {
 	private final static Logger log = LoggerFactory.getLogger(NavigateFragment.class);
 

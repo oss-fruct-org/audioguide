@@ -12,8 +12,12 @@ import android.widget.EditText;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.track.Track;
 import org.fruct.oss.audioguide.util.Utils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class EditTrackDialog extends DialogFragment implements DialogInterface.OnClickListener {
+	private final static Logger log = LoggerFactory.getLogger(EditTrackDialog.class);
+
 	private Listener listener;
 
 	public interface Listener {
@@ -28,17 +32,30 @@ public class EditTrackDialog extends DialogFragment implements DialogInterface.O
 	private EditText editDescription;
 	private EditText editUrl;
 
+	public EditTrackDialog() {
+	}
+
 	/**
 	 * Show content of track and allow edit
 	 * @param track Track to edit. May be null
 	 */
-	public EditTrackDialog(Track track) {
-		if (track == null) {
+	public static EditTrackDialog newInstance(Track track) {
+		Bundle args = new Bundle();
+		args.putParcelable("track", track);
+		EditTrackDialog fragment = new EditTrackDialog();
+		fragment.setArguments(args);
+		return fragment;
+	}
+
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+
+		this.track = getArguments().getParcelable("track");
+		if (this.track == null) {
 			this.track = new Track();
 			this.track.setPrivate(true);
 			isNewTracks = true;
-		} else {
-			this.track = track;
 		}
 	}
 

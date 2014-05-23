@@ -10,6 +10,7 @@ import org.fruct.oss.audioguide.adapters.PointModelAdapter;
 import org.fruct.oss.audioguide.track.Track;
 import org.fruct.oss.audioguide.track.TrackManager;
 
+@Deprecated
 public class EditPointsFragment extends ListFragment {
 	private static final String ARG_TRACK = "arg-track";
 

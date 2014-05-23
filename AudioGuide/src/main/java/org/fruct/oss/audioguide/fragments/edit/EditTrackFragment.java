@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
+@Deprecated
 public class EditTrackFragment extends ListFragment {
 	private final static Logger log = LoggerFactory.getLogger(EditTrackFragment.class);
 	public static final int HIGHLIGHT_COLOR = 0xff99ff99;
@@ -131,7 +132,7 @@ public class EditTrackFragment extends ListFragment {
 	}
 
 	private void showEditDialog(Track track) {
-		EditTrackDialog dialog = new EditTrackDialog(track);
+		EditTrackDialog dialog = EditTrackDialog.newInstance(track);
 		dialog.setListener(editDialogListener);
 		dialog.show(getFragmentManager(), "edit-track-dialog");
 	}

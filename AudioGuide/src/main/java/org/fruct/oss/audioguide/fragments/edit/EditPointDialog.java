@@ -40,7 +40,6 @@ public class EditPointDialog extends DialogFragment implements DialogInterface.O
 	private Point point;
 	private boolean isNewPoint;
 
-
 	private EditText editName;
 	private EditText editDescription;
 	private EditText editUrl;
@@ -51,12 +50,39 @@ public class EditPointDialog extends DialogFragment implements DialogInterface.O
 	private TextView audioFileLabel;
 	private Button audioFileButton;
 
-	public EditPointDialog(Point point) {
+	public EditPointDialog() {
+	}
+
+	@Override
+	public void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
+
+		outState.putParcelable("point", point);
+		outState.putBoolean("isNewPoint", isNewPoint);
+	}
+
+	public static EditPointDialog newInstance(Point point) {
+		Bundle args = new Bundle();
+		args.putParcelable("point", point);
+
+		EditPointDialog fragment = new EditPointDialog();
+		fragment.setArguments(args);
+		return fragment;
+	}
+
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+
+		point = getArguments().getParcelable("point");
 		if (point == null) {
-			this.point = new Point();
+			point = new Point();
 			isNewPoint = true;
-		} else {
-			this.point = point;
+		}
+
+		if (savedInstanceState != null) {
+			point = savedInstanceState.getParcelable("point");
+			isNewPoint = savedInstanceState.getBoolean("isNewPoint");
 		}
 	}
 

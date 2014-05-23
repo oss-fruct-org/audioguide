@@ -42,6 +42,13 @@ public class CommonFragment extends Fragment {
 	}
 
 	@Override
+	public void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
+
+		outState.putBoolean("isTrackingActive", isTrackingActive);
+	}
+
+	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
@@ -57,6 +64,10 @@ public class CommonFragment extends Fragment {
 				Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
 			}
 		}, new IntentFilter(CommonFragment.BC_ERROR_MESSAGE));
+
+		if (savedInstanceState != null) {
+			isTrackingActive = savedInstanceState.getBoolean("isTrackingActive");
+		}
 	}
 
 	@Override

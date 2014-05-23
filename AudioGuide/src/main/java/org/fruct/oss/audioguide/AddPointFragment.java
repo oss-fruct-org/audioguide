@@ -15,6 +15,7 @@ import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.Track;
 import org.fruct.oss.audioguide.track.TrackManager;
 
+@Deprecated
 public class AddPointFragment extends DialogFragment implements DialogInterface.OnClickListener {
 	private final Track track;
 	private EditText titleText;
