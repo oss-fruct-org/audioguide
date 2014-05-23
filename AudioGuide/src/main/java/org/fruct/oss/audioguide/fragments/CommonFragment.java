@@ -50,25 +50,6 @@ public class CommonFragment extends Fragment {
 		setHasOptionsMenu(true);
 		setRetainInstance(true);
 
-		getActivity().startService(new Intent(TrackingService.ACTION_FOREGROUND, null,
-				getActivity(), TrackingService.class));
-
-		getActivity().bindService(new Intent(getActivity(), TrackingService.class),
-				trackingServiceConnection = new ServiceConnection() {
-			@Override
-			public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
-				log.debug("CommonFragment onServiceConnected");
-				trackingService = ((TrackingService.TrackingServiceBinder) iBinder).getService();
-				isTrackingActive = trackingService.isTrackingActive();
-				updateMenuIcon(isTrackingActive);
-			}
-
-			@Override
-			public void onServiceDisconnected(ComponentName componentName) {
-				trackingService = null;
-			}
-		}, Context.BIND_AUTO_CREATE);
-
 		LocalBroadcastManager.getInstance(getActivity()).registerReceiver(errorReceiver = new BroadcastReceiver() {
 			@Override
 			public void onReceive(Context context, Intent intent) {
@@ -79,17 +60,46 @@ public class CommonFragment extends Fragment {
 	}
 
 	@Override
-	public void onDestroy() {
-		super.onDestroy();
+	public void onStart() {
+		super.onStart();
+
+		getActivity().startService(new Intent(TrackingService.ACTION_FOREGROUND, null,
+				getActivity(), TrackingService.class));
+
+		getActivity().bindService(new Intent(getActivity(), TrackingService.class),
+				trackingServiceConnection = new ServiceConnection() {
+					@Override
+					public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+						log.debug("CommonFragment onServiceConnected");
+						trackingService = ((TrackingService.TrackingServiceBinder) iBinder).getService();
+						isTrackingActive = trackingService.isTrackingActive();
+						updateMenuIcon(isTrackingActive);
+					}
+
+					@Override
+					public void onServiceDisconnected(ComponentName componentName) {
+						trackingService = null;
+					}
+				}, Context.BIND_AUTO_CREATE);
+	}
+
+	@Override
+	public void onStop() {
+		super.onStop();
 
 		if (trackingService != null) {
 			getActivity().unbindService(trackingServiceConnection);
+			trackingServiceConnection = null;
 		}
 
 		getActivity().startService(new Intent(TrackingService.ACTION_BACKGROUND,
 				null, getActivity(), TrackingService.class));
+	}
 
-		trackingServiceConnection = null;
+	@Override
+	public void onDestroy() {
+		super.onDestroy();
+
 		LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(errorReceiver);
 	}
 

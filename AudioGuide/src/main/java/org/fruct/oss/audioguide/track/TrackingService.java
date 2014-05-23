@@ -96,7 +96,6 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 
 					mockLocation(point[0], point[1]);
 				}
-
 			}
 		}.start();
 	}
@@ -104,7 +103,7 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		if (intent == null) {
-			return super.onStartCommand(intent, flags, startId);
+			return START_STICKY;
 		}
 
 		String action = intent.getAction();
@@ -143,7 +142,7 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 			}
 		}
 
-		return super.onStartCommand(intent, flags, startId);
+		return START_STICKY;
 	}
 
 	@Override
@@ -186,6 +185,13 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 		audioPlayer.stopAudioTrack();
 
 		releaseWakeLock();
+
+		if (isBackgroundMode) {
+			NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+			notificationManager.cancel(NOTIFICATION_ID);
+
+			stopSelf();
+		}
 	}
 
 	private void goBackground() {
@@ -220,10 +226,17 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 				.setContentText(text != null ? text : "Audio Guide in background. Click to open")
 				.setOngoing(true);
 
+		// Open app action
 		Intent intent = new Intent(this, MainActivity.class);
 		PendingIntent pendingIntent = PendingIntent.getActivity(this, 0,
 				intent, PendingIntent.FLAG_UPDATE_CURRENT);
 		builder.setContentIntent(pendingIntent);
+
+		// Stop tracking action
+		Intent stopIntent = new Intent(ACTION_STOP_TRACKING, null, this, TrackingService.class);
+		PendingIntent stopPendingIntent = PendingIntent.getService(this, 1, stopIntent,
+				PendingIntent.FLAG_UPDATE_CURRENT);
+		builder.addAction(R.drawable.ic_action_volume_muted, "Stop", stopPendingIntent);
 
 		NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 		notificationManager.notify(NOTIFICATION_ID, builder.build());
@@ -293,7 +306,7 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 			audioPlayer.startAudioTrack(Uri.parse(point.getAudioUrl()));
 		}
 
-		showNotification(point.getName() + " in range");
+		showNotification(point.getName());
 /*
 		Intent ledIntent = new Intent(IlluminationIntent.ACTION_START_LED);
 		ledIntent.putExtra(IlluminationIntent.EXTRA_LED_ID, IlluminationIntent.VALUE_BUTTON_RGB);
