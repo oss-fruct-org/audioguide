@@ -141,7 +141,7 @@ public class GetsStorage implements IStorage, IRemoteStorage {
 		gets.addRequest(new CreateTrackRequest(gets, track) {
 			@Override
 			protected void onPostProcess(GetsResponse response) {
-				if (response.getCode() != 0) {
+				if (response.getCode() != 0 && response.getCode() != 2) {
 					return;
 				}
 				

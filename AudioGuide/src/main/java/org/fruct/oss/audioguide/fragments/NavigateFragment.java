@@ -34,9 +34,6 @@ public class NavigateFragment extends ListFragment {
 	private MultiPanel multiPanel;
 
 	private TrackModelAdapter trackAdapter;
-	private ServiceConnection serviceConnection;
-
-	private TrackingService trackingService;
 
 	public static NavigateFragment newInstance() {
 		return new NavigateFragment();
@@ -55,8 +52,6 @@ public class NavigateFragment extends ListFragment {
 				R.layout.list_track_item,
 				trackManager.getActiveTracksModel());
 		setListAdapter(trackAdapter);
-
-		serviceConnection = new TrackingServiceConnection();
 	}
 
 	@Override
@@ -70,16 +65,11 @@ public class NavigateFragment extends ListFragment {
 	@Override
 	public void onStart() {
 		super.onStart();
-
-		getActivity().bindService(new Intent(getActivity(), TrackingService.class),
-				serviceConnection, Context.BIND_AUTO_CREATE);
 	}
 
 	@Override
 	public void onStop() {
 		super.onStop();
-
-		getActivity().unbindService(serviceConnection);
 	}
 
 	@Override
@@ -103,17 +93,5 @@ public class NavigateFragment extends ListFragment {
 	public void onListItemClick(ListView l, View v, int position, long id) {
 		Track track = trackAdapter.getItem(position);
 		multiPanel.replaceFragment(PointFragment.newInstance(track), this);
-	}
-
-	private class TrackingServiceConnection implements ServiceConnection {
-		@Override
-		public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
-			trackingService = ((TrackingService.TrackingServiceBinder) iBinder).getService();
-		}
-
-		@Override
-		public void onServiceDisconnected(ComponentName componentName) {
-			trackingService = null;
-		}
 	}
 }

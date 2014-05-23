@@ -21,8 +21,8 @@ import org.fruct.oss.audioguide.NavigationDrawerFragment;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.files.FileListener;
 import org.fruct.oss.audioguide.files.FileManager;
-import org.fruct.oss.audioguide.track.AudioService;
 import org.fruct.oss.audioguide.track.Point;
+import org.fruct.oss.audioguide.track.TrackingService;
 import org.fruct.oss.audioguide.util.Utils;
 
 public class PointDetailFragment extends Fragment implements FileListener {
@@ -122,9 +122,9 @@ public class PointDetailFragment extends Fragment implements FileListener {
 				if (point == null)
 					return;
 
-				Intent intent = new Intent(AudioService.ACTION_PLAY,
+				Intent intent = new Intent(TrackingService.ACTION_PLAY,
 						Uri.parse(point.getAudioUrl()),
-						getActivity(), AudioService.class);
+						getActivity(), TrackingService.class);
 				getActivity().startService(intent);
 
 				buttonPlay.setVisibility(View.GONE);
@@ -135,9 +135,9 @@ public class PointDetailFragment extends Fragment implements FileListener {
 		buttonStop.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View view) {
-				Intent intent = new Intent(AudioService.ACTION_STOP,
+				Intent intent = new Intent(TrackingService.ACTION_STOP,
 						null,
-						getActivity(), AudioService.class);
+						getActivity(), TrackingService.class);
 				getActivity().startService(intent);
 
 				buttonPlay.setVisibility(View.VISIBLE);

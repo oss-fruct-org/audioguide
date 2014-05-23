@@ -41,11 +41,6 @@
             android:enabled="true"
             android:exported="false" >
         </service>
-        <service
-            android:name="org.fruct.oss.audioguide.track.AudioService"
-            android:enabled="true"
-            android:exported="false" >
-        </service>
     </application>
 
 </manifest>

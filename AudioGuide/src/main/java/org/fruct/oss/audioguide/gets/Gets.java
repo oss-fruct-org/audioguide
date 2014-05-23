@@ -20,8 +20,8 @@ import java.util.Comparator;
 import java.util.PriorityQueue;
 
 public class Gets implements Runnable {
-	//public static final String GETS_SERVER = "http://getsi.no-ip.info/getslocal";
-	public static final String GETS_SERVER = "http://oss.fruct.org/projects/gets/service";
+	public static final String GETS_SERVER = "http://getsi.no-ip.info/getslocal";
+	//public static final String GETS_SERVER = "http://oss.fruct.org/projects/gets/service";
 
 	private final static Logger log = LoggerFactory.getLogger(Gets.class);
 

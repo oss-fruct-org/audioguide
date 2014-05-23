@@ -38,7 +38,6 @@ import org.fruct.oss.audioguide.fragments.edit.EditPointDialog;
 import org.fruct.oss.audioguide.overlays.EditOverlay;
 import org.fruct.oss.audioguide.overlays.MyPositionOverlay;
 import org.fruct.oss.audioguide.preferences.SettingsActivity;
-import org.fruct.oss.audioguide.track.AudioService;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.Track;
 import org.fruct.oss.audioguide.track.TrackManager;
@@ -49,15 +48,12 @@ import org.osmdroid.api.IGeoPoint;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.util.ResourceProxyImpl;
 import org.osmdroid.views.MapView;
-import org.osmdroid.views.overlay.ItemizedIconOverlay;
 import org.osmdroid.views.overlay.Overlay;
-import org.osmdroid.views.overlay.OverlayItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 import static android.view.ViewGroup.LayoutParams;
 
@@ -272,51 +268,6 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 		outState.putInt("map-center-lat", screenPos.getLatitudeE6());
 		outState.putInt("map-center-lon", screenPos.getLongitudeE6());
 		outState.putInt("zoom", zoom);
-	}
-
-	private void setupBottomPanel() {
-		bottomToolbar = (ViewGroup) getView().findViewById(R.id.map_toolbar);
-
-		final Button buttonPlay = (Button) bottomToolbar.findViewById(R.id.button_play);
-		final Button buttonDetails = (Button) bottomToolbar.findViewById(R.id.button_details);
-		final Button buttonStop = (Button) bottomToolbar.findViewById(R.id.button_stop);
-
-		buttonPlay.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View view) {
-				if (selectedPoint == null)
-					return;
-
-				Intent intent = new Intent(AudioService.ACTION_PLAY,
-						Uri.parse(selectedPoint.getAudioUrl()),
-						getActivity(), AudioService.class);
-				getActivity().startService(intent);
-
-				buttonPlay.setVisibility(View.GONE);
-				buttonStop.setVisibility(View.VISIBLE);
-			}
-		});
-
-		buttonStop.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View view) {
-				Intent intent = new Intent(AudioService.ACTION_STOP,
-						null,
-						getActivity(), AudioService.class);
-				getActivity().startService(intent);
-
-				buttonPlay.setVisibility(View.VISIBLE);
-				buttonStop.setVisibility(View.GONE);
-			}
-		});
-
-		if (selectedPoint.hasAudio()) {
-			buttonPlay.setVisibility(View.VISIBLE);
-		} else {
-			buttonPlay.setVisibility(View.GONE);
-		}
-
-		buttonStop.setVisibility(View.GONE);
 	}
 
 	private void createMapView(View view) {

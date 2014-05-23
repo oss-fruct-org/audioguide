@@ -2,10 +2,14 @@ package org.fruct.oss.audioguide.fragments;
 
 
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
+import android.os.Binder;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.view.Menu;
@@ -14,8 +18,6 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import org.fruct.oss.audioguide.R;
-import org.fruct.oss.audioguide.track.AudioService;
-import org.fruct.oss.audioguide.track.TrackManager;
 import org.fruct.oss.audioguide.track.TrackingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,10 +29,11 @@ public class CommonFragment extends Fragment {
 	public static final String BC_ARG_MESSAGE = "message";
 
 	private MenuItem navigateAction;
-	private boolean isWatchActive;
-	private BroadcastReceiver watchReceiver;
-	private BroadcastReceiver audioStopReceiver;
+	private boolean isTrackingActive;
+
 	private BroadcastReceiver errorReceiver;
+	private ServiceConnection trackingServiceConnection;
+	private TrackingService trackingService;
 
 	public static CommonFragment newInstance() {
 		return new CommonFragment();
@@ -47,23 +50,24 @@ public class CommonFragment extends Fragment {
 		setHasOptionsMenu(true);
 		setRetainInstance(true);
 
-		getActivity().startService(new Intent(getActivity(), TrackingService.class));
+		getActivity().startService(new Intent(TrackingService.ACTION_FOREGROUND, null,
+				getActivity(), TrackingService.class));
 
-		LocalBroadcastManager.getInstance(getActivity()).registerReceiver(watchReceiver = new BroadcastReceiver() {
+		getActivity().bindService(new Intent(getActivity(), TrackingService.class),
+				trackingServiceConnection = new ServiceConnection() {
 			@Override
-			public void onReceive(Context context, Intent intent) {
-				isWatchActive = true;
-				updateMenuIcon(true);
+			public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+				log.debug("CommonFragment onServiceConnected");
+				trackingService = ((TrackingService.TrackingServiceBinder) iBinder).getService();
+				isTrackingActive = trackingService.isTrackingActive();
+				updateMenuIcon(isTrackingActive);
 			}
-		}, new IntentFilter(AudioService.BC_START_WATCH_POINTS));
 
-		LocalBroadcastManager.getInstance(getActivity()).registerReceiver(audioStopReceiver = new BroadcastReceiver() {
 			@Override
-			public void onReceive(Context context, Intent intent) {
-				isWatchActive = false;
-				updateMenuIcon(false);
+			public void onServiceDisconnected(ComponentName componentName) {
+				trackingService = null;
 			}
-		}, new IntentFilter(AudioService.BC_STOP_SERVICE));
+		}, Context.BIND_AUTO_CREATE);
 
 		LocalBroadcastManager.getInstance(getActivity()).registerReceiver(errorReceiver = new BroadcastReceiver() {
 			@Override
@@ -78,11 +82,14 @@ public class CommonFragment extends Fragment {
 	public void onDestroy() {
 		super.onDestroy();
 
-		getActivity().stopService(new Intent(getActivity(), TrackingService.class));
-		getActivity().stopService(new Intent(getActivity(), AudioService.class));
+		if (trackingService != null) {
+			getActivity().unbindService(trackingServiceConnection);
+		}
 
-		LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(watchReceiver);
-		LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(audioStopReceiver);
+		getActivity().startService(new Intent(TrackingService.ACTION_BACKGROUND,
+				null, getActivity(), TrackingService.class));
+
+		trackingServiceConnection = null;
 		LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(errorReceiver);
 	}
 
@@ -91,27 +98,23 @@ public class CommonFragment extends Fragment {
 		super.onCreateOptionsMenu(menu, inflater);
 		inflater.inflate(R.menu.navigate, menu);
 		navigateAction = menu.findItem(R.id.action_navigate);
-		updateMenuIcon(isWatchActive);
-
-		getActivity().startService(new Intent(AudioService.ACTION_SEND_STATE, null,
-				getActivity(), AudioService.class));
+		updateMenuIcon(isTrackingActive);
 	}
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case R.id.action_navigate:
-			if (isWatchActive) {
-				getActivity().startService(new Intent(TrackingService.ACTION_RELEASE_WAKE_LOCK,
-								null, getActivity(), TrackingService.class));
-				getActivity().stopService(new Intent(getActivity(), AudioService.class));
+			if (isTrackingActive) {
+				getActivity().startService(new Intent(TrackingService.ACTION_STOP_TRACKING,
+						null, getActivity(), TrackingService.class));
 			} else {
-				getActivity().startService(new Intent(AudioService.ACTION_WATCH_POINTS, null,
-						getActivity(), AudioService.class));
-				getActivity().startService(new Intent(TrackingService.ACTION_ACQUIRE_WAKE_LOCK,
+				getActivity().startService(new Intent(TrackingService.ACTION_START_TRACKING,
 						null, getActivity(), TrackingService.class));
 			}
 
+			isTrackingActive = !isTrackingActive;
+			updateMenuIcon(isTrackingActive);
 			return true;
 
 		/*case R.id.action_refresh:
@@ -123,14 +126,14 @@ public class CommonFragment extends Fragment {
 	}
 
 	private void updateMenuIcon(boolean isWatchActive) {
-		if (isWatchActive) {
-			navigateAction.setTitle("Unfollow");
-			navigateAction.setIcon(R.drawable.ic_action_volume_muted);
-		} else {
-			navigateAction.setTitle("Follow");
-			navigateAction.setIcon(R.drawable.ic_action_volume_on);
+		if (navigateAction != null) {
+			if (isWatchActive) {
+				navigateAction.setTitle("Unfollow");
+				navigateAction.setIcon(R.drawable.ic_action_volume_muted);
+			} else {
+				navigateAction.setTitle("Follow");
+				navigateAction.setIcon(R.drawable.ic_action_volume_on);
+			}
 		}
-
-		this.isWatchActive = isWatchActive;
 	}
 }

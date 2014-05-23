@@ -91,7 +91,7 @@ public class PointFragment extends ListFragment {
 		setListAdapter(pointAdapter);
 
 		setHasOptionsMenu(true);
-		setupAudioReceiver();
+		setupRangeReceiver();
 	}
 
 	@Override
@@ -143,7 +143,7 @@ public class PointFragment extends ListFragment {
 		return super.onOptionsItemSelected(item);
 	}
 
-	private void setupAudioReceiver() {
+	private void setupRangeReceiver() {
 		inReceiver = new BroadcastReceiver() {
 			@Override
 			public void onReceive(Context context, Intent intent) {
