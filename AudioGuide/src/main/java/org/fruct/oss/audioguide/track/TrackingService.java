@@ -1,6 +1,7 @@
 package org.fruct.oss.audioguide.track;
 
 import android.app.AlarmManager;
+import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -51,7 +52,7 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 	public static final String PREF_IS_TRACKING_MODE = "pref-tracking-service-is-tracking-mode";
 	public static final String PREF_IS_BACKGROUND_MODE = "pref-tracking-service-is-background-mode";
 
-	private static int NOTIFICATION_ID = 0;
+	private static int NOTIFICATION_ID = 1;
 
 	private boolean isTrackingMode = false;
 	private boolean isBackgroundMode = false;
@@ -203,7 +204,7 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 			isBackgroundMode = true;
 			pref.edit().putBoolean(PREF_IS_BACKGROUND_MODE, true).apply();
 
-			showNotification(null);
+			startForeground(NOTIFICATION_ID, createNotification(null));
 		}
 	}
 
@@ -212,14 +213,11 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 		isBackgroundMode = false;
 		pref.edit().putBoolean(PREF_IS_BACKGROUND_MODE, false).apply();
 
-		NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-		notificationManager.cancel(NOTIFICATION_ID);
+		// There service goes foreground state and activity goes background
+		stopForeground(true);
 	}
 
-	private void showNotification(String text) {
-		if (!isBackgroundMode)
-			return;
-
+	private Notification createNotification(String text) {
 		NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
 				.setSmallIcon(R.drawable.ic_launcher)
 				.setContentTitle("Audio Guide")
@@ -237,9 +235,15 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 		PendingIntent stopPendingIntent = PendingIntent.getService(this, 1, stopIntent,
 				PendingIntent.FLAG_UPDATE_CURRENT);
 		builder.addAction(R.drawable.ic_action_volume_muted, "Stop", stopPendingIntent);
+		return builder.build();
+	}
+
+	private void showNotification(Notification notification) {
+		if (!isBackgroundMode)
+			return;
 
 		NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-		notificationManager.notify(NOTIFICATION_ID, builder.build());
+		notificationManager.notify(NOTIFICATION_ID, notification);
 	}
 
 	@Override
@@ -306,7 +310,7 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 			audioPlayer.startAudioTrack(Uri.parse(point.getAudioUrl()));
 		}
 
-		showNotification(point.getName());
+		showNotification(createNotification(point.getName()));
 /*
 		Intent ledIntent = new Intent(IlluminationIntent.ACTION_START_LED);
 		ledIntent.putExtra(IlluminationIntent.EXTRA_LED_ID, IlluminationIntent.VALUE_BUTTON_RGB);
