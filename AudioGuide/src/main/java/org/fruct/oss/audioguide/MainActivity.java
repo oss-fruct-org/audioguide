@@ -67,6 +67,12 @@ public class MainActivity extends ActionBarActivity
 		if (fragmentManager.findFragmentByTag("common-fragment") == null)
 			fragmentManager.beginTransaction().add(CommonFragment.newInstance(), "common-fragment").commit();
 
+		if (fragmentManager.getFragments() != null) {
+			for (Fragment f : fragmentManager.getFragments()) {
+				log.debug("FRAGMENT: {}", f.getClass().getName());
+			}
+		}
+
 		if (savedInstanceState != null) {
 			suppressDrawerItemSelect = true;
 
@@ -88,7 +94,7 @@ public class MainActivity extends ActionBarActivity
 				R.id.navigation_drawer,
 				(DrawerLayout) findViewById(R.id.drawer_layout));
 
-		if (savedInstanceState == null) {
+		if (savedInstanceState != null) {
 			updateUpButton();
 		}
 	}
@@ -130,7 +136,7 @@ public class MainActivity extends ActionBarActivity
 
 	@Override
 	public void onNavigationDrawerItemSelected(int position, Bundle fragmentParameters) {
-		FragmentManager fragmentManager = getSupportFragmentManager();
+		/*FragmentManager fragmentManager = getSupportFragmentManager();
 		FragmentTransaction trans = fragmentManager.beginTransaction();
 		try {
 			if (fragmentManager.getFragments() != null) {
@@ -141,7 +147,7 @@ public class MainActivity extends ActionBarActivity
 			}
 		} finally {
 			trans.commit();
-		}
+		}*/
 
 		if (suppressDrawerItemSelect) {
 			suppressDrawerItemSelect = false;
@@ -203,7 +209,7 @@ public class MainActivity extends ActionBarActivity
 
 	@Override
 	public void onBackPressed() {
-		if (fragmentStack.size() > 1)
+		if (fragmentStack.size() > 0)
 			popFragment();
 		else
 			super.onBackPressed();
@@ -224,7 +230,7 @@ public class MainActivity extends ActionBarActivity
 
 	@Override
 	public boolean onSupportNavigateUp() {
-		if (fragmentStack.size() > 1)
+		if (fragmentStack.size() > 0)
 			popFragment();
 
 		return super.onSupportNavigateUp();
