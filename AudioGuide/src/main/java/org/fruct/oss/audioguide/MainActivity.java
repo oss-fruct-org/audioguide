@@ -34,12 +34,10 @@ public class MainActivity extends ActionBarActivity
 		implements NavigationDrawerFragment.NavigationDrawerCallbacks, MultiPanel,
 		TestFragment.OnFragmentInteractionListener {
 	private final static Logger log = LoggerFactory.getLogger(MainActivity.class);
-	private int[] panelIds = {R.id.panel1, R.id.panel2/*, R.id.panel3*/};
 
-	private static final String STATE_MAX_PANELS_COUNT = "max-panels-count";
-	private static final String STATE_PANELS_COUNT = "panels-count";
 	private static final String STATE_STACK_SIZE = "stack-size";
 	private static final String STATE_STACK = "stack-fragment";
+	private static final String STATE_CURRENT_FRAGMENT = "current-fragment";
 
 	private static final String TAG_PANEL_FRAGMENT = "panel-fragment";
 
@@ -53,11 +51,8 @@ public class MainActivity extends ActionBarActivity
 	 */
 	private CharSequence mTitle;
 
-	private int maxPanelsCount = -1;
-	private int panelsCount = 0;
-	private int currentFragmentIndex = 0;
-
 	private ArrayList<FragmentStorage> fragmentStack = new ArrayList<FragmentStorage>();
+	private Fragment currentFragment;
 
 	private FragmentManager fragmentManager;
 	private boolean suppressDrawerItemSelect = false;
@@ -74,15 +69,15 @@ public class MainActivity extends ActionBarActivity
 
 		if (savedInstanceState != null) {
 			suppressDrawerItemSelect = true;
-			maxPanelsCount = savedInstanceState.getInt(STATE_MAX_PANELS_COUNT);
+
 			fragmentStack = savedInstanceState.getParcelableArrayList(STATE_STACK);
+			currentFragment = fragmentManager.getFragment(savedInstanceState, STATE_CURRENT_FRAGMENT);
+
 			for (FragmentStorage storage : fragmentStack)
 				storage.setFragmentManager(fragmentManager);
 		}
 
 		setContentView(R.layout.activity_main);
-
-		initPanels(maxPanelsCount);
 
 		mNavigationDrawerFragment = (NavigationDrawerFragment)
 				fragmentManager.findFragmentById(R.id.navigation_drawer);
@@ -93,11 +88,7 @@ public class MainActivity extends ActionBarActivity
 				R.id.navigation_drawer,
 				(DrawerLayout) findViewById(R.id.drawer_layout));
 
-		if (savedInstanceState != null) {
-			FragmentTransaction trans = fragmentManager.beginTransaction();
-			recreateFragmentStack(trans);
-			trans.commit();
-		} else {
+		if (savedInstanceState == null) {
 			updateUpButton();
 		}
 	}
@@ -137,32 +128,6 @@ public class MainActivity extends ActionBarActivity
 		//fragmentManager.executePendingTransactions();
 	}
 
-	@SuppressWarnings("ResourceType")
-	private void initPanels(int maxCount) {
-		if (maxCount == -1)
-			maxCount = Integer.MAX_VALUE;
-
-		maxPanelsCount = maxCount;
-
-		boolean found = false;
-		panelsCount = Math.min(maxCount, panelIds.length);
-		for (int i = 0; i < panelIds.length; i++) {
-			View view = findViewById(panelIds[i]);
-
-			if (!found && (view == null || i >= maxCount)) {
-				panelsCount = i;
-				found = true;
-			}
-
-			if (view != null) {
-				if (i < maxCount)
-					view.setVisibility(View.VISIBLE);
-				else
-					view.setVisibility(View.GONE);
-			}
-		}
-	}
-
 	@Override
 	public void onNavigationDrawerItemSelected(int position, Bundle fragmentParameters) {
 		FragmentManager fragmentManager = getSupportFragmentManager();
@@ -188,15 +153,12 @@ public class MainActivity extends ActionBarActivity
 		switch (position) {
 		case 0:
 			fragment = TrackFragment.newInstance();
-			initPanels(-1);
 			break;
 		case 1:
 			fragment = MapFragment.newInstance();
-			initPanels(1);
 			break;
 		case 2:
 			fragment = GetsFragment.newInstance();
-			initPanels(-1);
 			break;
 		}
 
@@ -205,21 +167,20 @@ public class MainActivity extends ActionBarActivity
 		}
 
 		fragmentStack.clear();
-		fragmentStack.add(new FragmentStorage(fragment).setFragmentManager(fragmentManager));
+		currentFragment = fragment;
 
 		fragmentManager.beginTransaction()
 				.replace(R.id.panel1, fragment, TAG_PANEL_FRAGMENT)
 				.commit();
 
 		updateUpButton();
-		currentFragmentIndex = position;
 	}
 
 	private void updateUpButton() {
 		if (mNavigationDrawerFragment == null)
 			return;
 
-		if (fragmentStack.size() <= panelsCount) {
+		if (fragmentStack.size() <= 0) {
 			mNavigationDrawerFragment.setUpEnabled(true);
 		} else {
 			mNavigationDrawerFragment.setUpEnabled(false);
@@ -242,7 +203,7 @@ public class MainActivity extends ActionBarActivity
 
 	@Override
 	public void onBackPressed() {
-		if (fragmentStack.size() > panelsCount)
+		if (fragmentStack.size() > 1)
 			popFragment();
 		else
 			super.onBackPressed();
@@ -251,7 +212,7 @@ public class MainActivity extends ActionBarActivity
 	public void restoreActionBar() {
 		ActionBar actionBar = getSupportActionBar();
 
-		if (currentFragmentIndex == 0 && !fragmentStack.get(0).isStored())
+		if (fragmentStack.isEmpty())
 			actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
 		else
 			actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
@@ -263,7 +224,7 @@ public class MainActivity extends ActionBarActivity
 
 	@Override
 	public boolean onSupportNavigateUp() {
-		if (fragmentStack.size() > panelsCount)
+		if (fragmentStack.size() > 1)
 			popFragment();
 
 		return super.onSupportNavigateUp();
@@ -296,48 +257,26 @@ public class MainActivity extends ActionBarActivity
 		return super.onOptionsItemSelected(item);
 	}
 
-	private void removeFragments(FragmentTransaction trans) {
-		for (FragmentStorage fragmentStorage : fragmentStack) {
-			if (!fragmentStorage.isStored()) {
-				Fragment fragment = fragmentStorage.getFragment();
-				if (fragment.getTag() == null || !fragment.getTag().equals(TAG_PANEL_FRAGMENT))
-					continue;
+	@Override
+	public void pushFragment(Fragment fragment) {
+		FragmentTransaction trans = fragmentManager.beginTransaction();
 
-				fragmentStorage.storeFragment();
-				trans.remove(fragment);
-			}
-		}
-	}
+		FragmentStorage oldStorage = new FragmentStorage(currentFragment).setFragmentManager(fragmentManager);
+		fragmentStack.add(oldStorage);
+		oldStorage.storeFragment();
 
-	private void recreateFragmentStack(FragmentTransaction trans) {
-		int maxIter = Math.min(panelsCount, fragmentStack.size());
-		for (int i = 0; i < maxIter; i++) {
-			int fragmentIdx = Math.max(0, fragmentStack.size() - panelsCount) + i;
-			FragmentStorage fragmentStorage = fragmentStack.get(fragmentIdx);
-			trans.add(panelIds[i], fragmentStorage.getFragment(), TAG_PANEL_FRAGMENT);
-		}
+		currentFragment = fragment;
+		trans.replace(R.id.panel1, fragment, TAG_PANEL_FRAGMENT);
+		trans.commit();
 
 		updateUpButton();
 	}
 
 	@Override
-	public void pushFragment(Fragment fragment) {
-		fragmentStack.add(new FragmentStorage(fragment).setFragmentManager(fragmentManager));
-		if (fragmentStack.size() <= panelsCount) {
-			fragmentManager.beginTransaction()
-					.add(panelIds[fragmentStack.size() - 1], fragment, TAG_PANEL_FRAGMENT)
-					.commit();
-		} else {
-			FragmentTransaction trans = fragmentManager.beginTransaction();
-			removeFragments(trans);
-			recreateFragmentStack(trans);
-			trans.commit();
-		}
-	}
-
-	@Override
 	public void replaceFragment(Fragment fragment, Fragment firstFragment) {
-		int size = fragmentStack.size();
+		pushFragment(fragment);
+
+		/*int size = fragmentStack.size();
 
 		FragmentStorage lastFragmentStorage = fragmentStack.get(size - 1);
 		if (!lastFragmentStorage.isStored() && lastFragmentStorage.getFragment() == firstFragment) {
@@ -345,73 +284,54 @@ public class MainActivity extends ActionBarActivity
 			return;
 		}
 
-		if (size <= panelsCount) {
-			FragmentTransaction trans = fragmentManager.beginTransaction();
-			for (int i = size - 1; i >= 0; i--) {
-				FragmentStorage storage = fragmentStack.get(i);
-				if (!storage.isStored() && storage.getFragment() != firstFragment) {
-					trans.remove(storage.getFragment());
-					fragmentStack.remove(i);
-				} else {
+		int indexOfLastKeepedFragment = size - 1;
+
+		for (int i = size - 1; i >= 0; i--) {
+			FragmentStorage storage = fragmentStack.get(i);
+			if (!storage.isStored()) {
+				if (storage.getFragment() == firstFragment) {
+					indexOfLastKeepedFragment = i;
 					break;
 				}
+			} else {
+				throw new UnsupportedOperationException(
+						"Shifting until off-screen fragment not supported yet");
 			}
-
-			trans.add(panelIds[size - 1], fragment, TAG_PANEL_FRAGMENT);
-			fragmentStack.add(new FragmentStorage(fragment).setFragmentManager(fragmentManager));
-			trans.commit();
-		} else {
-			int indexOfLastKeepedFragment = size - 1;
-
-			for (int i = size - 1; i >= 0; i--) {
-				FragmentStorage storage = fragmentStack.get(i);
-				if (!storage.isStored()) {
-					if (storage.getFragment() == firstFragment) {
-						indexOfLastKeepedFragment = i;
-						break;
-					}
-				} else {
-					throw new UnsupportedOperationException(
-							"Shifting until off-screen fragment not supported yet");
-				}
-			}
-
-			FragmentTransaction trans = fragmentManager.beginTransaction();
-			removeFragments(trans);
-
-			for (int i = size - 1; i > indexOfLastKeepedFragment; i--) {
-				fragmentStack.remove(i);
-			}
-
-			fragmentStack.add(new FragmentStorage(fragment).setFragmentManager(fragmentManager));
-			recreateFragmentStack(trans);
-			trans.commit();
 		}
+
+		FragmentTransaction trans = fragmentManager.beginTransaction();
+		removeFragments(trans);
+
+		for (int i = size - 1; i > indexOfLastKeepedFragment; i--) {
+			fragmentStack.remove(i);
+		}
+
+		fragmentStack.add(new FragmentStorage(fragment).setFragmentManager(fragmentManager));
+		trans.add(R.id.panel1, fragment, TAG_PANEL_FRAGMENT);
+		trans.commit();
+		updateUpButton();*/
 	}
 
 	@Override
 	public void popFragment() {
-		if (fragmentStack.size() <= panelsCount) {
-			fragmentManager.beginTransaction()
-					.remove(fragmentStack.get(fragmentStack.size() - 1).getFragment())
-					.commit();
-			fragmentStack.remove(fragmentStack.size() - 1);
-		} else {
-			FragmentTransaction trans = fragmentManager.beginTransaction();
-			removeFragments(trans);
-			fragmentStack.remove(fragmentStack.size() - 1);
-			recreateFragmentStack(trans);
-			trans.commit();
-		}
+		FragmentTransaction trans = fragmentManager.beginTransaction();
+		trans.remove(currentFragment);
+
+		Fragment newFragment = fragmentStack.get(fragmentStack.size() - 1).getFragment();
+		fragmentStack.remove(fragmentStack.size() - 1);
+
+		currentFragment = newFragment;
+		trans.replace(R.id.panel1, newFragment, TAG_PANEL_FRAGMENT);
+		trans.commit();
+
+		updateUpButton();
 	}
 
 	@Override
 	protected void onSaveInstanceState(Bundle outState) {
-		outState.putInt(STATE_MAX_PANELS_COUNT, maxPanelsCount);
-		outState.putInt(STATE_PANELS_COUNT, panelsCount);
 		outState.putInt(STATE_STACK_SIZE, fragmentStack.size());
-
 		outState.putParcelableArrayList(STATE_STACK, fragmentStack);
+		fragmentManager.putFragment(outState, STATE_CURRENT_FRAGMENT, currentFragment);
 
 		super.onSaveInstanceState(outState);
 	}
@@ -513,14 +433,6 @@ public class MainActivity extends ActionBarActivity
 			return fragment;
 		}
 
-		public Fragment.SavedState getState() {
-			if (fragment == null) {
-				return state;
-			} else {
-				return state = fragmentManager.saveFragmentInstanceState(fragment);
-			}
-		}
-
 		@Override
 		public int describeContents() {
 			return 0;
@@ -528,10 +440,6 @@ public class MainActivity extends ActionBarActivity
 
 		@Override
 		public void writeToParcel(Parcel parcel, int i) {
-			if (state == null && fragment != null) {
-				state = getState();
-			}
-
 			parcel.writeParcelable(state, i);
 			parcel.writeSerializable(aClass);
 		}
