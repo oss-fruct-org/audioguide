@@ -1,9 +1,11 @@
 package org.fruct.oss.audioguide.track;
 
 import android.content.Context;
+import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.support.v4.content.LocalBroadcastManager;
 
 import org.fruct.oss.audioguide.files.FileManager;
 import org.slf4j.Logger;
@@ -12,6 +14,9 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 
 public class AudioPlayer implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener {
+	public static String BC_ACTION_START_PLAY = "org.fruct.oss.audioguide.AudioPlayer.START_PLAY";
+	public static String BC_ACTION_STOP_PLAY = "org.fruct.oss.audioguide.AudioPlayer.STOP_PLAY";
+
 	private final static Logger log = LoggerFactory.getLogger(AudioPlayer.class);
 	private final Context context;
 
@@ -54,6 +59,7 @@ public class AudioPlayer implements MediaPlayer.OnPreparedListener, MediaPlayer.
 			player.stop();
 			player = null;
 			currentUri = null;
+			LocalBroadcastManager.getInstance(context).sendBroadcast(new Intent(BC_ACTION_STOP_PLAY));
 		}
 	}
 
@@ -65,6 +71,8 @@ public class AudioPlayer implements MediaPlayer.OnPreparedListener, MediaPlayer.
 	public void onPrepared(MediaPlayer mediaPlayer) {
 		log.trace("Playing uri {}", currentUri);
 		mediaPlayer.start();
+
+		LocalBroadcastManager.getInstance(context).sendBroadcast(new Intent(BC_ACTION_START_PLAY));
 	}
 
 	@Override
@@ -73,6 +81,7 @@ public class AudioPlayer implements MediaPlayer.OnPreparedListener, MediaPlayer.
 			player.release();
 			player = null;
 			currentUri = null;
+			LocalBroadcastManager.getInstance(context).sendBroadcast(new Intent(BC_ACTION_STOP_PLAY));
 		}
 	}
 

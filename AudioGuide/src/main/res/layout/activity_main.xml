@@ -7,16 +7,26 @@
     android:layout_height="match_parent"
     tools:context="org.fruct.oss.audioguide.MainActivity">
 
-    <LinearLayout
+    <RelativeLayout
         android:id="@+id/container"
         android:baselineAligned="false"
-        android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <include layout="@layout/panel_layout"/>
+        <FrameLayout
+            android:id="@+id/panel1"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
 
-    </LinearLayout>
+        <FrameLayout
+            android:id="@+id/panel_container"
+            android:layout_alignParentBottom="true"
+            android:layout_width="match_parent"
+            android:layout_height="64dp">
+        </FrameLayout>
+
+    </RelativeLayout>
+
     <!-- android:layout_gravity="start" tells DrawerLayout to treat
          this as a sliding drawer on the left side for left-to-right
          languages and on the right side for right-to-left languages.
@@ -29,5 +39,6 @@
         android:layout_height="match_parent"
         android:layout_gravity="start"
         android:name="org.fruct.oss.audioguide.NavigationDrawerFragment" />
+
 
 </android.support.v4.widget.DrawerLayout>

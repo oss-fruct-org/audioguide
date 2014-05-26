@@ -7,6 +7,8 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.widget.Button;
 
 import org.fruct.oss.audioguide.R;
 
@@ -44,9 +46,21 @@ public class PanelFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_panel, container, false);
-    }
+		View view = inflater.inflate(R.layout.fragment_panel, container, false);
+
+		view.findViewById(R.id.ok_button).setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				getFragmentManager().beginTransaction()
+						.setCustomAnimations(R.anim.bottom_up, R.anim.bottom_down)
+						.remove(PanelFragment.this)
+						.commit();
+
+			}
+		});
+
+		return view;
+	}
 
 
 }

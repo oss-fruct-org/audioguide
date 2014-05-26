@@ -1,11 +1,15 @@
 package org.fruct.oss.audioguide;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.Fragment;
@@ -17,15 +21,18 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.support.v4.widget.DrawerLayout;
+import android.widget.Button;
 import android.widget.TextView;
 
 import org.fruct.oss.audioguide.fragments.CommonFragment;
 import org.fruct.oss.audioguide.fragments.GetsFragment;
 import org.fruct.oss.audioguide.fragments.MapFragment;
 import org.fruct.oss.audioguide.fragments.NavigateFragment;
+import org.fruct.oss.audioguide.fragments.PanelFragment;
 import org.fruct.oss.audioguide.fragments.TrackFragment;
 import org.fruct.oss.audioguide.fragments.edit.EditTrackFragment;
 import org.fruct.oss.audioguide.preferences.SettingsActivity;
+import org.fruct.oss.audioguide.track.AudioPlayer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,6 +63,8 @@ public class MainActivity extends ActionBarActivity
 
 	private FragmentManager fragmentManager;
 	private boolean suppressDrawerItemSelect = false;
+	private BroadcastReceiver startAudioReceiver;
+	private BroadcastReceiver stopAudioReceiver;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -97,6 +106,39 @@ public class MainActivity extends ActionBarActivity
 		if (savedInstanceState != null) {
 			updateUpButton();
 		}
+
+		setupBottomPanel();
+	}
+
+	private void setupBottomPanel() {
+		LocalBroadcastManager.getInstance(this).registerReceiver(startAudioReceiver = new BroadcastReceiver() {
+			@Override
+			public void onReceive(Context context, Intent intent) {
+				final PanelFragment panelFragment = PanelFragment.newInstance();
+				fragmentManager.beginTransaction()
+						.setCustomAnimations(R.anim.bottom_up, R.anim.bottom_down)
+						.replace(R.id.panel_container, panelFragment, "bottom-panel-fragment").commit();
+
+			}
+		}, new IntentFilter(AudioPlayer.BC_ACTION_START_PLAY));
+
+		LocalBroadcastManager.getInstance(this).registerReceiver(stopAudioReceiver = new BroadcastReceiver() {
+			@Override
+			public void onReceive(Context context, Intent intent) {
+				PanelFragment frag = (PanelFragment) fragmentManager.findFragmentByTag("bottom-panel-fragment");
+
+				if (frag != null) {
+					fragmentManager.beginTransaction()
+							.setCustomAnimations(R.anim.bottom_up, R.anim.bottom_down)
+							.remove(frag).commit();
+				}
+			}
+		}, new IntentFilter(AudioPlayer.BC_ACTION_STOP_PLAY));
+	}
+
+	private void unsetupBottomPanel() {
+		LocalBroadcastManager.getInstance(this).unregisterReceiver(startAudioReceiver);
+		LocalBroadcastManager.getInstance(this).unregisterReceiver(stopAudioReceiver);
 	}
 
 	@Override
@@ -127,11 +169,7 @@ public class MainActivity extends ActionBarActivity
 	protected void onDestroy() {
 		super.onDestroy();
 		log.trace("MainActivity onDestroy");
-
-		//FragmentTransaction trans = fragmentManager.beginTransaction();
-		//removeFragments(trans);
-		//trans.commit();
-		//fragmentManager.executePendingTransactions();
+		unsetupBottomPanel();
 	}
 
 	@Override
@@ -218,7 +256,7 @@ public class MainActivity extends ActionBarActivity
 	public void restoreActionBar() {
 		ActionBar actionBar = getSupportActionBar();
 
-		if (fragmentStack.isEmpty())
+		if (fragmentStack.isEmpty() && currentFragment instanceof TrackFragment)
 			actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
 		else
 			actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
