@@ -1,17 +1,46 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="64dp"
     android:layout_gravity="left"
-    android:background="#200022ee"
+    android:gravity="left"
+    android:background="@android:drawable/screen_background_dark_transparent"
     tools:context="org.fruct.oss.audioguide.fragments.PanelFragment">
 
-    <Button
-        android:id="@+id/ok_button"
+    <ImageButton
+        android:id="@+id/stop_button"
         android:layout_width="64dp"
         android:layout_height="64dp"
-        android:text="OK" />
+        android:background="@null"
+        android:src="@drawable/ic_action_inv_stop"
+        />
+
+    <ImageButton
+        android:id="@+id/play_button"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:src="@drawable/ic_action_inv_play"
+        android:background="@null"
+        android:visibility="gone"
+        />
+
+    <ImageButton
+        android:id="@+id/pause_button"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:src="@drawable/ic_action_inv_pause"
+        android:background="@null"
+        />
 
 
+    <SeekBar
+        android:id="@+id/seek_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:max="100"
+        android:progress="0"
+        android:paddingRight="8dp"
+        />
 
-</FrameLayout>
+</LinearLayout>

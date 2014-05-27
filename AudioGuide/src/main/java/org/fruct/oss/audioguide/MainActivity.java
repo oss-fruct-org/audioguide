@@ -114,7 +114,7 @@ public class MainActivity extends ActionBarActivity
 		LocalBroadcastManager.getInstance(this).registerReceiver(startAudioReceiver = new BroadcastReceiver() {
 			@Override
 			public void onReceive(Context context, Intent intent) {
-				final PanelFragment panelFragment = PanelFragment.newInstance();
+				final PanelFragment panelFragment = PanelFragment.newInstance(intent.getIntExtra("duration", 0));
 				fragmentManager.beginTransaction()
 						.setCustomAnimations(R.anim.bottom_up, R.anim.bottom_down)
 						.replace(R.id.panel_container, panelFragment, "bottom-panel-fragment").commit();

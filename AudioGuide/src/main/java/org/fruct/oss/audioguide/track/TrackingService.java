@@ -46,6 +46,10 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 	public static final String ACTION_PLAY = "org.fruct.oss.audioguide.TrackingService.ACTION_PLAY";
 	public static final String ACTION_STOP = "org.fruct.oss.audioguide.TrackingService.ACTION_STOP";
 
+	public static final String ACTION_PAUSE = "org.fruct.oss.audioguide.TrackingService.ACTION_PAUSE";
+	public static final String ACTION_UNPAUSE = "org.fruct.oss.audioguide.TrackingService.ACTION_UNPAUSE";
+	public static final String ACTION_SEEK = "org.fruct.oss.audioguide.TrackingService.ACTION_SEEK";
+
 	public static final String ACTION_BACKGROUND = "org.fruct.oss.audioguide.TrackingService.ACTION_BACKGROUND";
 	public static final String ACTION_FOREGROUND = "org.fruct.oss.audioguide.TrackingService.ACTION_FOREGROUND";
 
@@ -130,6 +134,12 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 				}
 			} else if (action.equals(ACTION_PLAY)) {
 				audioPlayer.startAudioTrack(intent.getData());
+			} else if (action.equals(ACTION_PAUSE)) {
+				audioPlayer.pause();
+			} else if (action.equals(ACTION_UNPAUSE)) {
+				audioPlayer.unpause();
+			} else if (action.equals(ACTION_SEEK)) {
+				audioPlayer.seek(intent.getIntExtra("position", 0));
 			} else if (action.equals(ACTION_STOP)) {
 				audioPlayer.stopAudioTrack();
 			} else if (action.equals(ACTION_START_TRACKING)) {
