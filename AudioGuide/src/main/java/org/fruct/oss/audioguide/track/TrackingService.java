@@ -311,6 +311,7 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 
 	@Override
 	public void pointInRange(Point point) {
+		log.debug("pointInRange: {}", point.getName());
 		Intent intent = new Intent(BC_ACTION_POINT_IN_RANGE);
 		intent.putExtra(ARG_POINT, point);
 
@@ -331,6 +332,8 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 
 	@Override
 	public void pointOutRange(Point point) {
+		log.debug("pointOutRange: {}", point.getName());
+
 		Intent intent = new Intent(BC_ACTION_POINT_OUT_RANGE);
 		intent.putExtra(ARG_POINT, point);
 

@@ -76,12 +76,6 @@ public class MainActivity extends ActionBarActivity
 		if (fragmentManager.findFragmentByTag("common-fragment") == null)
 			fragmentManager.beginTransaction().add(CommonFragment.newInstance(), "common-fragment").commit();
 
-		if (fragmentManager.getFragments() != null) {
-			for (Fragment f : fragmentManager.getFragments()) {
-				log.debug("FRAGMENT: {}", f.getClass().getName());
-			}
-		}
-
 		if (savedInstanceState != null) {
 			suppressDrawerItemSelect = true;
 

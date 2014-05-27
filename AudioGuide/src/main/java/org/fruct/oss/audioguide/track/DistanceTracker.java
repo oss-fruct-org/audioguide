@@ -87,6 +87,9 @@ public class DistanceTracker implements LocationReceiver.Listener, ModelListener
 
 	@Override
 	public void newLocation(Location location) {
+		ArrayList<Point> outRange = new ArrayList<Point>();
+		ArrayList<Point> inRange = new ArrayList<Point>();
+
 		for (PointModelHolder pointModelHolder : pointModels) {
 			for (Point point : pointModelHolder.model) {
 				boolean isPointInRange = pointsInRange.contains(point);
@@ -96,16 +99,23 @@ public class DistanceTracker implements LocationReceiver.Listener, ModelListener
 
 				// TODO: de-hardcode distance
 				if (distanceMeters < radius && !isPointInRange) {
-					pointsInRange.add(point);
-					notifyPointInRange(point);
+					inRange.add(point);
 				} else if (distanceMeters >= radius && isPointInRange) {
-					pointsInRange.remove(point);
-					notifyPointOutRange(point);
+					outRange.add(point);
 				}
 			}
 		}
-	}
 
+		for (Point point : outRange) {
+			pointsInRange.remove(point);
+			notifyPointOutRange(point);
+		}
+
+		for (Point point : inRange) {
+			pointsInRange.add(point);
+			notifyPointInRange(point);
+		}
+	}
 
 	private void notifyPointInRange(Point point) {
 		for (Listener listener : listeners)

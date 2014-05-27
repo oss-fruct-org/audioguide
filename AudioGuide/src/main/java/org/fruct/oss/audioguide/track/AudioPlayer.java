@@ -28,7 +28,7 @@ public class AudioPlayer implements MediaPlayer.OnPreparedListener, MediaPlayer.
 
 	private FileManager fileManager;
 
-	public AudioPlayer(Context context) {
+	AudioPlayer(Context context) {
 		this.context = context;
 
 		fileManager = FileManager.getInstance();
