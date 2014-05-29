@@ -19,6 +19,7 @@ import org.fruct.oss.audioguide.models.Model;
 import org.fruct.oss.audioguide.models.ModelListener;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.TrackManager;
+import org.fruct.oss.audioguide.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -128,7 +129,7 @@ public class PointModelAdapter extends BaseAdapter implements Closeable, ModelLi
 				pendingIconUrls.remove(photoUrl);
 			}
 
-			Bitmap iconBitmap = fileManager.getImageBitmap(photoUrl);
+			Bitmap iconBitmap = fileManager.getImageBitmap(photoUrl, Utils.getDP(48), Utils.getDP(48), FileManager.ScaleMode.SCALE_FIT);
 			if (iconBitmap != null) {
 				holder.icon.setImageDrawable(new BitmapDrawable(context.getResources(), iconBitmap));
 			} else {

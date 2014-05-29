@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
+import android.graphics.Matrix;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Handler;
@@ -33,6 +34,10 @@ import java.util.Locale;
 import java.util.WeakHashMap;
 
 public class FileManager implements SharedPreferences.OnSharedPreferenceChangeListener, Closeable {
+	public enum ScaleMode {
+		NO_SCALE, SCALE_CROP, SCALE_FIT
+	}
+
 	private final static Logger log = LoggerFactory.getLogger(FileManager.class);
 
 	private final Context context;
@@ -177,36 +182,53 @@ public class FileManager implements SharedPreferences.OnSharedPreferenceChangeLi
 		}
 	}
 
-	public Bitmap getImageBitmap(String remoteUrl) {
+	public Bitmap getImageBitmap(String remoteUrl, int width, int height, ScaleMode mode) {
 		Bitmap bitmap = iconCache.get(remoteUrl);
-		if (bitmap != null)
-			return bitmap;
+		if (bitmap == null || bitmap.getWidth() < width || bitmap.getHeight() < height) {
+			// Create sampled bitmap that not worse than passed dimension (width, height)
+			String localUrl = downloader.getUrl(remoteUrl);
+			if (localUrl == null) {
+				pendingFiles.insert(remoteUrl);
+				return null;
+			}
 
-		String localUrl = downloader.getUrl(remoteUrl);
+			//if (bitmap != null) {
+			//	bitmap.recycle();
+			//}
 
-		if (localUrl != null) {
-			Bitmap newBitmap = AUtils.decodeSampledBitmapFromResource(Resources.getSystem(),
-					localUrl, Utils.getDP(48), Utils.getDP(48));
-			iconCache.put(remoteUrl, newBitmap);
-			return newBitmap;
-		} else {
-			pendingFiles.insert(remoteUrl);
+			bitmap = AUtils.decodeSampledBitmapFromResource(Resources.getSystem(),
+					localUrl, width, height);
+			iconCache.put(remoteUrl, bitmap);
 		}
 
-		return null;
+		if (mode == ScaleMode.NO_SCALE) {
+			return bitmap;
+		} else {
+			float ax = bitmap.getWidth() / (float) width;
+			float ay = bitmap.getHeight() / (float) height;
+			float ma = mode == ScaleMode.SCALE_CROP
+					? Math.min(ax, ay)
+					: Math.max(ax, ay);
+
+			Matrix matrix = new Matrix();
+			matrix.postScale(1/ma, 1/ma);
+
+			if (mode == ScaleMode.SCALE_CROP) {
+				// TODO: scale_crop can't handle non-square dst
+				int minDim = Math.min(bitmap.getWidth(), bitmap.getHeight());
+				return Bitmap.createBitmap(bitmap, 0, 0, minDim, minDim, matrix, true);
+			} else {
+				return Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+			}
+		}
 	}
 
-	public Bitmap getImageFullBitmap(String remoteUrl, int width, int height) {
-		String localUrl = downloader.getUrl(remoteUrl);
+	public Bitmap getImageBitmap(String remoteUrl, int width, int height) {
+		return getImageBitmap(remoteUrl, width, height, ScaleMode.NO_SCALE);
+	}
 
-		if (localUrl != null) {
-			return AUtils.decodeSampledBitmapFromResource(Resources.getSystem(),
-					localUrl, width, height);
-		} else {
-			pendingFiles.insert(remoteUrl);
-		}
-
-		return null;
+	public Bitmap getImageBitmap(String remoteUrl) {
+		return getImageBitmap(remoteUrl, Utils.getDP(48), Utils.getDP(48));
 	}
 
 	public boolean isFileLocal(String remoteUrl) {

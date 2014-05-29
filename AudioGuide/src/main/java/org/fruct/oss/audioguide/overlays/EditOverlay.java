@@ -29,6 +29,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+
+
 public class EditOverlay extends Overlay implements Closeable, ModelListener {
 	private final Context context;
 
@@ -39,7 +41,6 @@ public class EditOverlay extends Overlay implements Closeable, ModelListener {
 
 	private final static Logger log = LoggerFactory.getLogger(EditOverlay.class);
 	private final static int[] markers = {R.drawable.marker_1, R.drawable.marker_2};
-
 
 	private List<EditOverlayItem> items = new ArrayList<EditOverlayItem>();
 	private int itemSize;
@@ -60,6 +61,8 @@ public class EditOverlay extends Overlay implements Closeable, ModelListener {
 	private int dragStartX;
 	private int dragStartY;
 	private boolean dragStarted;
+
+	private Bitmap draggingItemFullIcon;
 
 	private boolean isEditable = false;
 
@@ -173,6 +176,26 @@ public class EditOverlay extends Overlay implements Closeable, ModelListener {
 
 		drawPath(canvas, view);
 		drawItems(canvas, view);
+		drawDraggingItem(canvas, view);
+	}
+
+	private void drawDraggingItem(Canvas canvas, MapView view) {
+		if (draggingItem == null) {
+			return;
+		}
+
+		Rect rect = view.getProjection().getIntrinsicScreenRect();
+
+		markerDrawable.setAlpha(230);
+		markerDrawable.setBounds(rect.left + itemSize, rect.top + itemSize,
+				rect.right - itemSize, rect.bottom - itemSize);
+		markerDrawable.draw(canvas);
+		markerDrawable.setAlpha(255);
+
+		if (draggingItemFullIcon != null) {
+			canvas.drawBitmap(draggingItemFullIcon, rect.left + itemSize + markerPadding.left,
+					rect.top + itemSize + markerPadding.top, null);
+		}
 	}
 
 	private void drawPath(Canvas canvas, MapView view) {
@@ -201,6 +224,9 @@ public class EditOverlay extends Overlay implements Closeable, ModelListener {
 	}
 
 	private void drawItem(Canvas canvas, MapView view, EditOverlayItem item, int index) {
+		if (item == draggingItem)
+			return;
+
 		MapView.Projection proj = view.getProjection();
 
 		proj.toMapPixels(item.geoPoint, point);
@@ -213,15 +239,8 @@ public class EditOverlay extends Overlay implements Closeable, ModelListener {
 
 		Rect bounds = markerDrawable.getBounds();
 
-		markerDrawable.getPadding(rect);
-		rect.set(bounds.left + rect.left, bounds.top + rect.top,
-				bounds.right - rect.right, bounds.bottom - rect.bottom);
-
 		if (item.iconBitmap != null) {
-			// TODO: can be precomputed
-			int minDim = Math.min(item.iconBitmap.getWidth(), item.iconBitmap.getHeight());
-			rect2.set(0, 0, minDim, minDim);
-			canvas.drawBitmap(item.iconBitmap, rect2, rect, null);
+			canvas.drawBitmap(item.iconBitmap, bounds.left + markerPadding.left, bounds.top + markerPadding.top, null);
 		} else {
 			canvas.drawText(String.valueOf(index), point.x, point.y - itemSize + itemSize / 3, itemBackgroundPaint);
 		}
@@ -231,7 +250,8 @@ public class EditOverlay extends Overlay implements Closeable, ModelListener {
 		EditOverlayItem item = new EditOverlayItem(geoPoint, t);
 
 		if (item.data.hasPhoto()) {
-			item.iconBitmap = fileManager.getImageBitmap(item.data.getPhotoUrl());
+			item.iconBitmap = fileManager.getImageBitmap(item.data.getPhotoUrl(),
+					Utils.getDP(48), Utils.getDP(48), FileManager.ScaleMode.SCALE_CROP);
 		}
 
 		items.add(item);
@@ -267,6 +287,20 @@ public class EditOverlay extends Overlay implements Closeable, ModelListener {
 		return null;
 	}
 
+	private void showDetails(MapView view, EditOverlayItem item) {
+		if (item.data.hasPhoto()) {
+			Rect rect = view.getProjection().getIntrinsicScreenRect();
+
+			int imageWidth = Math.min(rect.width() - itemSize * 2 - markerPadding.left - markerPadding.right,
+					rect.height() - itemSize * 2 - markerPadding.top - markerPadding.bottom);
+			draggingItemFullIcon = fileManager.getImageBitmap(item.data.getPhotoUrl(), imageWidth,
+					imageWidth, FileManager.ScaleMode.SCALE_FIT);
+		} else if (draggingItemFullIcon != null && !draggingItemFullIcon.isRecycled()) {
+			draggingItemFullIcon.recycle();
+			draggingItemFullIcon = null;
+		}
+	}
+
 	@Override
 	public boolean onTouchEvent(MotionEvent event, MapView mapView) {
 		if (event.getAction() == MotionEvent.ACTION_DOWN) {
@@ -279,6 +313,8 @@ public class EditOverlay extends Overlay implements Closeable, ModelListener {
 				dragStartX = (int) event.getX();
 				dragStartY = (int) event.getY();
 				dragStarted = false;
+
+				showDetails(mapView, draggingItem);
 
 				mapView.invalidate();
 				return true;
