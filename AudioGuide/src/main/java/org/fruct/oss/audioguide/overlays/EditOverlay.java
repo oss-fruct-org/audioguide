@@ -6,6 +6,7 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 
 import org.fruct.oss.audioguide.R;
+import org.fruct.oss.audioguide.files.FileManager;
 import org.fruct.oss.audioguide.track.Point;
 
 import android.graphics.Rect;
@@ -46,6 +47,9 @@ public class EditOverlay extends Overlay implements Closeable, ModelListener {
 	private final Paint itemBackgroundDragPaint;
 	private final Paint itemBackgroundPaint;
 
+	private final FileManager fileManager;
+
+	private Rect markerPadding;
 	private Drawable markerDrawable;
 
 	private Paint linePaint;
@@ -61,6 +65,9 @@ public class EditOverlay extends Overlay implements Closeable, ModelListener {
 
 	private transient android.graphics.Point point = new android.graphics.Point();
 	private transient android.graphics.Point point2 = new android.graphics.Point();
+	private transient Rect rect = new Rect();
+	private transient Rect rect2 = new Rect();
+
 	private transient HitResult hitResult = new HitResult();
 
 	private Listener listener;
@@ -94,6 +101,8 @@ public class EditOverlay extends Overlay implements Closeable, ModelListener {
 		this.model = model;
 		this.model.addListener(this);
 
+		fileManager = FileManager.getInstance();
+
 		dataSetChanged();
 	}
 
@@ -113,7 +122,6 @@ public class EditOverlay extends Overlay implements Closeable, ModelListener {
 			int y = rand.nextInt(bitmap.getHeight());
 
 			int pix = bitmap.getPixel(x, y);
-			log.debug("PIX" + pix);
 
 			int a = (pix >>> 24) & 0xff;
 
@@ -131,14 +139,18 @@ public class EditOverlay extends Overlay implements Closeable, ModelListener {
 			b /= c;
 		}
 
-		log.debug("COLOR " + r + " " + g + " " + b);
 		bitmap.recycle();
 		return (r << 16) + (g << 8) + b + 0xff000000;
 	}
 
 	public void setMarkerIndex(int markerIndex) {
+		markerPadding = new Rect();
+
 		markerDrawable = context.getResources().getDrawable(markers[markerIndex % markers.length]);
+		markerDrawable.getPadding(markerPadding);
+
 		linePaint.setColor(getMeanColor(markerDrawable));
+
 	}
 
 	public void setEditable(boolean isEditable) {
@@ -193,14 +205,35 @@ public class EditOverlay extends Overlay implements Closeable, ModelListener {
 
 		proj.toMapPixels(item.geoPoint, point);
 
-		markerDrawable.setBounds(point.x - itemSize, point.y - 2 * itemSize, point.x + itemSize, point.y);
+		markerDrawable.setBounds(point.x - itemSize - markerPadding.left,
+				point.y - 2 * itemSize - markerPadding.bottom - markerPadding.top,
+				point.x + itemSize + markerPadding.right,
+				point.y);
 		markerDrawable.draw(canvas);
 
-		canvas.drawText(String.valueOf(index), point.x, point.y - itemSize + itemSize / 3, itemBackgroundPaint);
+		Rect bounds = markerDrawable.getBounds();
+
+		markerDrawable.getPadding(rect);
+		rect.set(bounds.left + rect.left, bounds.top + rect.top,
+				bounds.right - rect.right, bounds.bottom - rect.bottom);
+
+		if (item.iconBitmap != null) {
+			// TODO: can be precomputed
+			int minDim = Math.min(item.iconBitmap.getWidth(), item.iconBitmap.getHeight());
+			rect2.set(0, 0, minDim, minDim);
+			canvas.drawBitmap(item.iconBitmap, rect2, rect, null);
+		} else {
+			canvas.drawText(String.valueOf(index), point.x, point.y - itemSize + itemSize / 3, itemBackgroundPaint);
+		}
 	}
 
 	public void addPoint(GeoPoint geoPoint, org.fruct.oss.audioguide.track.Point t) {
 		EditOverlayItem item = new EditOverlayItem(geoPoint, t);
+
+		if (item.data.hasPhoto()) {
+			item.iconBitmap = fileManager.getImageBitmap(item.data.getPhotoUrl());
+		}
+
 		items.add(item);
 	}
 
@@ -308,6 +341,7 @@ public class EditOverlay extends Overlay implements Closeable, ModelListener {
 
 		Point data;
 		GeoPoint geoPoint;
+		Bitmap iconBitmap;
 	}
 
 	class HitResult {
