@@ -14,7 +14,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.location.Location;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -30,7 +29,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
-import android.widget.Button;
 
 import org.fruct.oss.audioguide.MultiPanel;
 import org.fruct.oss.audioguide.R;
@@ -43,7 +41,6 @@ import org.fruct.oss.audioguide.track.Track;
 import org.fruct.oss.audioguide.track.TrackManager;
 import org.fruct.oss.audioguide.track.TrackingService;
 import org.fruct.oss.audioguide.util.AUtils;
-import org.fruct.oss.audioguide.util.Utils;
 import org.osmdroid.api.IGeoPoint;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.util.ResourceProxyImpl;
@@ -337,23 +334,21 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 		Track globalEditTrack = trackManager.getEditingTrack();
 		for (Track track : trackManager.getActiveTracks()) {
 
-			int hashR = 85 + (int) (Utils.longHash(track.getName() + "'") % 50);
-			int hashG = 85 + (int) (Utils.longHash(track.getName() + "4") % 50);
-			int hashB = (int) (Utils.longHash(track.getName() + "3") % 50);
 
 			EditOverlay trackOverlay = new EditOverlay(getActivity(),
 					trackManager.getPointsModel(track),
-					Utils.color(hashR, hashG, 255 - hashB) + 0xff000000);
+					0);
 			trackOverlays.add(trackOverlay);
 
 			if (globalEditTrack == track) {
 				// Save track that user edits
 				editOverlay = trackOverlay;
-				editOverlay.setColor(0xffaaccee);
+				editOverlay.setMarkerIndex(1);
 				editTrack = track;
 				trackOverlay.setEditable(true);
 				trackOverlay.setListener(editOverlayListener);
 			} else {
+				trackOverlay.setMarkerIndex(0);
 				trackOverlay.setListener(trackOverlayListener);
 			}
 

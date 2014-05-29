@@ -1,16 +1,15 @@
 package org.fruct.oss.audioguide.overlays;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.track.Point;
 
-import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.NinePatchDrawable;
 import android.view.MotionEvent;
 
 import org.fruct.oss.audioguide.models.Model;
@@ -25,9 +24,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class EditOverlay extends Overlay implements Closeable, ModelListener {
 	private final Context context;
@@ -38,12 +37,15 @@ public class EditOverlay extends Overlay implements Closeable, ModelListener {
 	}
 
 	private final static Logger log = LoggerFactory.getLogger(EditOverlay.class);
+	private final static int[] markers = {R.drawable.marker_1, R.drawable.marker_2};
+
 
 	private List<EditOverlayItem> items = new ArrayList<EditOverlayItem>();
 	private int itemSize;
 
-	private Paint itemBackgroundPaint;
-	private Paint itemBackgroundDragPaint;
+	private final Paint itemBackgroundDragPaint;
+	private final Paint itemBackgroundPaint;
+
 	private Drawable markerDrawable;
 
 	private Paint linePaint;
@@ -64,45 +66,79 @@ public class EditOverlay extends Overlay implements Closeable, ModelListener {
 	private Listener listener;
 	private final Model<Point> model;
 
-	public EditOverlay(Context ctx, Model<Point> model, int color) {
+	public EditOverlay(Context ctx, Model<Point> model, int markerIndex) {
 		super(ctx);
 
 		this.context = ctx;
 
 		itemSize = Utils.getDP(24);
 
-		itemBackgroundPaint = new Paint();
-		itemBackgroundPaint.setColor(color);
-		itemBackgroundPaint.setStyle(Paint.Style.FILL);
-		itemBackgroundPaint.setTextSize(itemSize);
-		itemBackgroundPaint.setFakeBoldText(true);
-		itemBackgroundPaint.setTextAlign(Paint.Align.CENTER);
-
 		itemBackgroundDragPaint = new Paint();
 		itemBackgroundDragPaint.setColor(0xff1143fa);
 		itemBackgroundDragPaint.setStyle(Paint.Style.FILL);
 
 		linePaint = new Paint();
-		linePaint.setColor(color);
+		linePaint.setColor(0xff1143fa);
 		linePaint.setStyle(Paint.Style.STROKE);
 		linePaint.setStrokeWidth(2);
 		linePaint.setAntiAlias(true);
+
+		itemBackgroundPaint = new Paint();
+		itemBackgroundPaint.setColor(0xffffffff);
+		itemBackgroundPaint.setStyle(Paint.Style.FILL);
+		itemBackgroundPaint.setTextSize(itemSize);
+		itemBackgroundPaint.setAntiAlias(true);
+		itemBackgroundPaint.setTextAlign(Paint.Align.CENTER);
 
 
 		this.model = model;
 		this.model.addListener(this);
 
 		dataSetChanged();
-
-		setColor(color);
 	}
 
-	public void setColor(int color) {
-		linePaint.setColor(color);
-		itemBackgroundPaint.setColor(color);
+	private int getMeanColor(Drawable drawable) {
+		Bitmap bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
 
-		markerDrawable = context.getResources().getDrawable(R.drawable.map_marker);
-		markerDrawable.setColorFilter(color, PorterDuff.Mode.SRC_ATOP);
+		drawable.setBounds(0, 0, bitmap.getWidth(), bitmap.getHeight());
+		Canvas canvas = new Canvas(bitmap);
+		drawable.draw(canvas);
+
+		int r = 0, g = 0, b = 0;
+		Random rand = new Random();
+
+		int c = 0;
+		for (int i = 0; i < 20; i++) {
+			int x = rand.nextInt(bitmap.getWidth());
+			int y = rand.nextInt(bitmap.getHeight());
+
+			int pix = bitmap.getPixel(x, y);
+			log.debug("PIX" + pix);
+
+			int a = (pix >>> 24) & 0xff;
+
+			if (a > 200) {
+				c++;
+				r += (pix >>> 16) & 0xff;
+				g += (pix >>> 8) & 0xff;
+				b += (pix) & 0xff;
+			}
+		}
+
+		if (c > 0) {
+			r /= c;
+			g /= c;
+			b /= c;
+		}
+
+		log.debug("COLOR " + r + " " + g + " " + b);
+		bitmap.recycle();
+		return (r << 16) + (g << 8) + b + 0xff000000;
+	}
+
+	public void setMarkerIndex(int markerIndex) {
+		markerDrawable = context.getResources().getDrawable(markers[markerIndex % markers.length]);
+		linePaint.setColor(getMeanColor(markerDrawable));
 	}
 
 	public void setEditable(boolean isEditable) {
