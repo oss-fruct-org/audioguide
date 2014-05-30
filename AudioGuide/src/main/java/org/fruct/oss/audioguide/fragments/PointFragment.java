@@ -17,7 +17,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ListView;
 
-import org.fruct.oss.audioguide.AddPointFragment;
 import org.fruct.oss.audioguide.MultiPanel;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.adapters.PointModelAdapter;
@@ -186,7 +185,7 @@ public class PointFragment extends ListFragment {
 		super.onListItemClick(l, v, position, id);
 
 		Point point = pointAdapter.getItem(position);
-		multiPanel.replaceFragment(PointDetailFragment.newInstance(point), this);
+		multiPanel.replaceFragment(PointDetailFragment.newInstance(point, false), this);
 	}
 
 	@Override

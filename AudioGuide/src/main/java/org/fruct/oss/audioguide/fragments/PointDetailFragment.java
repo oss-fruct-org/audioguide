@@ -4,15 +4,20 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
+import android.graphics.PorterDuff;
 import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import org.fruct.oss.audioguide.MainActivity;
@@ -28,8 +33,11 @@ import org.fruct.oss.audioguide.util.Utils;
 public class PointDetailFragment extends Fragment implements FileListener {
     private static final String ARG_POINT = "point";
 	private static final String STATE_POINT = "point";
+	private static final String ARG_IS_OVERLAY = "c";
+	private static final String STATE_IS_OVERLAY = "overlay";
 
 	private Point point;
+	private boolean isOverlay;
 
 	private MultiPanel multiPanel;
 	private FileManager fileManager;
@@ -38,17 +46,21 @@ public class PointDetailFragment extends Fragment implements FileListener {
 	private ImageView imageView;
 	private Bitmap imageBitmap;
 
+	private int imageSize;
+
 	/**
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
      *
      * @param point Point.
-     * @return A new instance of fragment PointDetailFragment.
+     * @param isOverlay
+	 * @return A new instance of fragment PointDetailFragment.
      */
-    public static PointDetailFragment newInstance(Point point) {
+    public static PointDetailFragment newInstance(Point point, boolean isOverlay) {
         PointDetailFragment fragment = new PointDetailFragment();
         Bundle args = new Bundle();
         args.putParcelable(ARG_POINT, point);
+		args.putBoolean(ARG_IS_OVERLAY, isOverlay);
         fragment.setArguments(args);
         return fragment;
     }
@@ -61,10 +73,12 @@ public class PointDetailFragment extends Fragment implements FileListener {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             point = getArguments().getParcelable(ARG_POINT);
-        }
+			isOverlay = getArguments().getBoolean(ARG_IS_OVERLAY);
+		}
 
 		if (savedInstanceState != null) {
 			point = savedInstanceState.getParcelable(STATE_POINT);
+			isOverlay = savedInstanceState.getBoolean(STATE_IS_OVERLAY);
 		}
 
 		fileManager = FileManager.getInstance();
@@ -74,7 +88,7 @@ public class PointDetailFragment extends Fragment implements FileListener {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-		View view = inflater.inflate(R.layout.fragment_point_detail, container, false);
+		final View view = inflater.inflate(R.layout.fragment_point_detail, container, false);
 		assert view != null;
 
 		TextView title = (TextView) view.findViewById(android.R.id.text1);
@@ -84,15 +98,55 @@ public class PointDetailFragment extends Fragment implements FileListener {
 		description.setText(point.getDescription());
 
 		imageView = (ImageView) view.findViewById(android.R.id.icon);
-		tryUpdateImage();
 
-		setupAudioButton(view);
-		setupCenterButton(view);
+		view.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+			@Override
+			public void onGlobalLayout() {
+				view.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+				imageSize = view.getMeasuredWidth();
+				tryUpdateImage(imageSize, imageSize);
+
+				/*if (isOverlay) {
+					int width = view.getMeasuredWidth();
+					int height = view.getMeasuredHeight();
+
+					width -= Utils.getDP(48);
+					height -= Utils.getDP(48);
+
+					view.setLayoutParams(new FrameLayout.LayoutParams(width, height));
+				}*/
+			}
+		});
+
+		setupOverlayMode(view);
+
+		// Set image height equals width
+		//setupAudioButton(view);
+		//setupCenterButton(view);
+
+		view.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				getActivity().getSupportFragmentManager().beginTransaction()
+						.remove(PointDetailFragment.this)
+						.commit();
+			}
+		});
 
 		return view;
 	}
 
-	private void setupCenterButton(View view) {
+	private void setupOverlayMode(View view) {
+		if (!isOverlay)
+			return;
+
+		Drawable background = getResources().getDrawable(R.drawable.marker_1);
+		background.setColorFilter(0xccffffff, PorterDuff.Mode.MULTIPLY);
+
+		view.setBackgroundDrawable(background);
+	}
+
+	/*private void setupCenterButton(View view) {
 		final Button buttonCenter = (Button) view.findViewById(R.id.button_map);
 		buttonCenter.setOnClickListener(new View.OnClickListener() {
 			@Override
@@ -152,7 +206,7 @@ public class PointDetailFragment extends Fragment implements FileListener {
 		}
 
 		buttonStop.setVisibility(View.GONE);
-	}
+	}*/
 
 	@Override
     public void onAttach(Activity activity) {
@@ -187,23 +241,24 @@ public class PointDetailFragment extends Fragment implements FileListener {
 		super.onSaveInstanceState(outState);
 
 		outState.putParcelable(STATE_POINT, point);
+		outState.putBoolean(STATE_IS_OVERLAY, isOverlay);
 	}
 
-	private void tryUpdateImage() {
+	private void tryUpdateImage(int imageWidth, int imageHeight) {
 		if (point.hasPhoto()) {
 			String remoteUrl = point.getPhotoUrl();
-			Bitmap newBitmap = fileManager.getImageBitmap(remoteUrl, Utils.getDP(128), Utils.getDP(128));
+			Bitmap newBitmap = fileManager.getImageBitmap(remoteUrl, imageWidth, imageHeight, FileManager.ScaleMode.NO_SCALE);
 
 			if (newBitmap == null && pendingUrl == null) {
 				pendingUrl = remoteUrl;
 				return;
 			}
 
-			imageView.setImageDrawable(new BitmapDrawable(Resources.getSystem(), newBitmap));
+			imageView.setAdjustViewBounds(true);
+			imageView.setMaxWidth(imageSize);
+			imageView.setMaxHeight(imageSize);
 
-			//if (imageBitmap != null) {
-			//	imageBitmap.recycle();
-			//}
+			imageView.setImageDrawable(new BitmapDrawable(Resources.getSystem(), newBitmap));
 
 			imageBitmap = newBitmap;
 			pendingUrl = null;
@@ -213,7 +268,7 @@ public class PointDetailFragment extends Fragment implements FileListener {
 	@Override
 	public void itemLoaded(String url) {
 		if (url.equals(pendingUrl)) {
-			tryUpdateImage();
+			tryUpdateImage(imageView.getWidth(), imageView.getHeight());
 		}
 	}
 
