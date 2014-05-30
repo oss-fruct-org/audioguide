@@ -33,6 +33,7 @@ import android.view.animation.AnimationUtils;
 import org.fruct.oss.audioguide.MultiPanel;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.fragments.edit.EditPointDialog;
+import org.fruct.oss.audioguide.overlays.DetailsOverlay;
 import org.fruct.oss.audioguide.overlays.EditOverlay;
 import org.fruct.oss.audioguide.overlays.MyPositionOverlay;
 import org.fruct.oss.audioguide.preferences.SettingsActivity;
@@ -460,8 +461,12 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 		public void pointPressed(Point point) {
 			log.debug("Simple point pressed");
 
-			PointDetailFragment frag = PointDetailFragment.newInstance(point);
-			multiPanel.replaceFragment(frag, MapFragment.this);
+			DetailsOverlay detailsOverlay = new DetailsOverlay(getActivity(), mapView, point);
+			mapView.getOverlays().add(detailsOverlay);
+			mapView.invalidate();
+
+			//PointDetailFragment frag = PointDetailFragment.newInstance(point);
+			//multiPanel.replaceFragment(frag, MapFragment.this);
 		}
 	};
 

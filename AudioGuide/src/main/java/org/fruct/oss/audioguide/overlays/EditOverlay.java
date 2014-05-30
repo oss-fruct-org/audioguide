@@ -62,8 +62,6 @@ public class EditOverlay extends Overlay implements Closeable, ModelListener {
 	private int dragStartY;
 	private boolean dragStarted;
 
-	private Bitmap draggingItemFullIcon;
-
 	private boolean isEditable = false;
 
 	private transient android.graphics.Point point = new android.graphics.Point();
@@ -99,7 +97,6 @@ public class EditOverlay extends Overlay implements Closeable, ModelListener {
 		itemBackgroundPaint.setTextSize(itemSize);
 		itemBackgroundPaint.setAntiAlias(true);
 		itemBackgroundPaint.setTextAlign(Paint.Align.CENTER);
-
 
 		this.model = model;
 		this.model.addListener(this);
@@ -176,26 +173,6 @@ public class EditOverlay extends Overlay implements Closeable, ModelListener {
 
 		drawPath(canvas, view);
 		drawItems(canvas, view);
-		drawDraggingItem(canvas, view);
-	}
-
-	private void drawDraggingItem(Canvas canvas, MapView view) {
-		if (draggingItem == null) {
-			return;
-		}
-
-		Rect rect = view.getProjection().getIntrinsicScreenRect();
-
-		markerDrawable.setAlpha(230);
-		markerDrawable.setBounds(rect.left + itemSize, rect.top + itemSize,
-				rect.right - itemSize, rect.bottom - itemSize);
-		markerDrawable.draw(canvas);
-		markerDrawable.setAlpha(255);
-
-		if (draggingItemFullIcon != null) {
-			canvas.drawBitmap(draggingItemFullIcon, rect.left + itemSize + markerPadding.left,
-					rect.top + itemSize + markerPadding.top, null);
-		}
 	}
 
 	private void drawPath(Canvas canvas, MapView view) {
@@ -287,20 +264,6 @@ public class EditOverlay extends Overlay implements Closeable, ModelListener {
 		return null;
 	}
 
-	private void showDetails(MapView view, EditOverlayItem item) {
-		if (item.data.hasPhoto()) {
-			Rect rect = view.getProjection().getIntrinsicScreenRect();
-
-			int imageWidth = Math.min(rect.width() - itemSize * 2 - markerPadding.left - markerPadding.right,
-					rect.height() - itemSize * 2 - markerPadding.top - markerPadding.bottom);
-			draggingItemFullIcon = fileManager.getImageBitmap(item.data.getPhotoUrl(), imageWidth,
-					imageWidth, FileManager.ScaleMode.SCALE_FIT);
-		} else if (draggingItemFullIcon != null && !draggingItemFullIcon.isRecycled()) {
-			draggingItemFullIcon.recycle();
-			draggingItemFullIcon = null;
-		}
-	}
-
 	@Override
 	public boolean onTouchEvent(MotionEvent event, MapView mapView) {
 		if (event.getAction() == MotionEvent.ACTION_DOWN) {
@@ -313,8 +276,6 @@ public class EditOverlay extends Overlay implements Closeable, ModelListener {
 				dragStartX = (int) event.getX();
 				dragStartY = (int) event.getY();
 				dragStarted = false;
-
-				showDetails(mapView, draggingItem);
 
 				mapView.invalidate();
 				return true;
@@ -385,4 +346,6 @@ public class EditOverlay extends Overlay implements Closeable, ModelListener {
 		int relHookX;
 		int relHookY;
 	}
+
+
 }
