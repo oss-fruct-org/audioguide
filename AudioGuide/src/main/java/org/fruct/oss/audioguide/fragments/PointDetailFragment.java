@@ -53,8 +53,6 @@ public class PointDetailFragment extends Fragment implements FileListener {
 
 	private int imageSize;
 
-	private BroadcastReceiver stopAudioReceiver;
-
 	/**
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
@@ -98,8 +96,6 @@ public class PointDetailFragment extends Fragment implements FileListener {
 
 	@Override
 	public void onStop() {
-		LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(stopAudioReceiver);
-
 		PanelFragment panelFragment = (PanelFragment) getFragmentManager().findFragmentByTag("bottom-panel-fragment");
 		if (panelFragment != null) {
 			panelFragment.clearFallbackPoint();
@@ -135,7 +131,12 @@ public class PointDetailFragment extends Fragment implements FileListener {
 		title.setText(point.getName());
 
 		TextView description = (TextView) view.findViewById(android.R.id.text2);
-		description.setText(point.getDescription());
+		String descriptionString = point.getDescription();
+		if (Utils.isNullOrEmpty(descriptionString)) {
+			description.setText(descriptionString);
+		} else {
+			description.setVisibility(View.GONE);
+		}
 
 		imageView = (ImageView) view.findViewById(android.R.id.icon);
 
@@ -160,7 +161,6 @@ public class PointDetailFragment extends Fragment implements FileListener {
 
 		setupOverlayMode(view);
 
-		// Set image height equals width
 		//setupAudioButton(view);
 		//setupCenterButton(view);
 

@@ -6,36 +6,30 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.Uri;
+import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.app.ActionBarActivity;
-import android.support.v7.app.ActionBar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.os.Bundle;
-import android.util.AttributeSet;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.LocalBroadcastManager;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.ActionBarActivity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.support.v4.widget.DrawerLayout;
-import android.view.ViewTreeObserver;
-import android.widget.Button;
 import android.widget.TextView;
 
 import org.fruct.oss.audioguide.fragments.CommonFragment;
 import org.fruct.oss.audioguide.fragments.GetsFragment;
 import org.fruct.oss.audioguide.fragments.MapFragment;
-import org.fruct.oss.audioguide.fragments.NavigateFragment;
 import org.fruct.oss.audioguide.fragments.PanelFragment;
 import org.fruct.oss.audioguide.fragments.TrackFragment;
-import org.fruct.oss.audioguide.fragments.edit.EditTrackFragment;
 import org.fruct.oss.audioguide.preferences.SettingsActivity;
 import org.fruct.oss.audioguide.track.AudioPlayer;
-import org.fruct.oss.audioguide.track.Point;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,7 +61,6 @@ public class MainActivity extends ActionBarActivity
 	private FragmentManager fragmentManager;
 	private boolean suppressDrawerItemSelect = false;
 	private BroadcastReceiver startAudioReceiver;
-	private BroadcastReceiver stopAudioReceiver;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -111,7 +104,6 @@ public class MainActivity extends ActionBarActivity
 		LocalBroadcastManager.getInstance(this).registerReceiver(startAudioReceiver = new BroadcastReceiver() {
 			@Override
 			public void onReceive(Context context, Intent intent) {
-				final Point point = intent.getParcelableExtra("point");
 				final int duration = intent.getIntExtra("duration", 0);
 
 				PanelFragment panelFragment = (PanelFragment) getSupportFragmentManager().findFragmentByTag("bottom-panel-fragment");
@@ -446,9 +438,6 @@ public class MainActivity extends ActionBarActivity
 			fragment = null;
 		}
 
-		public boolean isStored() {
-			return fragment == null;
-		}
 
 		public Fragment getFragment() {
 			if (fragment != null)
