@@ -133,7 +133,7 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 					wakeLock.acquire(30000);
 				}
 			} else if (action.equals(ACTION_PLAY)) {
-				audioPlayer.startAudioTrack(intent.getData());
+				audioPlayer.startAudioTrack((Point) intent.getParcelableExtra(ARG_POINT));
 			} else if (action.equals(ACTION_PAUSE)) {
 				audioPlayer.pause();
 			} else if (action.equals(ACTION_UNPAUSE)) {
@@ -312,13 +312,13 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 	@Override
 	public void pointInRange(Point point) {
 		log.debug("pointInRange: {}", point.getName());
+
 		Intent intent = new Intent(BC_ACTION_POINT_IN_RANGE);
 		intent.putExtra(ARG_POINT, point);
-
 		LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
 
 		if (isTrackingMode && point.hasAudio()) {
-			audioPlayer.startAudioTrack(Uri.parse(point.getAudioUrl()));
+			audioPlayer.startAudioTrack(point);
 		}
 
 		showNotification(createNotification(point.getName()));
@@ -336,7 +336,6 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 
 		Intent intent = new Intent(BC_ACTION_POINT_OUT_RANGE);
 		intent.putExtra(ARG_POINT, point);
-
 		LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
 
 		if (point.hasAudio() && audioPlayer.isPlaying(Uri.parse(point.getAudioUrl()))) {

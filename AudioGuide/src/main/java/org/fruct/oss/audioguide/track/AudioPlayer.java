@@ -25,6 +25,7 @@ public class AudioPlayer implements MediaPlayer.OnPreparedListener, MediaPlayer.
 
 	private MediaPlayer player;
 	private Uri currentUri;
+	private Point currentPoint;
 
 	private FileManager fileManager;
 
@@ -34,10 +35,12 @@ public class AudioPlayer implements MediaPlayer.OnPreparedListener, MediaPlayer.
 		fileManager = FileManager.getInstance();
 	}
 
-	public void startAudioTrack(Uri uri) {
-		if (player != null) {
+	public void startAudioTrack(Point point) {
+		if (player != null || !point.hasAudio()) {
 			return;
 		}
+
+		Uri uri = Uri.parse(point.getAudioUrl());
 
 		player = new MediaPlayer();
 		player.setAudioStreamType(AudioManager.STREAM_MUSIC);
@@ -51,6 +54,7 @@ public class AudioPlayer implements MediaPlayer.OnPreparedListener, MediaPlayer.
 		}
 
 		currentUri = uri;
+		currentPoint = point;
 		player.setOnCompletionListener(this);
 		player.setOnPreparedListener(this);
 		player.setOnErrorListener(this);
@@ -77,6 +81,7 @@ public class AudioPlayer implements MediaPlayer.OnPreparedListener, MediaPlayer.
 
 		Intent intent = new Intent(BC_ACTION_START_PLAY);
 		intent.putExtra("duration", mediaPlayer.getDuration());
+		intent.putExtra("point", currentPoint);
 		LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
 
 		handlerPlayer = mediaPlayer;
@@ -95,6 +100,7 @@ public class AudioPlayer implements MediaPlayer.OnPreparedListener, MediaPlayer.
 
 			Intent intent = new Intent(BC_ACTION_POSITION);
 			intent.putExtra("position", player.getCurrentPosition());
+			intent.putExtra("point", currentPoint);
 
 			LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
 			handler.postDelayed(positionUpdater, 1000);
@@ -107,6 +113,7 @@ public class AudioPlayer implements MediaPlayer.OnPreparedListener, MediaPlayer.
 			player.release();
 			player = null;
 			currentUri = null;
+			currentUri = null;
 			LocalBroadcastManager.getInstance(context).sendBroadcast(new Intent(BC_ACTION_STOP_PLAY));
 		}
 	}
@@ -116,6 +123,7 @@ public class AudioPlayer implements MediaPlayer.OnPreparedListener, MediaPlayer.
 		log.warn("Player error with uri " + currentUri + " " + what + " " + extra);
 
 		player = null;
+		currentUri = null;
 		currentUri = null;
 
 		return false;

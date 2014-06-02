@@ -1,7 +1,10 @@
 package org.fruct.oss.audioguide.fragments;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.PorterDuff;
@@ -10,6 +13,7 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.LocalBroadcastManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,6 +30,7 @@ import org.fruct.oss.audioguide.NavigationDrawerFragment;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.files.FileListener;
 import org.fruct.oss.audioguide.files.FileManager;
+import org.fruct.oss.audioguide.track.AudioPlayer;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.TrackingService;
 import org.fruct.oss.audioguide.util.Utils;
@@ -48,6 +53,8 @@ public class PointDetailFragment extends Fragment implements FileListener {
 
 	private int imageSize;
 
+	private BroadcastReceiver stopAudioReceiver;
+
 	/**
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
@@ -68,7 +75,40 @@ public class PointDetailFragment extends Fragment implements FileListener {
     public PointDetailFragment() {
     }
 
-    @Override
+	@Override
+	public void onStart() {
+		super.onStart();
+
+		initializeBottomPanel();
+	}
+
+	private void initializeBottomPanel() {
+		PanelFragment panelFragment = (PanelFragment) getFragmentManager().findFragmentByTag("bottom-panel-fragment");
+
+		if (panelFragment == null) {
+			panelFragment = PanelFragment.newInstance(point, -1);
+			getFragmentManager().beginTransaction()
+					.setCustomAnimations(R.anim.bottom_up, R.anim.bottom_down)
+					.replace(R.id.panel_container,
+					panelFragment, "bottom-panel-fragment").commit();
+		}
+
+		panelFragment.setFallbackPoint(point);
+	}
+
+	@Override
+	public void onStop() {
+		LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(stopAudioReceiver);
+
+		PanelFragment panelFragment = (PanelFragment) getFragmentManager().findFragmentByTag("bottom-panel-fragment");
+		if (panelFragment != null) {
+			panelFragment.clearFallbackPoint();
+		}
+
+		super.onStop();
+	}
+
+	@Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {

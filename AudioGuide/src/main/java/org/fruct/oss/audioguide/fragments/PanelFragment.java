@@ -12,12 +12,11 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.Animation;
-import android.widget.Button;
 import android.widget.SeekBar;
 
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.track.AudioPlayer;
+import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.TrackingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,12 +31,21 @@ public class PanelFragment extends Fragment {
 	private static final Logger log = LoggerFactory.getLogger(PanelFragment.class);
 
 	private BroadcastReceiver positionReceiver;
+	private BroadcastReceiver stopReceiver;
+	private BroadcastReceiver startReceiver;
 
 	private SeekBar seekBar;
-	private int duration;
+
+	private int duration = -1;
+	private boolean isStarted;
+
+	private Point fallbackPoint;
 
 	private boolean isDragging;
+
 	private int lastProgress;
+	private View playButton;
+	private View pauseButton;
 
 	/**
      * Use this factory method to create a new instance of
@@ -45,22 +53,57 @@ public class PanelFragment extends Fragment {
      *
      * @return A new instance of fragment PanelFragment.
      */
-    public static PanelFragment newInstance(int duration) {
+    public static PanelFragment newInstance(Point point, int duration) {
         PanelFragment fragment = new PanelFragment();
+
         Bundle args = new Bundle();
 		args.putInt("duration", duration);
+		args.putParcelable("point", point);
 
-        fragment.setArguments(args);
+		fragment.setArguments(args);
         return fragment;
     }
+
     public PanelFragment() {
     }
 
-    @Override
+	public boolean isStarted() {
+		return isStarted;
+	}
+
+	public void startPlaying(int duration) {
+		this.duration = duration;
+
+		pauseButton.setVisibility(View.VISIBLE);
+		playButton.setVisibility(View.GONE);
+
+		seekBar.setMax(duration);
+		isStarted = true;
+	}
+
+	public void stopPlaying() {
+		isStarted = false;
+
+		pauseButton.setVisibility(View.GONE);
+		playButton.setVisibility(View.VISIBLE);
+		seekBar.setProgress(0);
+
+		if (fallbackPoint == null) {
+			getActivity().getSupportFragmentManager().beginTransaction()
+					.setCustomAnimations(R.anim.bottom_up, R.anim.bottom_down)
+					.remove(this).commit();
+		}
+	}
+
+	@Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-			duration = getArguments().getInt("duration");
+
+		setRetainInstance(true);
+
+		if (getArguments() != null) {
+			duration = getArguments().getInt("duration", -1);
+			fallbackPoint = getArguments().getParcelable("point");
 		}
 
 		LocalBroadcastManager.getInstance(getActivity()).registerReceiver(positionReceiver = new BroadcastReceiver() {
@@ -72,12 +115,29 @@ public class PanelFragment extends Fragment {
 			}
 		}, new IntentFilter(AudioPlayer.BC_ACTION_POSITION));
 
+		LocalBroadcastManager.getInstance(getActivity()).registerReceiver(startReceiver = new BroadcastReceiver() {
+			@Override
+			public void onReceive(Context context, Intent intent) {
+				startPlaying(intent.getIntExtra("duration", -1));
+			}
+		}, new IntentFilter(AudioPlayer.BC_ACTION_START_PLAY));
+
+		LocalBroadcastManager.getInstance(getActivity()).registerReceiver(stopReceiver = new BroadcastReceiver() {
+			@Override
+			public void onReceive(Context context, Intent intent) {
+				stopPlaying();
+			}
+		}, new IntentFilter(AudioPlayer.BC_ACTION_STOP_PLAY));
 	}
 
 	@Override
 	public void onDestroy() {
 		LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(positionReceiver);
+		LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(stopReceiver);
+		LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(startReceiver);
 		positionReceiver = null;
+		stopReceiver = null;
+		stopReceiver = null;
 
 		super.onDestroy();
 	}
@@ -94,16 +154,25 @@ public class PanelFragment extends Fragment {
 			}
 		});
 
-		final View playButton = view.findViewById(R.id.play_button);
-		final View pauseButton = view.findViewById(R.id.pause_button);
+		seekBar = ((SeekBar) view.findViewById(R.id.seek_bar));
+		playButton = view.findViewById(R.id.play_button);
+		pauseButton = view.findViewById(R.id.pause_button);
 
 		playButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View view) {
-				playButton.setVisibility(View.GONE);
-				pauseButton.setVisibility(View.VISIBLE);
-				getActivity().startService(new Intent(TrackingService.ACTION_UNPAUSE, null,
-						getActivity(), TrackingService.class));
+				if (isStarted()) {
+					pauseButton.setVisibility(View.VISIBLE);
+					playButton.setVisibility(View.GONE);
+
+					getActivity().startService(new Intent(TrackingService.ACTION_UNPAUSE, null,
+							getActivity(), TrackingService.class));
+				} else if (fallbackPoint != null) {
+					Intent intent = new Intent(TrackingService.ACTION_PLAY, null,
+							getActivity(), TrackingService.class);
+					intent.putExtra(TrackingService.ARG_POINT, fallbackPoint);
+					getActivity().startService(intent);
+				}
 			}
 		});
 
@@ -116,9 +185,6 @@ public class PanelFragment extends Fragment {
 						getActivity(), TrackingService.class));
 			}
 		});
-
-		seekBar = ((SeekBar) view.findViewById(R.id.seek_bar));
-		seekBar.setMax(duration);
 
 		seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
 			@Override
@@ -142,6 +208,14 @@ public class PanelFragment extends Fragment {
 			}
 		});
 
+
+		if (duration != -1) {
+			startPlaying(duration);
+		} else {
+			playButton.setVisibility(View.VISIBLE);
+			pauseButton.setVisibility(View.GONE);
+		}
+
 		return view;
 	}
 
@@ -150,5 +224,21 @@ public class PanelFragment extends Fragment {
 		super.onDestroyView();
 
 		seekBar = null;
+		playButton = null;
+		pauseButton = null;
+	}
+
+	public void setFallbackPoint(Point point) {
+		this.fallbackPoint = point;
+	}
+
+	public void clearFallbackPoint() {
+		this.fallbackPoint = null;
+
+		if (!isStarted()) {
+			getActivity().getSupportFragmentManager().beginTransaction()
+					.setCustomAnimations(R.anim.bottom_up, R.anim.bottom_down)
+					.remove(this).commitAllowingStateLoss();
+		}
 	}
 }

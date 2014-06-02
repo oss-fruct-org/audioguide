@@ -35,6 +35,7 @@ import org.fruct.oss.audioguide.fragments.TrackFragment;
 import org.fruct.oss.audioguide.fragments.edit.EditTrackFragment;
 import org.fruct.oss.audioguide.preferences.SettingsActivity;
 import org.fruct.oss.audioguide.track.AudioPlayer;
+import org.fruct.oss.audioguide.track.Point;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -110,31 +111,23 @@ public class MainActivity extends ActionBarActivity
 		LocalBroadcastManager.getInstance(this).registerReceiver(startAudioReceiver = new BroadcastReceiver() {
 			@Override
 			public void onReceive(Context context, Intent intent) {
-				final PanelFragment panelFragment = PanelFragment.newInstance(intent.getIntExtra("duration", 0));
-				fragmentManager.beginTransaction()
-						.setCustomAnimations(R.anim.bottom_up, R.anim.bottom_down)
-						.replace(R.id.panel_container, panelFragment, "bottom-panel-fragment").commit();
+				final Point point = intent.getParcelableExtra("point");
+				final int duration = intent.getIntExtra("duration", 0);
 
-			}
-		}, new IntentFilter(AudioPlayer.BC_ACTION_START_PLAY));
+				PanelFragment panelFragment = (PanelFragment) getSupportFragmentManager().findFragmentByTag("bottom-panel-fragment");
 
-		LocalBroadcastManager.getInstance(this).registerReceiver(stopAudioReceiver = new BroadcastReceiver() {
-			@Override
-			public void onReceive(Context context, Intent intent) {
-				PanelFragment frag = (PanelFragment) fragmentManager.findFragmentByTag("bottom-panel-fragment");
-
-				if (frag != null) {
+				if (panelFragment == null) {
+					panelFragment = PanelFragment.newInstance(null, duration);
 					fragmentManager.beginTransaction()
 							.setCustomAnimations(R.anim.bottom_up, R.anim.bottom_down)
-							.remove(frag).commit();
+							.replace(R.id.panel_container, panelFragment, "bottom-panel-fragment").commit();
 				}
 			}
-		}, new IntentFilter(AudioPlayer.BC_ACTION_STOP_PLAY));
+		}, new IntentFilter(AudioPlayer.BC_ACTION_START_PLAY));
 	}
 
 	private void unsetupBottomPanel() {
 		LocalBroadcastManager.getInstance(this).unregisterReceiver(startAudioReceiver);
-		LocalBroadcastManager.getInstance(this).unregisterReceiver(stopAudioReceiver);
 	}
 
 	@Override
