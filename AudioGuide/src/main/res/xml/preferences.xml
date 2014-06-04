@@ -23,5 +23,6 @@
         android:key="pref_load_radius"
         android:max="10000"
         android:defaultValue="1000"
+        exponential="true"
         />
 </PreferenceScreen>
