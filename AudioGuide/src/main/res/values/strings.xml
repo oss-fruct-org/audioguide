@@ -29,4 +29,9 @@
         <item quantity="one">Play sound if point nearer than %d meter</item>
         <item quantity="other">Play sound if point nearer than %d meters</item>
     </plurals>
+
+    <plurals name="pref_load_radius_summary">
+        <item quantity="one">Load points nearer than %d meter</item>
+        <item quantity="other">Load points nearer than %d meters</item>
+    </plurals>
 </resources>

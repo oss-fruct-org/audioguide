@@ -1,6 +1,7 @@
 package org.fruct.oss.audioguide.track;
 
 import android.content.SharedPreferences;
+import android.location.Location;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Message;
@@ -119,7 +120,6 @@ public class TrackManager {
 				processLoadedRemotePoints(track, points);
 			}
 		});
-
 	}
 
 	public synchronized void addListener(Listener listener) {
@@ -279,6 +279,19 @@ public class TrackManager {
 			((IRemoteStorage) remoteStorage).sendTrack(track, points);
 		}
 	}
+
+	public void updateUserLocation(Location location) {
+		if (remoteStorage instanceof GetsStorage) {
+			((GetsStorage) remoteStorage).updateUserLocation(location);
+		}
+	}
+
+	public void updateLoadRadius(int radius) {
+		if (remoteStorage instanceof GetsStorage) {
+			((GetsStorage) remoteStorage).updateLoadRadius(radius);
+		}
+	}
+
 
 	private void processLoadedRemoteTracks(List<Track> tracks) {
 		synchronized (allTracks) {

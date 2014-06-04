@@ -1,6 +1,7 @@
 package org.fruct.oss.audioguide.gets;
 
 
+import android.location.Location;
 import android.util.Xml;
 
 import org.fruct.oss.audioguide.parsers.GetsResponse;
@@ -12,8 +13,14 @@ import java.io.IOException;
 import java.io.StringWriter;
 
 public class LoadTracksRequest extends GetsRequest {
-	public LoadTracksRequest(Gets gets) {
+	private final Location location;
+	private final int radius;
+
+	public LoadTracksRequest(Gets gets, Location location, int radius) {
 		super(gets);
+
+		this.location = location;
+		this.radius = radius;
 	}
 
 	@Override
@@ -28,6 +35,13 @@ public class LoadTracksRequest extends GetsRequest {
 
 			gets.writeTokenTag(serializer);
 			serializer.startTag(null, "space").text("all").endTag(null, "space");
+
+			if (location != null) {
+				serializer.startTag(null, "latitude").text(String.valueOf(location.getLatitude())).endTag(null, "latitude");
+				serializer.startTag(null, "longitude").text(String.valueOf(location.getLongitude())).endTag(null, "longitude");
+				serializer.startTag(null, "radius").text(String.valueOf(radius / 1000.0)).endTag(null, "radius");
+			}
+
 			serializer.endTag(null, "params").endTag(null, "request");
 			serializer.flush();
 

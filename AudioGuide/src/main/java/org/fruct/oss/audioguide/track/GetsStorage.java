@@ -1,6 +1,7 @@
 package org.fruct.oss.audioguide.track;
 
 import android.content.SharedPreferences;
+import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -52,6 +53,9 @@ public class GetsStorage implements IStorage, IRemoteStorage {
 
 	private ArrayList<Track> loadedTracks;
 
+	private Location lastLocation;
+	private int radius;
+
 	@Override
 	public void initialize() {
 		//authenticate();
@@ -65,7 +69,7 @@ public class GetsStorage implements IStorage, IRemoteStorage {
 	@Override
 	public void loadAsync(final Handler handler) {
 		Gets gets = Gets.getInstance();
-		gets.addRequest(new LoadTracksRequest(gets) {
+		gets.addRequest(new LoadTracksRequest(gets, lastLocation, radius) {
 			@Override
 			protected void onPostProcess(GetsResponse response) {
 				if (response.getCode() != 0) {
@@ -155,5 +159,13 @@ public class GetsStorage implements IStorage, IRemoteStorage {
 		Gets gets = Gets.getInstance();
 		gets.addRequest(new DeleteTrackRequest(gets, track));
 		return true;
+	}
+
+	public void updateUserLocation(Location location) {
+		this.lastLocation = location;
+	}
+
+	public void updateLoadRadius(int radius) {
+		this.radius = radius;
 	}
 }

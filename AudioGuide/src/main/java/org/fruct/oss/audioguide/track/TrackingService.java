@@ -380,6 +380,8 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 		intent.putExtra(ARG_LOCATION, location);
 
 		LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+		TrackManager.getInstance().updateUserLocation(location);
+		TrackManager.getInstance().updateLoadRadius(pref.getInt(SettingsActivity.PREF_LOAD_RADIUS, 1000));
 	}
 
 	public void sendLastLocation() {
@@ -402,6 +404,10 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 					releaseWakeLock();
 				}
 			}
+		} else if (s.equals(SettingsActivity.PREF_LOAD_RADIUS)) {
+			int newRadius = sharedPreferences.getInt(s, 1000);
+			TrackManager.getInstance().updateLoadRadius(pref.getInt(SettingsActivity.PREF_LOAD_RADIUS, 1000));
+
 		}
 	}
 
