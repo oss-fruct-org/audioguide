@@ -2,9 +2,11 @@ package org.fruct.oss.audioguide.adapters;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.PorterDuff;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -12,6 +14,7 @@ import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.models.Model;
 import org.fruct.oss.audioguide.models.ModelListener;
 import org.fruct.oss.audioguide.track.Track;
+import org.fruct.oss.audioguide.track.TrackManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,7 +23,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-public class TrackModelAdapter extends BaseAdapter implements ModelListener, Closeable {
+public class TrackModelAdapter extends BaseAdapter implements ModelListener, Closeable, View.OnClickListener {
 	public static interface Filter {
 		boolean check(Track track);
 	}
@@ -100,11 +103,14 @@ public class TrackModelAdapter extends BaseAdapter implements ModelListener, Clo
 			holder.text1 = (TextView) view.findViewById(android.R.id.text1);
 			holder.text2 = (TextView) view.findViewById(android.R.id.text2);
 
-			holder.localImage = (ImageView) view.findViewById(R.id.localImage);
+			holder.localImage = (ImageButton) view.findViewById(R.id.localImage);
 			holder.localImage.setTag(holder);
 
-			holder.activeImage = (ImageView) view.findViewById(R.id.activeImage);
+			holder.activeImage = (ImageButton) view.findViewById(R.id.activeImage);
 			holder.activeImage.setTag(holder);
+
+			holder.localImage.setOnClickListener(this);
+			holder.activeImage.setOnClickListener(this);
 
 			view.setTag(holder);
 		}
@@ -141,10 +147,11 @@ public class TrackModelAdapter extends BaseAdapter implements ModelListener, Clo
 	}
 
 	private void setupButton(ImageView button, boolean isHighlighted) {
-		if (isHighlighted)
-			button.setVisibility(View.VISIBLE);
-		else
-			button.setVisibility(View.INVISIBLE);
+		if (isHighlighted) {
+			button.clearColorFilter();
+		} else {
+			button.setColorFilter(0x40ffffff, PorterDuff.Mode.DST_ATOP);
+		}
 	}
 
 	@Override
@@ -158,6 +165,24 @@ public class TrackModelAdapter extends BaseAdapter implements ModelListener, Clo
 		notifyDataSetChanged();
 	}
 
+	@Override
+	public void onClick(View view) {
+		TrackManager trackManager = TrackManager.getInstance();
+
+		TrackHolder holder = (TrackHolder) view.getTag();
+		if (holder != null) {
+			Track track = holder.track;
+			if (holder.activeImage == view) {
+				if (track.isActive())
+					trackManager.deactivateTrack(track);
+				else if (track.isLocal())
+					trackManager.activateTrack(track);
+			} else if (holder.localImage == view && !track.isLocal()) {
+				trackManager.refreshPoints(track);
+			}
+		}
+	}
+
 	public void setFilter(Filter filter) {
 		this.trackFilter = filter;
 		dataSetChanged();
@@ -167,7 +192,7 @@ public class TrackModelAdapter extends BaseAdapter implements ModelListener, Clo
 		Track track;
 		TextView text1;
 		TextView text2;
-		ImageView localImage;
-		ImageView activeImage;
+		ImageButton localImage;
+		ImageButton activeImage;
 	}
 }
