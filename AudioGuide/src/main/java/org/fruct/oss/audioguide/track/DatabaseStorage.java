@@ -1,19 +1,25 @@
 package org.fruct.oss.audioguide.track;
 
+import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
+import android.preference.PreferenceManager;
 
+import org.fruct.oss.audioguide.BuildConfig;
+import org.fruct.oss.audioguide.util.AUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class DatabaseStorage implements ILocalStorage {
 	private final static Logger log = LoggerFactory.getLogger(DatabaseStorage.class);
@@ -55,6 +61,8 @@ public class DatabaseStorage implements ILocalStorage {
 
 	private ArrayList<Track> tracks;
 
+	private long freeTrackId;
+
 	public DatabaseStorage(Context context) {
 		this.context = context;
 	}
@@ -92,10 +100,12 @@ public class DatabaseStorage implements ILocalStorage {
 		cv.put("lon", point.getLonE6());
 		cv.put("audioUrl", point.getAudioUrl());
 		cv.put("photoUrl", point.getPhotoUrl());
-		cv.put("trackId", track.getLocalId());
+
+		long trackId = track != null ? track.getLocalId() : freeTrackId;
+		cv.put("trackId", trackId);
 
 		int count = db.update("points", cv, "points.trackId=? and points.name=?",
-				new String[]{String.valueOf(track.getLocalId()), point.getName()});
+				new String[]{String.valueOf(trackId), point.getName()});
 		if (count < 1) {
 			db.insert("points", null, cv);
 		}
@@ -129,10 +139,35 @@ public class DatabaseStorage implements ILocalStorage {
 		}
 	}
 
+	@SuppressLint("Assert")
 	@Override
 	public void initialize() {
 		helper = new TrackDatabaseHelper(context);
 		db = helper.getWritableDatabase();
+
+		// Setup free (fake) track
+		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
+		String freeTrackName = pref.getString("free-track-name", null);
+		if (freeTrackName == null) {
+			pref.edit().putString("free-track-name", freeTrackName = UUID.randomUUID().toString()).apply();
+		}
+
+		Cursor freeTrackCursor = db.query("tracks", new String[]{"id"},
+				"name=?", new String[]{freeTrackName},
+				null, null, null);
+
+		assert freeTrackCursor.getCount() <= 1;
+
+		if (freeTrackCursor.getCount() == 0) {
+			ContentValues cv = new ContentValues();
+			cv.put("name", freeTrackName);
+			freeTrackId = db.insert("tracks", null, cv);
+		} else {
+			freeTrackCursor.moveToFirst();
+			freeTrackId = freeTrackCursor.getInt(0);
+		}
+
+		log.info("Loose point's track name = {} and id = {}", freeTrackName, freeTrackId);
 	}
 
 	@Override
@@ -146,7 +181,7 @@ public class DatabaseStorage implements ILocalStorage {
 	}
 
 	private void load() {
-		Cursor cursor = db.query("tracks", SELECT_TRACK_COLUMNS, null, null, null, null, null);
+		Cursor cursor = db.query("tracks", SELECT_TRACK_COLUMNS, "id!=" + freeTrackId, null, null, null, null);
 
 		tracks = new ArrayList<Track>(cursor.getCount());
 
@@ -236,8 +271,11 @@ public class DatabaseStorage implements ILocalStorage {
 				return;
 			}
 
-			db.execSQL("drop table points;");
-			db.execSQL("drop table tracks;");
+			if (newVersion > 66666) {
+				db.execSQL("drop table points;");
+				db.execSQL("drop table tracks;");
+			}
+
 			onCreate(db);
 		}
 

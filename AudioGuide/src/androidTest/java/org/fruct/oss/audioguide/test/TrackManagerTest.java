@@ -106,10 +106,7 @@ public class TrackManagerTest extends AndroidTestCase {
 
 		trackManager.storePoints(track1, spoints);
 
-		try {List<Point> points = localStorage.getPoints(track1);
-		} catch (java.io.IOException e) {
-			e.printStackTrace();
-		}
+		List<Point> points = localStorage.getPoints(track1);
 
 		assertTrue(points.contains(point1));
 		assertTrue(points.contains(point2));

@@ -1,5 +1,7 @@
 package org.fruct.oss.audioguide.test;
 
+import android.os.Handler;
+import android.os.Message;
 import android.test.AndroidTestCase;
 import android.test.RenamingDelegatingContext;
 
@@ -24,7 +26,20 @@ public class TestDatabaseStorage extends AndroidTestCase {
 		context = new RenamingDelegatingContext(getContext(), "test_");
 		storage = new DatabaseStorage(context);
 		storage.initialize();
-		storage.load();
+
+		final Object lock = new Object();
+
+		synchronized (lock) {
+			storage.loadAsync(new Handler() {
+				@Override
+				public void handleMessage(Message message) {
+					synchronized (lock) {
+						lock.notifyAll();
+					}
+				}
+			});
+			lock.wait();
+		}
 	}
 
 	@Override
@@ -116,27 +131,15 @@ public class TestDatabaseStorage extends AndroidTestCase {
 
 		assertTrue(track.isLocal());
 		storage.storeLocalPoints(track, points);
-		try {
-			points = storage.getPoints(track2);
-		} catch (java.io.IOException e) {
-			e.printStackTrace();
-		}
+		points = storage.getPoints(track2);
 		assertEquals(0, points.size());
 
-		try {
-			points = storage.getPoints(track);
-		} catch (java.io.IOException e) {
-			e.printStackTrace();
-		}
+		points = storage.getPoints(track);
 		assertEquals(2, points.size());
 
 		reopen();
 
-		try {
 			points = storage.getPoints(track);
-		} catch (java.io.IOException e) {
-			e.printStackTrace();
-		}
 		assertEquals(2, points.size());
 
 		sort(points);
@@ -155,10 +158,7 @@ public class TestDatabaseStorage extends AndroidTestCase {
 
 		reopen();
 
-		try {List<Point> points = storage.getPoints(track1);
-		} catch (java.io.IOException e) {
-			e.printStackTrace();
-		}
+		List<Point> points = storage.getPoints(track1);
 		sort(points);
 
 		assertEquals("XXX", points.get(0).getDescription());
@@ -170,11 +170,7 @@ public class TestDatabaseStorage extends AndroidTestCase {
 		storage.updatePoint(track1, point2);
 		reopen();
 
-		try {
-			points = storage.getPoints(track1);
-		} catch (java.io.IOException e) {
-			e.printStackTrace();
-		}
+		points = storage.getPoints(track1);
 		sort(points);
 
 		assertEquals(2, points.size());
@@ -202,6 +198,21 @@ public class TestDatabaseStorage extends AndroidTestCase {
 	private void reopen() {
 		storage.close();
 		storage.initialize();
-		storage.load();
+		final Object lock = new Object();
+
+		synchronized (lock) {
+			storage.loadAsync(new Handler() {
+				@Override
+				public void handleMessage(Message message) {
+					synchronized (lock) {
+						lock.notifyAll();
+					}
+				}
+			});
+			try {
+				lock.wait();
+			} catch (Exception ex) {
+			}
+		}
 	}
 }
