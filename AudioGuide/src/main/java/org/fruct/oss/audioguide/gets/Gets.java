@@ -16,7 +16,10 @@ import org.slf4j.LoggerFactory;
 import org.xmlpull.v1.XmlSerializer;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.PriorityQueue;
 
 public class Gets implements Runnable {
@@ -25,15 +28,17 @@ public class Gets implements Runnable {
 
 	private final static Logger log = LoggerFactory.getLogger(Gets.class);
 
-	private final PriorityQueue<GetsRequest> requestQueue;
+	private final ArrayList<GetsRequest> requestQueue = new ArrayList<GetsRequest>();
 
 	private final Context context;
 	private int index = 0;
 
+	private HashMap<String, Object> requestEnvironment = new HashMap<String, Object>();
+
 	public Gets(Context context) {
 		this.context = context;
 
-		requestQueue = new PriorityQueue<GetsRequest>(10, new Comparator<GetsRequest>() {
+		/*requestQueue = new PriorityQueue<GetsRequest>(10, new Comparator<GetsRequest>() {
 			@Override
 			public int compare(GetsRequest getsRequest, GetsRequest getsRequest2) {
 				final int priority1 = getsRequest.getPriority();
@@ -44,7 +49,7 @@ public class Gets implements Runnable {
 					return priority1 - priority2;
 				}
 			}
-		});
+		});*/
 
 		Thread thread = new Thread(this);
 		thread.setDaemon(true);
@@ -61,10 +66,28 @@ public class Gets implements Runnable {
 		}
 	}
 
+	public Object getEnv(String key) {
+		synchronized (requestQueue) {
+			return requestEnvironment.get(key);
+		}
+	}
+
+	public void setEnv(String key, Object value) {
+		synchronized (requestQueue) {
+			if (value == null) {
+				requestEnvironment.remove(key);
+			} else {
+				requestEnvironment.put(key, value);
+			}
+
+			requestQueue.notifyAll();
+		}
+	}
+
 	@Override
 	public void run() {
 		while (!Thread.interrupted()) {
-			GetsRequest request;
+			GetsRequest request = null;
 
 			synchronized (requestQueue) {
 				while (requestQueue.isEmpty()) {
@@ -75,10 +98,18 @@ public class Gets implements Runnable {
 					}
 				}
 
-				request = requestQueue.poll();
+				for (Iterator<GetsRequest> iter = requestQueue.iterator(); iter.hasNext(); ) {
+					GetsRequest req = iter.next();
+					if (req.onPreExecute()) {
+						iter.remove();
+						request = req;
+						break;
+					}
+				}
 			}
 
-			processRequest(request);
+			if (request != null)
+				processRequest(request);
 		}
 	}
 
@@ -145,22 +176,11 @@ public class Gets implements Runnable {
 		}
 	}
 
-	private static volatile Gets instance;
-	public static Gets getInstance() {
-		if (instance == null) {
-			synchronized (Gets.class) {
-				if (instance == null) {
-					instance = new Gets(App.getContext());
-				}
-			}
-		}
-
-		return instance;
-	}
-
 	public void setToken(TokenContent tokenContent) {
 		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
 		pref.edit().putString(GetsStorage.PREF_AUTH_TOKEN, tokenContent.getAccessToken()).apply();
+
+		setEnv("token", tokenContent.getAccessToken());
 	}
 
 	public String getToken() {
@@ -173,5 +193,18 @@ public class Gets implements Runnable {
 		if (token != null) {
 			serializer.startTag(null, "auth_token").text(token).endTag(null, "auth_token");
 		}
+	}
+
+	private static volatile Gets instance;
+	public static Gets getInstance() {
+		if (instance == null) {
+			synchronized (Gets.class) {
+				if (instance == null) {
+					instance = new Gets(App.getContext());
+				}
+			}
+		}
+
+		return instance;
 	}
 }

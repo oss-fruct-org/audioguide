@@ -9,8 +9,12 @@ import android.preference.PreferenceManager;
 
 import org.fruct.oss.audioguide.App;
 import org.fruct.oss.audioguide.files.FileManager;
+import org.fruct.oss.audioguide.gets.CategoriesRequest;
+import org.fruct.oss.audioguide.gets.Gets;
 import org.fruct.oss.audioguide.models.FilterModel;
 import org.fruct.oss.audioguide.models.Model;
+import org.fruct.oss.audioguide.parsers.CategoriesContent;
+import org.fruct.oss.audioguide.parsers.GetsResponse;
 import org.fruct.oss.audioguide.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,6 +60,9 @@ public class TrackManager {
 	private final Map<String, Track> allTracks = new HashMap<String, Track>();
 	private final Map<Track, FilterModel<Point>> pointModels = new HashMap<Track, FilterModel<Point>>();
 
+	// Categories
+	private List<CategoriesContent.Category> categories;
+
 	private List<Listener> listeners = new ArrayList<Listener>();
 
 	public TrackManager(ILocalStorage localStorage, IStorage remoteStorage) {
@@ -94,6 +101,21 @@ public class TrackManager {
 	public void destroy() {
 		localStorage.close();
 		remoteStorage.close();
+	}
+
+	public void loadCategories() {
+		Gets gets = Gets.getInstance();
+		gets.addRequest(new CategoriesRequest(gets) {
+			@Override
+			protected void onPostProcess(GetsResponse response) {
+				super.onPostProcess(response);
+				categories = ((CategoriesContent) response.getContent()).filterByPrefix();
+
+				for (CategoriesContent.Category category : categories) {
+					log.debug("Category loaded: {} {}", category.getId(), category.getName());
+				}
+			}
+		});
 	}
 
 	/**
@@ -391,6 +413,7 @@ public class TrackManager {
 
 		instance = new TrackManager(localStorage, getsStorage);
 		instance.initialize();
+		instance.loadCategories();
 		instance.loadRemoteTracks();
 
 		return instance;

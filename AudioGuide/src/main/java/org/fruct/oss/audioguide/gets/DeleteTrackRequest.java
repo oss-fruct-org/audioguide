@@ -5,7 +5,6 @@ import android.util.Xml;
 import org.fruct.oss.audioguide.parsers.GetsResponse;
 import org.fruct.oss.audioguide.parsers.IContent;
 import org.fruct.oss.audioguide.track.Track;
-import org.fruct.oss.audioguide.util.Utils;
 import org.xmlpull.v1.XmlSerializer;
 
 import java.io.IOException;
@@ -47,13 +46,13 @@ public class DeleteTrackRequest extends GetsRequest {
 	}
 
 	@Override
-	protected int getPriority() {
-		return 4;
+	protected Class<? extends IContent> getContentClass() {
+		return IContent.class;
 	}
 
 	@Override
-	protected Class<? extends IContent> getContentClass() {
-		return IContent.class;
+	protected boolean onPreExecute() {
+		return gets.getEnv("token") != null;
 	}
 
 	@Override

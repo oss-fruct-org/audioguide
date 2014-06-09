@@ -23,11 +23,6 @@ public abstract class LoginStage2Request extends GetsRequest {
 	}
 
 	@Override
-	protected int getPriority() {
-		return 2;
-	}
-
-	@Override
 	protected Class<? extends IContent> getContentClass() {
 		return TokenContent.class;
 	}

@@ -52,13 +52,13 @@ public class CreateTrackRequest extends GetsRequest {
 	}
 
 	@Override
-	protected int getPriority() {
-		return 4;
+	protected Class<? extends IContent> getContentClass() {
+		return IContent.class;
 	}
 
 	@Override
-	protected Class<? extends IContent> getContentClass() {
-		return IContent.class;
+	protected boolean onPreExecute() {
+		return gets.getEnv("token") != null;
 	}
 
 	@Override

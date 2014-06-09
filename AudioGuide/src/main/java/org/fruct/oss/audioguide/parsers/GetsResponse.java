@@ -83,6 +83,13 @@ public class GetsResponse {
 				return FilesContent.parse(parser);
 			}
 		});
+		contentParsers.put(CategoriesContent.class, new ContentParser() {
+			@Override
+			public IContent parse(XmlPullParser parser) throws IOException, XmlPullParserException {
+				return CategoriesContent.parse(parser);
+			}
+		});
+
 	}
 
 

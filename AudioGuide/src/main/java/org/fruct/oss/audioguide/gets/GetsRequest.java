@@ -5,6 +5,8 @@ import android.os.Handler;
 import org.fruct.oss.audioguide.parsers.GetsResponse;
 import org.fruct.oss.audioguide.parsers.IContent;
 
+import java.util.Map;
+
 public abstract class GetsRequest {
 	protected final Gets gets;
 	private Handler handler;
@@ -24,11 +26,20 @@ public abstract class GetsRequest {
 
 	protected abstract String createRequestString();
 	protected abstract String getRequestUrl();
-	protected abstract int getPriority();
+
 	protected abstract Class<? extends IContent> getContentClass();
 
-	protected abstract void onPostProcess(GetsResponse response);
+
+	protected boolean onPreExecute() {
+		return true;
+	}
+
+	protected void onPostProcess(GetsResponse response) {
+
+	}
+
 	protected abstract void onError();
+
 
 	void setIndex(int index) {
 		this.index = index;

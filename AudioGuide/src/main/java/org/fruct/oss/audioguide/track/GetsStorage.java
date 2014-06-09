@@ -72,6 +72,8 @@ public class GetsStorage implements IStorage, IRemoteStorage {
 		gets.addRequest(new LoadTracksRequest(gets, lastLocation, radius) {
 			@Override
 			protected void onPostProcess(GetsResponse response) {
+				super.onPostProcess(response);
+				
 				if (response.getCode() != 0) {
 					return;
 				}
@@ -95,6 +97,8 @@ public class GetsStorage implements IStorage, IRemoteStorage {
 		gets.addRequest(new LoadTrackRequest(gets, track.getName()) {
 			@Override
 			protected void onPostProcess(GetsResponse response) {
+				super.onPostProcess(response);
+
 				if (response.getCode() != 0) {
 					return;
 				}
@@ -125,6 +129,8 @@ public class GetsStorage implements IStorage, IRemoteStorage {
 			gets.addRequest(new DeleteTrackRequest(gets, track) {
 				@Override
 				protected void onPostProcess(GetsResponse response) {
+					super.onPostProcess(response);
+
 					if (response.getCode() == 0) {
 						// FIXME: Dangerous. Can cause infinite recursion
 						// FIXME: if GeTS return 'success' but track not deleted
@@ -145,6 +151,8 @@ public class GetsStorage implements IStorage, IRemoteStorage {
 		gets.addRequest(new CreateTrackRequest(gets, track) {
 			@Override
 			protected void onPostProcess(GetsResponse response) {
+				super.onPostProcess(response);
+
 				if (response.getCode() != 0 && response.getCode() != 2) {
 					return;
 				}

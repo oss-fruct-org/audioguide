@@ -45,11 +45,6 @@ public class LoadTrackRequest extends GetsRequest {
 	}
 
 	@Override
-	protected int getPriority() {
-		return 3;
-	}
-
-	@Override
 	protected Class<? extends IContent> getContentClass() {
 		return Kml.class;
 	}
