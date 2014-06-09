@@ -109,6 +109,7 @@ public class TrackManager {
 			@Override
 			protected void onPostProcess(GetsResponse response) {
 				super.onPostProcess(response);
+
 				categories = ((CategoriesContent) response.getContent()).filterByPrefix();
 
 				for (CategoriesContent.Category category : categories) {

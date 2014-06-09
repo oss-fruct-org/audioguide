@@ -29,7 +29,6 @@ public abstract class GetsRequest {
 
 	protected abstract Class<? extends IContent> getContentClass();
 
-
 	protected boolean onPreExecute() {
 		return true;
 	}

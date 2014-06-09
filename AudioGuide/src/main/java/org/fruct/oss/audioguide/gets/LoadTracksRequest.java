@@ -34,6 +34,7 @@ public class LoadTracksRequest extends GetsRequest {
 			serializer.startTag(null, "request").startTag(null, "params");
 
 			gets.writeTokenTag(serializer);
+			serializer.startTag(null, "category_name").text("audio.default").endTag(null, "category_name");
 			serializer.startTag(null, "space").text("all").endTag(null, "space");
 
 			if (location != null) {

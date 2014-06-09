@@ -86,11 +86,13 @@ public class Gets implements Runnable {
 
 	@Override
 	public void run() {
+		boolean isRequestsBlocked = false;
 		while (!Thread.interrupted()) {
 			GetsRequest request = null;
 
 			synchronized (requestQueue) {
-				while (requestQueue.isEmpty()) {
+				while (isRequestsBlocked || requestQueue.isEmpty()) {
+					isRequestsBlocked = false;
 					try {
 						requestQueue.wait();
 					} catch (InterruptedException e) {
@@ -110,6 +112,10 @@ public class Gets implements Runnable {
 
 			if (request != null)
 				processRequest(request);
+			else {
+				log.debug("All requests blocked, waiting");
+				isRequestsBlocked = true;
+			}
 		}
 	}
 

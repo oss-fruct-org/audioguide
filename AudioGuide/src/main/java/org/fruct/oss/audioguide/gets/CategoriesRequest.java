@@ -26,7 +26,7 @@ public class CategoriesRequest extends GetsRequest {
 
 	@Override
 	protected void onPostProcess(GetsResponse response) {
-
+		gets.setEnv("categories", ((CategoriesContent) response.getContent()).filterByPrefix());
 	}
 
 	@Override
