@@ -119,7 +119,7 @@ public class Gets implements Runnable {
 		}
 	}
 
-	private void processRequest(GetsRequest request) {
+	private void processRequest(final GetsRequest request) {
 		String requestString = request.createRequestString();
 		String requestUrl = request.getRequestUrl();
 		String responseString;
@@ -151,7 +151,16 @@ public class Gets implements Runnable {
 			return;
 		}
 
-		notifyOnPostProcess(request, response);
+		if (request.onPostExecute(response)) {
+			request.getHandler().post(new Runnable() {
+				@Override
+				public void run() {
+					addRequest(request);
+				}
+			});
+		} else {
+			notifyOnPostProcess(request, response);
+		}
 	}
 
 	private void notifyOnError(final GetsRequest request) {

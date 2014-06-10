@@ -4,17 +4,24 @@ package org.fruct.oss.audioguide.gets;
 import android.location.Location;
 import android.util.Xml;
 
+import org.fruct.oss.audioguide.parsers.CategoriesContent;
 import org.fruct.oss.audioguide.parsers.GetsResponse;
 import org.fruct.oss.audioguide.parsers.IContent;
 import org.fruct.oss.audioguide.parsers.TracksContent;
+import org.fruct.oss.audioguide.track.Track;
 import org.xmlpull.v1.XmlSerializer;
 
 import java.io.IOException;
 import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.List;
 
 public class LoadTracksRequest extends GetsRequest {
 	private final Location location;
 	private final int radius;
+
+	private List<CategoriesContent.Category> categories;
+	private List<Track> loadedTracks = new ArrayList<Track>();
 
 	public LoadTracksRequest(Gets gets, Location location, int radius) {
 		super(gets);
@@ -26,6 +33,8 @@ public class LoadTracksRequest extends GetsRequest {
 	@Override
 	protected String createRequestString() {
 		try {
+			CategoriesContent.Category cat = categories.remove(categories.size() - 1);
+
 			XmlSerializer serializer = Xml.newSerializer();
 			StringWriter writer = new StringWriter();
 			serializer.setOutput(writer);
@@ -34,7 +43,7 @@ public class LoadTracksRequest extends GetsRequest {
 			serializer.startTag(null, "request").startTag(null, "params");
 
 			gets.writeTokenTag(serializer);
-			serializer.startTag(null, "category_name").text("audio.default").endTag(null, "category_name");
+			serializer.startTag(null, "category_name").text(cat.getName()).endTag(null, "category_name");
 			serializer.startTag(null, "space").text("all").endTag(null, "space");
 
 			if (location != null) {
@@ -63,12 +72,35 @@ public class LoadTracksRequest extends GetsRequest {
 	}
 
 	@Override
-	protected void onPostProcess(GetsResponse response) {
+	protected boolean onPreExecute() {
+		if (categories != null)
+			return true;
 
+		categories = ((List<CategoriesContent.Category>) gets.getEnv("categories"));
+
+		if (categories == null)
+			return false;
+
+		categories = new ArrayList<CategoriesContent.Category>(categories);
+		return true;
+	}
+
+	@Override
+	protected boolean onPostExecute(GetsResponse response) {
+		if (response.getCode() != 0)
+			return false;
+		else {
+			loadedTracks.addAll(((TracksContent) response.getContent()).getTracks());
+			return !categories.isEmpty();
+		}
+	}
+
+	@Override
+	protected void onPostProcess(GetsResponse response) {
+		((TracksContent) response.getContent()).setTracks(loadedTracks);
 	}
 
 	@Override
 	protected void onError() {
-
 	}
 }

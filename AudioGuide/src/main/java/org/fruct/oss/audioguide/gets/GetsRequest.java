@@ -33,8 +33,11 @@ public abstract class GetsRequest {
 		return true;
 	}
 
-	protected void onPostProcess(GetsResponse response) {
+	protected boolean onPostExecute(GetsResponse response) {
+		return false;
+	}
 
+	protected void onPostProcess(GetsResponse response) {
 	}
 
 	protected abstract void onError();

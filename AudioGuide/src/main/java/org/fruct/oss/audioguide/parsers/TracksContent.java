@@ -10,9 +10,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TracksContent implements IContent {
-	private static Track track;
+
 	private List<Track> tracks;
 
+	public void setTracks(List<Track> tracks) {
+		this.tracks = tracks;
+	}
 	public List<Track> getTracks() {
 		return tracks;
 	}
@@ -73,7 +76,7 @@ public class TracksContent implements IContent {
 		}
 
 		parser.require(XmlPullParser.END_TAG, null, "track");
-		track = new Track(name, description, url);
+		Track track = new Track(name, description, url);
 		track.setHname(hname);
 		track.setPrivate(access.equals("rw"));
 		return track;
