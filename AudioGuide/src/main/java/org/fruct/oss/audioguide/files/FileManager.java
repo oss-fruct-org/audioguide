@@ -13,6 +13,7 @@ import android.preference.PreferenceManager;
 
 import org.fruct.oss.audioguide.App;
 import org.fruct.oss.audioguide.gets.Gets;
+import org.fruct.oss.audioguide.models.BaseModel;
 import org.fruct.oss.audioguide.models.FilterModel;
 import org.fruct.oss.audioguide.models.Model;
 import org.fruct.oss.audioguide.parsers.FileContent;
@@ -165,12 +166,7 @@ public class FileManager implements SharedPreferences.OnSharedPreferenceChangeLi
 		startLoading();
 	}
 
-	private FilterModel<FileContent> imagesModel = new FilterModel<FileContent>() {
-		@Override
-		public boolean check(FileContent fileContent) {
-			return true;
-		}
-	};
+	private BaseModel<FileContent> imagesModel = new BaseModel<FileContent>();
 
 	public void addFile(FileContent file) {
 		getsFiles.add(file);

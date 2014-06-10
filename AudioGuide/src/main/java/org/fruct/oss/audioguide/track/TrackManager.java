@@ -11,6 +11,7 @@ import org.fruct.oss.audioguide.App;
 import org.fruct.oss.audioguide.files.FileManager;
 import org.fruct.oss.audioguide.gets.CategoriesRequest;
 import org.fruct.oss.audioguide.gets.Gets;
+import org.fruct.oss.audioguide.models.BaseModel;
 import org.fruct.oss.audioguide.models.FilterModel;
 import org.fruct.oss.audioguide.models.Model;
 import org.fruct.oss.audioguide.parsers.CategoriesContent;
@@ -56,9 +57,14 @@ public class TrackManager {
 	private ExecutorService executor = Executors.newSingleThreadExecutor();
 	private FileManager fileManager;
 
+	// Models
+	private BaseModel<Track> allTracksModel;
+	private FilterModel<Track> activeTracksModel;
+	private FilterModel<Track> localTracksModel;
+
 	// All known tracks from local and remote storage
 	private final Map<String, Track> allTracks = new HashMap<String, Track>();
-	private final Map<Track, FilterModel<Point>> pointModels = new HashMap<Track, FilterModel<Point>>();
+	private final Map<Track, BaseModel<Point>> pointModels = new HashMap<Track, BaseModel<Point>>();
 
 	// Categories
 	private List<CategoriesContent.Category> categories;
@@ -96,11 +102,18 @@ public class TrackManager {
 		});
 
 		isInitialized = true;
+
+		allTracksModel = new BaseModel<Track>();
+		activeTracksModel = new ActiveTracksFilterModel(allTracksModel);
+		localTracksModel = new LocalTracksFilterModel(allTracksModel);
 	}
 
 	public void destroy() {
 		localStorage.close();
 		remoteStorage.close();
+
+		activeTracksModel.close();
+		localTracksModel.close();
 	}
 
 	public void loadCategories() {
@@ -153,12 +166,6 @@ public class TrackManager {
 		listeners.remove(listener);
 	}
 
-	public List<Track> getTracks() {
-		ArrayList<Track> tracks = new ArrayList<Track>(allTracks.values());
-		Collections.sort(tracks);
-		return tracks;
-	}
-
 	public List<Track> getActiveTracks() {
 		Collection<Track> allTracks = this.allTracks.values();
 		List<Track> tracks = Utils.select(allTracks, new Utils.Predicate<Track>() {
@@ -184,15 +191,9 @@ public class TrackManager {
 	}
 
 	public Model<Point> getPointsModel(Track track) {
-		FilterModel<Point> model = pointModels.get(track);
+		BaseModel<Point> model = pointModels.get(track);
 		if (model == null) {
-			model = new FilterModel<Point>() {
-				@Override
-				public boolean check(Point point) {
-					return true;
-				}
-			};
-
+			model = new BaseModel<Point>();
 			model.setData(getPoints(track));
 			pointModels.put(track, model);
 		}
@@ -360,7 +361,7 @@ public class TrackManager {
 		for (Listener listener : listeners)
 			listener.pointsUpdated(track);
 
-		FilterModel<Point> pointModel = pointModels.get(track);
+		BaseModel<Point> pointModel = pointModels.get(track);
 
 		if (pointModel != null) {
 			pointModel.setData(localStorage.getPoints(track));
@@ -372,8 +373,6 @@ public class TrackManager {
 			listener.tracksUpdated();
 
 		allTracksModel.setData(allTracks.values());
-		activeTracksModel.setData(allTracks.values());
-		localTracksModel.setData(allTracks.values());
 	}
 
 	private void checkInitialized() {
@@ -417,22 +416,25 @@ public class TrackManager {
 		}
 	}
 
-	private FilterModel<Track> allTracksModel = new FilterModel<Track>() {
-		@Override
-		public boolean check(Track track) {
-			return true;
+	private static class ActiveTracksFilterModel extends FilterModel<Track> {
+		public ActiveTracksFilterModel(Model<Track> baseModel) {
+			super(baseModel);
 		}
-	};
-	private FilterModel<Track> activeTracksModel = new FilterModel<Track>() {
+
 		@Override
 		public boolean check(Track track) {
 			return track.isActive();
 		}
-	};
-	private FilterModel<Track> localTracksModel = new FilterModel<Track>() {
+	}
+
+	private static class LocalTracksFilterModel extends FilterModel<Track> {
+		public LocalTracksFilterModel(Model<Track> baseModel) {
+			super(baseModel);
+		}
+
 		@Override
 		public boolean check(Track track) {
 			return track.isLocal();
 		}
-	};
+	}
 }

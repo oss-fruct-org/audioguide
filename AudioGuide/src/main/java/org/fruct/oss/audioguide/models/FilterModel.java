@@ -3,79 +3,57 @@ package org.fruct.oss.audioguide.models;
 import android.os.Handler;
 import android.os.Looper;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 
 
-public abstract class FilterModel<T> implements Model<T> {
+public abstract class FilterModel<T> extends BaseModel<T> implements ModelListener, Closeable {
+	private static Logger log = LoggerFactory.getLogger(FilterModel.class);
+
 	public abstract boolean check(T t);
 
-	private ArrayList<T> list = new ArrayList<T>();
-	private ArrayList<ModelListener> listeners = new ArrayList<ModelListener>();
-	private Handler handler = new Handler(Looper.getMainLooper());
+	private Model<T> baseModel;
+	private ArrayList<T> list;
 
-	@Override
-	public int getCount() {
-		return list.size();
+	private boolean isClosed;
+
+	public FilterModel(Model<T> baseModel) {
+		this.baseModel = baseModel;
+		baseModel.addListener(this);
+		dataSetChanged();
 	}
 
 	@Override
-	public T getItem(int position) {
-		return list.get(position);
+	public void close() {
+		isClosed = true;
+		baseModel.removeListener(this);
 	}
 
 	@Override
-	public synchronized void addListener(ModelListener listener) {
-		listeners.add(listener);
+	protected void finalize() throws Throwable {
+		super.finalize();
+
+		if (!isClosed) {
+			log.warn("FilterModel haven't closed correctly!");
+		}
 	}
 
 	@Override
-	public synchronized void removeListener(ModelListener listener) {
-		listeners.remove(listener);
-	}
+	public void dataSetChanged() {
+		list = new ArrayList<T>();
 
-	public void setData(Collection<T> coll) {
-		list.clear();
-		for (T t : coll) {
+		for (T t : baseModel) {
 			if (check(t)) {
 				list.add(t);
 			}
 		}
 
-		handler.post(new Runnable() {
-			@Override
-			public void run() {
-				notifyDataSetChanged();
-			}
-		});
-	}
-
-	public void notifyDataSetChanged() {
-		for (ModelListener listener : listeners) {
-			listener.dataSetChanged();
-		}
-	}
-
-	@Override
-	public Iterator<T> iterator() {
-		return new Iterator<T>() {
-			private int index;
-
-			@Override
-			public boolean hasNext() {
-				return index < getCount();
-			}
-
-			@Override
-			public T next() {
-				return getItem(index++);
-			}
-
-			@Override
-			public void remove() {
-				throw new UnsupportedOperationException("Can't remove from model");
-			}
-		};
+		notifyDataSetChanged();
 	}
 }
