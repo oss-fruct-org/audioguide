@@ -1,5 +1,6 @@
 package org.fruct.oss.audioguide.parsers;
 
+import org.fruct.oss.audioguide.gets.Category;
 import org.fruct.oss.audioguide.util.Utils;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -75,7 +76,7 @@ public class CategoriesContent implements IContent {
 		return categories;
 	}
 
-	public List<Category> filterByPrefix() {
+	public static List<Category> filterByPrefix(List<Category> categories) {
 		Pattern pattern = Pattern.compile("^(image|audio)\\..*");
 		List<Category> matchedCategories = new ArrayList<Category>();
 
@@ -89,33 +90,4 @@ public class CategoriesContent implements IContent {
 		return matchedCategories;
 	}
 
-	public static class Category {
-		private long id;
-		private String name;
-		private String description;
-		private String url;
-
-		public Category(long id, String name, String description, String url) {
-			this.id = id;
-			this.name = name;
-			this.description = description;
-			this.url = url;
-		}
-
-		public long getId() {
-			return id;
-		}
-
-		public String getName() {
-			return name;
-		}
-
-		public String getDescription() {
-			return description;
-		}
-
-		public String getUrl() {
-			return url;
-		}
-	}
 }

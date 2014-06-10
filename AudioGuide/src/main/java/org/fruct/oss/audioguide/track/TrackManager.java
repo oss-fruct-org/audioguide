@@ -3,6 +3,7 @@ package org.fruct.oss.audioguide.track;
 import android.content.SharedPreferences;
 import android.location.Location;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceManager;
@@ -10,6 +11,7 @@ import android.preference.PreferenceManager;
 import org.fruct.oss.audioguide.App;
 import org.fruct.oss.audioguide.files.FileManager;
 import org.fruct.oss.audioguide.gets.CategoriesRequest;
+import org.fruct.oss.audioguide.gets.Category;
 import org.fruct.oss.audioguide.gets.Gets;
 import org.fruct.oss.audioguide.models.BaseModel;
 import org.fruct.oss.audioguide.models.FilterModel;
@@ -49,6 +51,7 @@ public class TrackManager {
 		void pointsUpdated(Track track);
 	}
 
+	// Storages
 	private final ILocalStorage localStorage;
 	private final IStorage remoteStorage;
 
@@ -67,7 +70,7 @@ public class TrackManager {
 	private final Map<Track, BaseModel<Point>> pointModels = new HashMap<Track, BaseModel<Point>>();
 
 	// Categories
-	private List<CategoriesContent.Category> categories;
+	private List<Category> categories;
 
 	private List<Listener> listeners = new ArrayList<Listener>();
 
@@ -123,13 +126,51 @@ public class TrackManager {
 			protected void onPostProcess(GetsResponse response) {
 				super.onPostProcess(response);
 
-				categories = ((CategoriesContent) response.getContent()).filterByPrefix();
+				// TODO: need some code to re-download categories after network up
+				if (response.getCode() != 0) {
+					loadCachedCategories();
+					return;
+				}
 
-				for (CategoriesContent.Category category : categories) {
-					log.debug("Category loaded: {} {}", category.getId(), category.getName());
+				synchronized (localStorage) {
+					categories = CategoriesContent.filterByPrefix(((CategoriesContent)
+							response.getContent()).getCategories());
+					if (localStorage instanceof DatabaseStorage) {
+						((DatabaseStorage) localStorage).updateCategories(categories);
+					}
 				}
 			}
+
+			@Override
+			protected void onError() {
+				super.onError();
+				loadCachedCategories();
+			}
 		});
+	}
+
+	private void loadCachedCategories() {
+		if (localStorage instanceof DatabaseStorage) {
+			new AsyncTask<Void, Void, List<Category>>() {
+				@Override
+				protected List<Category> doInBackground(Void... voids) {
+					synchronized (localStorage) {
+						return ((DatabaseStorage) localStorage).getCategories();
+					}
+				}
+
+				@Override
+				protected void onPostExecute(List<Category> loadedCategories) {
+					synchronized (localStorage) {
+						categories = loadedCategories;
+					}
+				}
+			}.execute();
+		}
+	}
+
+	public List<Category> getCategories() {
+		return categories;
 	}
 
 	/**

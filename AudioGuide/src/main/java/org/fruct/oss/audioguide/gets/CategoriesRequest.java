@@ -26,9 +26,10 @@ public class CategoriesRequest extends GetsRequest {
 
 	@Override
 	protected void onPostProcess(GetsResponse response) {
-		gets.setEnv("categories", ((CategoriesContent) response.getContent()).filterByPrefix());
+		if (response.getCode() == 0) {
+			gets.setEnv("categories", CategoriesContent.filterByPrefix(((CategoriesContent) response.getContent()).getCategories()));
+		}
 	}
-
 	@Override
 	protected void onError() {
 

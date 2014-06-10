@@ -7,13 +7,11 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceManager;
 
-import org.fruct.oss.audioguide.BuildConfig;
-import org.fruct.oss.audioguide.util.AUtils;
+import org.fruct.oss.audioguide.gets.Category;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,7 +23,7 @@ public class DatabaseStorage implements ILocalStorage {
 	private final static Logger log = LoggerFactory.getLogger(DatabaseStorage.class);
 
 	public static final String DB_NAME = "tracksdb";
-	public static final int DB_VERSION = 11; // published 11
+	public static final int DB_VERSION = 12; // published 11
 	public static final String CREATE_TRACKS_SQL = "CREATE TABLE tracks " +
 			"(id INTEGER PRIMARY KEY AUTOINCREMENT," +
 			"name TEXT," +
@@ -46,6 +44,13 @@ public class DatabaseStorage implements ILocalStorage {
 			"trackId INTEGER," +
 			"FOREIGN KEY(trackId) REFERENCES tracks(id) ON DELETE CASCADE);";
 
+	public static final String CREATE_CATEGORIES_SQL = "CREATE TABLE categories " +
+			"(id INTEGER PRIMARY KEY," +
+			"name TEXT," +
+			"description TEXT," +
+			"url TEXT);";
+
+
 	public static final String[] SELECT_TRACK_COLUMNS = {
 			"id", "name", "description", "url", "active", "hname", "private"
 	};
@@ -53,6 +58,11 @@ public class DatabaseStorage implements ILocalStorage {
 	public static final String[] SELECT_POINT_COLUMNS = {
 			"id", "name", "description", "lat", "lon", "audioUrl", "trackId", "photoUrl"
 	};
+
+	public static final String[] SELECT_CATEGORIES_COLUMNS = {
+			"id", "name", "description", "url"
+	};
+
 
 	private final Context context;
 
@@ -236,7 +246,8 @@ public class DatabaseStorage implements ILocalStorage {
 			return points;
 
 		do {
-			Point point = new Point(cursor.getString(1), cursor.getString(2), cursor.getString(5), cursor.getString(7),
+			Point point = new Point(cursor.getString(1), cursor.getString(2),
+					cursor.getString(5), cursor.getString(7),
 					cursor.getInt(3), cursor.getInt(4));
 			points.add(point);
 		} while (cursor.moveToNext());
@@ -244,6 +255,47 @@ public class DatabaseStorage implements ILocalStorage {
 		cursor.close();
 
 		return points;
+	}
+
+	public List<Category> getCategories() {
+		List<Category> categories = new ArrayList<Category>();
+
+		Cursor cursor = db.query("categories", SELECT_CATEGORIES_COLUMNS,
+				null, null, null, null, null, null);
+
+		if (!cursor.moveToFirst())
+			return categories;
+
+		do {
+			Category category = new Category(cursor.getLong(0), cursor.getString(1),
+					cursor.getString(2), cursor.getString(3));
+			categories.add(category);
+		} while (cursor.moveToNext());
+
+		return categories;
+	}
+
+	public void updateCategories(List<Category> categories) {
+		db.beginTransaction();
+
+		try {
+			for (Category category : categories) {
+				ContentValues cv = new ContentValues(4);
+				cv.put("id", category.getId());
+				cv.put("name", category.getName());
+				cv.put("description", category.getDescription());
+				cv.put("url", category.getUrl());
+
+				long rowId = db.insert("categories", null, cv);
+				if (rowId == -1) {
+					cv.remove("id");
+					db.update("categories", cv, "id=?", new String[]{String.valueOf(category.getId())});
+				}
+			}
+			db.setTransactionSuccessful();
+		} finally {
+			db.endTransaction();
+		}
 	}
 
 	private static class TrackDatabaseHelper extends SQLiteOpenHelper {
@@ -255,6 +307,7 @@ public class DatabaseStorage implements ILocalStorage {
 		public void onCreate(SQLiteDatabase db) {
 			db.execSQL(CREATE_TRACKS_SQL);
 			db.execSQL(CREATE_POINTS_SQL);
+			db.execSQL(CREATE_CATEGORIES_SQL);
 		}
 
 		@Override
@@ -271,12 +324,16 @@ public class DatabaseStorage implements ILocalStorage {
 				return;
 			}
 
+			if (oldVersion < 12) {
+				log.debug("Upgrade database to version 12: create categories table");
+				db.execSQL(CREATE_CATEGORIES_SQL);
+			}
+
 			if (newVersion > 66666) {
 				db.execSQL("drop table points;");
 				db.execSQL("drop table tracks;");
+				onCreate(db);
 			}
-
-			onCreate(db);
 		}
 
 		@Override

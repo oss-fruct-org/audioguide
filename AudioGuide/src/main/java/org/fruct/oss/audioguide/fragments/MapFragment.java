@@ -33,6 +33,7 @@ import android.view.animation.AnimationUtils;
 import org.fruct.oss.audioguide.MultiPanel;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.fragments.edit.EditPointDialog;
+import org.fruct.oss.audioguide.gets.Category;
 import org.fruct.oss.audioguide.overlays.EditOverlay;
 import org.fruct.oss.audioguide.overlays.MyPositionOverlay;
 import org.fruct.oss.audioguide.preferences.SettingsActivity;
@@ -97,6 +98,10 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		log.trace("MapFragment onCreate");
+
+		for (Category cat : TrackManager.getInstance().getCategories()) {
+			log.debug("CATEGORY {} {}", cat.getId(), cat.getName());
+		}
 
 		super.onCreate(savedInstanceState);
 
