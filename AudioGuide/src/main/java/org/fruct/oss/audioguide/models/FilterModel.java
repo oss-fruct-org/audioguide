@@ -19,7 +19,6 @@ public abstract class FilterModel<T> extends BaseModel<T> implements ModelListen
 	public abstract boolean check(T t);
 
 	private Model<T> baseModel;
-	private ArrayList<T> list;
 
 	private boolean isClosed;
 
@@ -46,7 +45,7 @@ public abstract class FilterModel<T> extends BaseModel<T> implements ModelListen
 
 	@Override
 	public void dataSetChanged() {
-		list = new ArrayList<T>();
+		list.clear();
 
 		for (T t : baseModel) {
 			if (check(t)) {
@@ -54,6 +53,11 @@ public abstract class FilterModel<T> extends BaseModel<T> implements ModelListen
 			}
 		}
 
-		notifyDataSetChanged();
+		handler.post(new Runnable() {
+			@Override
+			public void run() {
+				notifyDataSetChanged();
+			}
+		});
 	}
 }

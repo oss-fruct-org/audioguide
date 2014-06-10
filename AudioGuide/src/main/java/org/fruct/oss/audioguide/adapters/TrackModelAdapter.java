@@ -11,6 +11,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import org.fruct.oss.audioguide.R;
+import org.fruct.oss.audioguide.models.FilterModel;
 import org.fruct.oss.audioguide.models.Model;
 import org.fruct.oss.audioguide.models.ModelListener;
 import org.fruct.oss.audioguide.track.Track;
@@ -32,7 +33,9 @@ public class TrackModelAdapter extends BaseAdapter implements ModelListener, Clo
 
 	private final Context context;
 	private final int resource;
-	private final Model<Track> model;
+
+	private final FilterModel<Track> filterModel;
+
 	private Map<String, Integer> highlight = new HashMap<String, Integer>();
 
 	private Filter trackFilter = new Filter() {
@@ -41,7 +44,6 @@ public class TrackModelAdapter extends BaseAdapter implements ModelListener, Clo
 			return true;
 		}
 	};
-	private ArrayList<Track> filteredTracks = new ArrayList<Track>();
 
 	private boolean closed = false;
 
@@ -50,15 +52,27 @@ public class TrackModelAdapter extends BaseAdapter implements ModelListener, Clo
 	public TrackModelAdapter(Context context, int resource, Model<Track> model) {
 		this.context = context;
 		this.resource = resource;
-		this.model = model;
-		this.model.addListener(this);
+
+		this.filterModel = new FilterModel<Track>(model) {
+			@Override
+			public boolean check(Track track) {
+				return trackFilter.check(track);
+			}
+
+			@Override
+			public void dataSetChanged() {
+				super.dataSetChanged();
+			}
+		};
 
 		stackTraceException = new RuntimeException();
+		filterModel.addListener(this);
 		dataSetChanged();
 	}
 
 	public void close() {
-		this.model.removeListener(this);
+		filterModel.removeListener(this);
+		filterModel.close();
 		closed = true;
 	}
 
@@ -74,12 +88,12 @@ public class TrackModelAdapter extends BaseAdapter implements ModelListener, Clo
 
 	@Override
 	public int getCount() {
-		return filteredTracks.size();
+		return filterModel.getCount();
 	}
 
 	@Override
 	public Track getItem(int i) {
-		return filteredTracks.get(i);
+		return filterModel.getItem(i);
 	}
 
 	@Override
@@ -156,12 +170,6 @@ public class TrackModelAdapter extends BaseAdapter implements ModelListener, Clo
 
 	@Override
 	public void dataSetChanged() {
-		filteredTracks.clear();
-		for (Track track : model) {
-			if (trackFilter.check(track))
-				filteredTracks.add(track);
-		}
-
 		notifyDataSetChanged();
 	}
 
@@ -185,7 +193,7 @@ public class TrackModelAdapter extends BaseAdapter implements ModelListener, Clo
 
 	public void setFilter(Filter filter) {
 		this.trackFilter = filter;
-		dataSetChanged();
+		filterModel.dataSetChanged();
 	}
 
 	private static class TrackHolder {

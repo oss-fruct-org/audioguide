@@ -147,6 +147,7 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 						}
 					});
 					break;
+
 				case 4: // Active tracks
 					trackAdapter.setFilter(new TrackModelAdapter.Filter() {
 						@Override
@@ -155,6 +156,7 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 						}
 					});
 					break;
+
 				default:
 					return false;
 				}

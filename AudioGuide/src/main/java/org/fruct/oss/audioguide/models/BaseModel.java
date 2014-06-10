@@ -8,9 +8,9 @@ import java.util.Collection;
 import java.util.Iterator;
 
 public class BaseModel<T> implements Model<T> {
-	private ArrayList<T> list = new ArrayList<T>();
+	protected ArrayList<T> list = new ArrayList<T>();
 	private ArrayList<ModelListener> listeners = new ArrayList<ModelListener>();
-	private Handler handler = new Handler(Looper.getMainLooper());
+	protected Handler handler = new Handler(Looper.getMainLooper());
 
 	@Override
 	public int getCount() {
