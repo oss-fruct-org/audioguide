@@ -42,7 +42,7 @@ public class DatabaseStorage implements ILocalStorage {
 			"audioUrl TEXT," +
 			"photoUrl TEXT," +
 			"trackId INTEGER," +
-			"FOREIGN KEY(trackId) REFERENCES tracks(id) ON DELETE CASCADE);";
+			"FOREIGN KEY(trackId) REFERENCES tracks(id));";
 
 	public static final String CREATE_CATEGORIES_SQL = "CREATE TABLE categories " +
 			"(id INTEGER PRIMARY KEY," +
@@ -70,8 +70,6 @@ public class DatabaseStorage implements ILocalStorage {
 	private SQLiteDatabase db;
 
 	private ArrayList<Track> tracks;
-
-	private long freeTrackId;
 
 	public DatabaseStorage(Context context) {
 		this.context = context;
@@ -111,11 +109,15 @@ public class DatabaseStorage implements ILocalStorage {
 		cv.put("audioUrl", point.getAudioUrl());
 		cv.put("photoUrl", point.getPhotoUrl());
 
-		long trackId = track != null ? track.getLocalId() : freeTrackId;
-		cv.put("trackId", trackId);
+		if (track != null) {
+			cv.put("trackId", track.getLocalId());
+		} else {
+			cv.putNull("trackId");
+		}
 
-		int count = db.update("points", cv, "points.trackId=? and points.name=?",
-				new String[]{String.valueOf(trackId), point.getName()});
+		// TODO: too weak point comparison
+		int count = db.update("points", cv, "points.name=?",
+				new String[]{ point.getName()});
 		if (count < 1) {
 			db.insert("points", null, cv);
 		}
@@ -149,35 +151,10 @@ public class DatabaseStorage implements ILocalStorage {
 		}
 	}
 
-	@SuppressLint("Assert")
 	@Override
 	public void initialize() {
 		helper = new TrackDatabaseHelper(context);
 		db = helper.getWritableDatabase();
-
-		// Setup free (fake) track
-		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
-		String freeTrackName = pref.getString("free-track-name", null);
-		if (freeTrackName == null) {
-			pref.edit().putString("free-track-name", freeTrackName = UUID.randomUUID().toString()).apply();
-		}
-
-		Cursor freeTrackCursor = db.query("tracks", new String[]{"id"},
-				"name=?", new String[]{freeTrackName},
-				null, null, null);
-
-		assert freeTrackCursor.getCount() <= 1;
-
-		if (freeTrackCursor.getCount() == 0) {
-			ContentValues cv = new ContentValues();
-			cv.put("name", freeTrackName);
-			freeTrackId = db.insert("tracks", null, cv);
-		} else {
-			freeTrackCursor.moveToFirst();
-			freeTrackId = freeTrackCursor.getInt(0);
-		}
-
-		log.info("Loose point's track name = {} and id = {}", freeTrackName, freeTrackId);
 	}
 
 	@Override
@@ -191,7 +168,7 @@ public class DatabaseStorage implements ILocalStorage {
 	}
 
 	private void load() {
-		Cursor cursor = db.query("tracks", SELECT_TRACK_COLUMNS, "id!=" + freeTrackId, null, null, null, null);
+		Cursor cursor = db.query("tracks", SELECT_TRACK_COLUMNS, null, null, null, null, null);
 
 		tracks = new ArrayList<Track>(cursor.getCount());
 
@@ -281,15 +258,16 @@ public class DatabaseStorage implements ILocalStorage {
 		try {
 			for (Category category : categories) {
 				ContentValues cv = new ContentValues(4);
-				cv.put("id", category.getId());
 				cv.put("name", category.getName());
 				cv.put("description", category.getDescription());
 				cv.put("url", category.getUrl());
 
-				long rowId = db.insert("categories", null, cv);
-				if (rowId == -1) {
-					cv.remove("id");
-					db.update("categories", cv, "id=?", new String[]{String.valueOf(category.getId())});
+				int count = db.update("categories", cv, "id=?",
+						new String[]{String.valueOf(category.getId())});
+
+				if (count < 1) {
+					cv.put("id", category.getId());
+					db.insert("categories", null, cv);
 				}
 			}
 			db.setTransactionSuccessful();
