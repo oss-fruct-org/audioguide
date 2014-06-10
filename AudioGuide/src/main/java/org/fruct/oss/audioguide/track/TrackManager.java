@@ -387,29 +387,6 @@ public class TrackManager {
 			return instance;
 
 		ILocalStorage localStorage = new DatabaseStorage(App.getContext());
-		Track track1 = new Track("Empty track", "Empty track description", "CCC");
-		Track track2 = new Track("Simple track", "Simple track description", "EEE");
-		ArrayStorage remoteStorage = new ArrayStorage()
-				.insert(track1)
-				.insert(track2)
-				.insert(new Point("PetrSu", "Petrosavodsk state university",
-						"http://kappa.cs.karelia.ru/~ivashov/audioguide/DescenteInfinie.ogg",
-						"http://kappa.cs.karelia.ru/~ivashov/audioguide/petrsu.png",
-						61.786616, 34.352004), track2)
-				.insert(new Point("Vokzal", "Petrosavodsk vokzal", "", 61.784699, 34.345883), track2)
-				.insert(new Point("Neglinlka", "River neglinka", "", 61.777575, 34.355340), track2);
-
-
-		for (int i = 0; i < 10; i++) {
-			remoteStorage.insert(new Point("PetrSu " + i, "Petrosavodsk state university",
-					"http://kappa.cs.karelia.ru/~ivashov/audioguide/DescenteInfinie.ogg",
-					"http://kappa.cs.karelia.ru/~ivashov/audioguide/petrsu.png",
-					61.786616, 34.352004), track2)
-					.insert(new Point("Vokzal " + i, "Petrosavodsk vokzal", "", 61.784699,34.345883), track2)
-					.insert(new Point("Neglinlka " + i, "River neglinka", "", "http://kappa.cs.karelia.ru/~ivashov/audioguide/reka1.jpg", 61.777575, 34.355340), track2);
-
-		}
-
 		GetsStorage getsStorage = new GetsStorage();
 
 		instance = new TrackManager(localStorage, getsStorage);
