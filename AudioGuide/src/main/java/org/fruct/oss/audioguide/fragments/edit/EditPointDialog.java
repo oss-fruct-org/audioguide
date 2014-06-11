@@ -208,6 +208,7 @@ public class EditPointDialog extends DialogFragment implements DialogInterface.O
 	public void categorySelected(Category category) {
 		categoryLabel.setText(category.getDescription());
 		selectedCategory = category;
+		point.setCategoryId(category.getId());
 	}
 
 	public void setListener(Listener listener) {

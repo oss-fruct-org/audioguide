@@ -449,7 +449,10 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 
 			IGeoPoint mapCenter = mapView.getMapCenter();
 			point.setCoordinates(mapCenter.getLatitudeE6(), mapCenter.getLongitudeE6());
-			editOverlay.addPoint(AUtils.copyGeoPoint(mapCenter), point);
+
+			if (editOverlay != null)
+				editOverlay.addPoint(AUtils.copyGeoPoint(mapCenter), point);
+			
 			trackManager.storePoint(editTrack, point);
 			mapView.invalidate();
 		}

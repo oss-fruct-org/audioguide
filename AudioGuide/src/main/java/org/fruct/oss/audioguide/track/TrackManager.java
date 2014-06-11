@@ -322,7 +322,9 @@ public class TrackManager {
 
 	@DatasetModifier
 	public void storePoint(Track track, Point point) {
-		log.trace("Store point to track " + track.getName() + ": " + point.getName());
+		if (track != null)
+			log.trace("Store point to track " + track.getName() + ": " + point.getName());
+
 		localStorage.updatePoint(track, point);
 
 		if (point.hasPhoto()) {

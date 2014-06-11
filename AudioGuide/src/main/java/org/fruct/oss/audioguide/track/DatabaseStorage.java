@@ -24,7 +24,7 @@ public class DatabaseStorage implements ILocalStorage {
 	private final static Logger log = LoggerFactory.getLogger(DatabaseStorage.class);
 
 	public static final String DB_NAME = "tracksdb";
-	public static final int DB_VERSION = 12; // published 11
+	public static final int DB_VERSION = 66669; // published 11
 	public static final String CREATE_TRACKS_SQL = "CREATE TABLE tracks " +
 			"(id INTEGER PRIMARY KEY AUTOINCREMENT," +
 			"name TEXT," +
@@ -43,7 +43,9 @@ public class DatabaseStorage implements ILocalStorage {
 			"audioUrl TEXT," +
 			"photoUrl TEXT," +
 			"trackId INTEGER," +
-			"FOREIGN KEY(trackId) REFERENCES tracks(id));";
+			"categoryId INTEGER," +
+			"FOREIGN KEY(trackId) REFERENCES tracks(id)," +
+			"FOREIGN KEY(categoryId) REFERENCES categories(id));";
 
 	public static final String CREATE_CATEGORIES_SQL = "CREATE TABLE categories " +
 			"(id INTEGER PRIMARY KEY," +
@@ -57,7 +59,7 @@ public class DatabaseStorage implements ILocalStorage {
 	};
 
 	public static final String[] SELECT_POINT_COLUMNS = {
-			"id", "name", "description", "lat", "lon", "audioUrl", "trackId", "photoUrl"
+			"id", "name", "description", "lat", "lon", "audioUrl", "trackId", "photoUrl", "categoryId"
 	};
 
 	public static final String[] SELECT_CATEGORIES_COLUMNS = {
@@ -125,14 +127,16 @@ public class DatabaseStorage implements ILocalStorage {
 	}
 
 	private void storeLocalPoint(Track track, Point point) {
-		ContentValues cv = new ContentValues(7);
+		ContentValues cv = new ContentValues(8);
 		cv.put("name", point.getName());
 		cv.put("description", point.getDescription());
 		cv.put("lat", point.getLatE6());
 		cv.put("lon", point.getLonE6());
 		cv.put("audioUrl", point.getAudioUrl());
 		cv.put("photoUrl", point.getPhotoUrl());
-		cv.put("trackId", track.getLocalId());
+		if (track != null)
+			cv.put("trackId", track.getLocalId());
+		cv.put("categoryId", point.getCategoryId());
 
 		db.insert("points", null, cv);
 	}
@@ -227,6 +231,7 @@ public class DatabaseStorage implements ILocalStorage {
 			Point point = new Point(cursor.getString(1), cursor.getString(2),
 					cursor.getString(5), cursor.getString(7),
 					cursor.getInt(3), cursor.getInt(4));
+			point.setCategoryId(cursor.isNull(8) ? -1 : cursor.getLong(8));
 			points.add(point);
 		} while (cursor.moveToNext());
 
@@ -326,6 +331,7 @@ public class DatabaseStorage implements ILocalStorage {
 			if (newVersion > 66666) {
 				db.execSQL("drop table points;");
 				db.execSQL("drop table tracks;");
+				db.execSQL("drop table categories;");
 				onCreate(db);
 			}
 		}

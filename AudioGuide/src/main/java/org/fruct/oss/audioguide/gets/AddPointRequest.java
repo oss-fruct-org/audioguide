@@ -106,8 +106,9 @@ public class AddPointRequest extends GetsRequest {
 			if (point.hasPhoto())
 				stringer.key("photo").value(point.getPhotoUrl());
 
-			// FIXME: !!!
-			// Remove slash escapes
+			if (point.getCategoryId() != -1)
+				stringer.key("category_id").value(point.getCategoryId());
+
 			return stringer.endObject().toString();//.replace("\\/", "/");
 		} catch (JSONException e) {
 			return point.getDescription();

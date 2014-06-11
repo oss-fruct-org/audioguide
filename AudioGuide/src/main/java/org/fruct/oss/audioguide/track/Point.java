@@ -22,6 +22,8 @@ public class Point implements Parcelable {
 	private String audioUrl;
 	private String photoUrl;
 
+	private long categoryId = -1;
+
 	public void setCoordinates(int latE6, int lonE6) {
 		this.latE6 = latE6;
 		this.lonE6 = lonE6;
@@ -85,6 +87,10 @@ public class Point implements Parcelable {
 		return photoUrl;
 	}
 
+	public long getCategoryId() {
+		return categoryId;
+	}
+
 
 	public void setName(String name) {
 		this.name = name;
@@ -100,6 +106,10 @@ public class Point implements Parcelable {
 
 	public void setAudioUrl(String audioUrl) {
 		this.audioUrl = audioUrl;
+	}
+
+	public void setCategoryId(long categoryId) {
+		this.categoryId = categoryId;
 	}
 
 
@@ -183,6 +193,7 @@ public class Point implements Parcelable {
 		parcel.writeInt(lonE6);
 
 		parcel.writeString(photoUrl);
+		parcel.writeLong(categoryId);
 	}
 
 	public static final Creator<Point> CREATOR = new Creator<Point>() {
@@ -196,7 +207,9 @@ public class Point implements Parcelable {
 
 			String photoUrl = parcel.readString();
 
-			return new Point(name, desc, audioUrl, photoUrl, latE6, lonE6);
+			Point point = new Point(name, desc, audioUrl, photoUrl, latE6, lonE6);
+			point.setCategoryId(parcel.readLong());
+			return point;
 		}
 
 		@Override
