@@ -149,6 +149,12 @@ public class TrackManager {
 		});
 	}
 
+	public void setCategoryState(Category category, boolean isActive) {
+		DatabaseStorage storage = (DatabaseStorage) localStorage;
+		category.setActive(isActive);
+		storage.setCategoryState(category, isActive);
+	}
+
 	private void loadCachedCategories() {
 		if (localStorage instanceof DatabaseStorage) {
 			new AsyncTask<Void, Void, List<Category>>() {

@@ -12,6 +12,7 @@ import android.os.Message;
 import android.preference.PreferenceManager;
 
 import org.fruct.oss.audioguide.gets.Category;
+import org.fruct.oss.audioguide.util.AUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,8 +49,8 @@ public class DatabaseStorage implements ILocalStorage {
 			"(id INTEGER PRIMARY KEY," +
 			"name TEXT," +
 			"description TEXT," +
-			"url TEXT);";
-
+			"url TEXT," +
+			"state INTEGER);"; // 1 - active, 0 - non-active
 
 	public static final String[] SELECT_TRACK_COLUMNS = {
 			"id", "name", "description", "url", "active", "hname", "private"
@@ -60,7 +61,7 @@ public class DatabaseStorage implements ILocalStorage {
 	};
 
 	public static final String[] SELECT_CATEGORIES_COLUMNS = {
-			"id", "name", "description", "url"
+			"id", "name", "description", "url", "state"
 	};
 
 
@@ -245,9 +246,11 @@ public class DatabaseStorage implements ILocalStorage {
 
 		do {
 			Category category = new Category(cursor.getLong(0), cursor.getString(1),
-					cursor.getString(2), cursor.getString(3));
+					cursor.getString(2), cursor.getString(3), cursor.getInt(4) == 1);
 			categories.add(category);
 		} while (cursor.moveToNext());
+
+		cursor.close();
 
 		return categories;
 	}
@@ -262,18 +265,31 @@ public class DatabaseStorage implements ILocalStorage {
 				cv.put("description", category.getDescription());
 				cv.put("url", category.getUrl());
 
-				int count = db.update("categories", cv, "id=?",
-						new String[]{String.valueOf(category.getId())});
+				Cursor cursor = db.query("categories", new String[]{"state"}, "id=?",
+						new String[]{String.valueOf(category.getId())}, null, null, null);
 
-				if (count < 1) {
+				if (cursor.moveToFirst()) {
+					db.update("categories", cv, "id=?",
+							new String[]{String.valueOf(category.getId())});
+					category.setActive(cursor.getInt(0) == 1);
+				} else {
 					cv.put("id", category.getId());
 					db.insert("categories", null, cv);
 				}
+
+				cursor.close();
 			}
 			db.setTransactionSuccessful();
 		} finally {
 			db.endTransaction();
 		}
+	}
+
+	public void setCategoryState(Category category, boolean isActive) {
+		ContentValues cv = new ContentValues(1);
+		cv.put("state", category.isActive() ? 1 : 0);
+
+		db.update("categories", cv, "id=?", new String[]{String.valueOf(category.getId())});
 	}
 
 	private static class TrackDatabaseHelper extends SQLiteOpenHelper {

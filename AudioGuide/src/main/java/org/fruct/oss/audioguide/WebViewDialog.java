@@ -37,6 +37,7 @@ public class WebViewDialog extends DialogFragment {
 		};
 	}
 
+	// FIXME: newInstance
 	public WebViewDialog(String url, Predicate<String> urlCloseChecker) {
 		this.url = url;
 		this.urlCloseChecker = urlCloseChecker;

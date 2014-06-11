@@ -3,9 +3,11 @@ package org.fruct.oss.audioguide.fragments;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
@@ -18,6 +20,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.view.LayoutInflater;
@@ -30,8 +33,10 @@ import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 
+import org.fruct.oss.audioguide.CategoriesDialog;
 import org.fruct.oss.audioguide.MultiPanel;
 import org.fruct.oss.audioguide.R;
+import org.fruct.oss.audioguide.adapters.CategoryAdapter;
 import org.fruct.oss.audioguide.fragments.edit.EditPointDialog;
 import org.fruct.oss.audioguide.gets.Category;
 import org.fruct.oss.audioguide.overlays.EditOverlay;
@@ -99,6 +104,7 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 	public void onCreate(Bundle savedInstanceState) {
 		log.trace("MapFragment onCreate");
 
+		// TODO: remove debug code
 		for (Category cat : TrackManager.getInstance().getCategories()) {
 			log.debug("CATEGORY {} {}", cat.getId(), cat.getName());
 		}
@@ -146,6 +152,9 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 			EditPointDialog dialog = EditPointDialog.newInstance(null);
 			dialog.setListener(editDialogListener);
 			dialog.show(getFragmentManager(), "edit-track-dialog");
+		} else {
+			CategoriesDialog dialog = CategoriesDialog.newInstance();
+			dialog.show(getFragmentManager(), "categories-dialog");
 		}
 	}
 
