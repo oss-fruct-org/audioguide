@@ -14,19 +14,47 @@ import org.fruct.oss.audioguide.util.Utils;
 import java.util.List;
 
 public class CategoriesDialog extends DialogFragment
-		implements DialogInterface.OnClickListener, CategoryAdapter.Listener, DialogInterface.OnMultiChoiceClickListener {
+		implements DialogInterface.OnClickListener, DialogInterface.OnMultiChoiceClickListener {
+	public static interface Listener {
+		void categorySelected(Category category);
+	}
+
 	private TrackManager trackManager;
 	private String[] labels;
 	private boolean[] checked;
 	private List<Category> categories;
+	private boolean isSingle;
+	private Listener listener;
 
 	public static CategoriesDialog newInstance() {
-		return new CategoriesDialog();
+		Bundle args = new Bundle();
+		args.putBoolean("isSingle", false);
+
+		CategoriesDialog dialog = new CategoriesDialog();
+		dialog.setArguments(args);
+		return dialog;
+	}
+
+	public static CategoriesDialog newChoiceInstance() {
+		Bundle args = new Bundle();
+		args.putBoolean("isSingle", true);
+
+		CategoriesDialog dialog = new CategoriesDialog();
+		dialog.setArguments(args);
+		return dialog;
+	}
+
+	public void setListener(Listener listener) {
+		this.listener = listener;
 	}
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+
+		if (getArguments() != null) {
+			isSingle = getArguments().getBoolean("isSingle");
+		}
 
 		trackManager = TrackManager.getInstance();
 		categories = trackManager.getCategories();
@@ -41,24 +69,25 @@ public class CategoriesDialog extends DialogFragment
 		}
 	}
 
-
 	@Override
 	public AlertDialog onCreateDialog(Bundle savedInstanceState) {
 		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 
-		builder.setMultiChoiceItems(labels, checked, this);
-		builder.setPositiveButton(android.R.string.ok, this);
+		if (!isSingle) {
+			builder.setPositiveButton(android.R.string.ok, this);
+			builder.setMultiChoiceItems(labels, checked, this);
+		} else {
+			builder.setItems(labels, this);
+		}
 
 		return builder.create();
 	}
 
 	@Override
 	public void onClick(DialogInterface dialogInterface, int button) {
-
-	}
-
-	@Override
-	public void categoryChecked(Category category, boolean isActive) {
+		if (isSingle && listener != null) {
+			listener.categorySelected(categories.get(button));
+		}
 	}
 
 	@Override

@@ -3,28 +3,32 @@ package org.fruct.oss.audioguide.fragments.edit;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
+import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import org.fruct.oss.audioguide.CategoriesDialog;
 import org.fruct.oss.audioguide.FileChooserActivity;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.fragments.FileManagerFragment;
 import org.fruct.oss.audioguide.fragments.UploadFragment;
+import org.fruct.oss.audioguide.gets.Category;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.util.AUtils;
 import org.fruct.oss.audioguide.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class EditPointDialog extends DialogFragment implements DialogInterface.OnClickListener {
+public class EditPointDialog extends DialogFragment implements DialogInterface.OnClickListener, CategoriesDialog.Listener {
 	private final static Logger log = LoggerFactory.getLogger(EditPointDialog.class);
 
 	private static final int REQUEST_CODE_IMAGE = 1;
@@ -43,12 +47,16 @@ public class EditPointDialog extends DialogFragment implements DialogInterface.O
 	private EditText editName;
 	private EditText editDescription;
 	private EditText editUrl;
+	private Category selectedCategory;
 
 	private TextView imageFileLabel;
 	private Button imageFileButton;
 
 	private TextView audioFileLabel;
 	private Button audioFileButton;
+
+	private TextView categoryLabel;
+	private Button categoryButton;
 
 	public EditPointDialog() {
 	}
@@ -88,7 +96,9 @@ public class EditPointDialog extends DialogFragment implements DialogInterface.O
 
 	@Override
 	public Dialog onCreateDialog(Bundle savedInstanceState) {
-		LayoutInflater inflater = getActivity().getLayoutInflater();
+		ContextThemeWrapper context = new ContextThemeWrapper(getActivity(), AUtils.getDialogTheme());
+		LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+
 		View view = inflater.inflate(R.layout.dialog_add_point, null);
 		assert view != null;
 
@@ -100,11 +110,14 @@ public class EditPointDialog extends DialogFragment implements DialogInterface.O
 
 		audioFileLabel = (TextView) view.findViewById(R.id.audio_file_title);
 		audioFileButton = (Button) view.findViewById(R.id.audio_file_button);
-		//editUrl = (EditText) view.findViewById(R.id.edit_url);
+
+		categoryLabel = (TextView) view.findViewById(R.id.category_title);
+		categoryButton = (Button) view.findViewById(R.id.category_button);
 
 		if (point != null) {
 			if (!Utils.isNullOrEmpty(point.getName())) editName.setText(point.getName());
-			if (!Utils.isNullOrEmpty(point.getDescription())) editDescription.setText(point.getDescription());
+			if (!Utils.isNullOrEmpty(point.getDescription()))
+				editDescription.setText(point.getDescription());
 			//if (!Utils.isNullOrEmpty(point.point())) editUrl.setText(point.getUrl());
 		}
 
@@ -118,6 +131,15 @@ public class EditPointDialog extends DialogFragment implements DialogInterface.O
 			@Override
 			public void onClick(View view) {
 				showFileChooserDialog("audio/*", REQUEST_CODE_AUDIO);
+			}
+		});
+
+		categoryButton.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				CategoriesDialog categoriesDialog = CategoriesDialog.newChoiceInstance();
+				categoriesDialog.setListener(EditPointDialog.this);
+				categoriesDialog.show(getFragmentManager(), "categories-dialog");
 			}
 		});
 
@@ -180,6 +202,12 @@ public class EditPointDialog extends DialogFragment implements DialogInterface.O
 
 			audioFileLabel.setText(title);
 		}
+	}
+
+	@Override
+	public void categorySelected(Category category) {
+		categoryLabel.setText(category.getDescription());
+		selectedCategory = category;
 	}
 
 	public void setListener(Listener listener) {

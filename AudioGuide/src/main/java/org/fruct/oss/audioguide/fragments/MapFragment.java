@@ -148,14 +148,11 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 	}
 
 	private void startAddingPoint() {
-		if (editTrack != null) {
+		//if (editTrack != null) {
 			EditPointDialog dialog = EditPointDialog.newInstance(null);
 			dialog.setListener(editDialogListener);
 			dialog.show(getFragmentManager(), "edit-track-dialog");
-		} else {
-			CategoriesDialog dialog = CategoriesDialog.newInstance();
-			dialog.show(getFragmentManager(), "categories-dialog");
-		}
+		//}
 	}
 
 	private void mockLocation() {
