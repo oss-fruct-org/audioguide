@@ -38,7 +38,6 @@ public class TrackDetailFragment extends Fragment {
 	 * @param track Track to show.
 	 * @return A new instance of fragment TrackDetailFragment.
 	 */
-	// TODO: Rename and change types and number of parameters
 	public static TrackDetailFragment newInstance(Track track) {
 		TrackDetailFragment fragment = new TrackDetailFragment();
 		Bundle args = new Bundle();

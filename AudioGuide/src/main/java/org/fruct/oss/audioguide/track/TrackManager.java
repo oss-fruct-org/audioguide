@@ -65,6 +65,9 @@ public class TrackManager {
 	private FilterModel<Track> activeTracksModel;
 	private FilterModel<Track> localTracksModel;
 
+
+	private BaseModel<Point> freePointsModel;
+
 	// All known tracks from local and remote storage
 	private final Map<String, Track> allTracks = new HashMap<String, Track>();
 	private final Map<Track, BaseModel<Point>> pointModels = new HashMap<Track, BaseModel<Point>>();
@@ -152,7 +155,7 @@ public class TrackManager {
 	public void setCategoryState(Category category, boolean isActive) {
 		DatabaseStorage storage = (DatabaseStorage) localStorage;
 		category.setActive(isActive);
-		storage.setCategoryState(category, isActive);
+		storage.setCategoryState(category);
 	}
 
 	private void loadCachedCategories() {
@@ -238,14 +241,23 @@ public class TrackManager {
 	}
 
 	public Model<Point> getPointsModel(Track track) {
-		BaseModel<Point> model = pointModels.get(track);
-		if (model == null) {
-			model = new BaseModel<Point>();
-			model.setData(getPoints(track));
-			pointModels.put(track, model);
-		}
+		if (track == null) {
+			if (freePointsModel == null) {
+				freePointsModel = new BaseModel<Point>();
+				freePointsModel.setData(getPoints(null));
+			}
 
-		return model;
+			return freePointsModel;
+		} else {
+			BaseModel<Point> model = pointModels.get(track);
+			if (model == null) {
+				model = new BaseModel<Point>();
+				model.setData(getPoints(track));
+				pointModels.put(track, model);
+			}
+
+			return model;
+		}
 	}
 
 	public Track getEditingTrack() {
@@ -277,7 +289,7 @@ public class TrackManager {
 		}
 	}
 
-	public List<Point> getPoints(Track track) {
+	private List<Point> getPoints(Track track) {
 		return new ArrayList<Point>(localStorage.getPoints(track));
 	}
 
@@ -410,7 +422,7 @@ public class TrackManager {
 		for (Listener listener : listeners)
 			listener.pointsUpdated(track);
 
-		BaseModel<Point> pointModel = pointModels.get(track);
+		BaseModel<Point> pointModel = track == null ? freePointsModel : pointModels.get(track);
 
 		if (pointModel != null) {
 			pointModel.setData(localStorage.getPoints(track));

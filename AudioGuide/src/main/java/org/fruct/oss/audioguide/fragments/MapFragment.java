@@ -338,14 +338,13 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 		for (EditOverlay trackOverlay : trackOverlays) {
 			mapView.getOverlays().remove(trackOverlay);
 		}
+
 		trackOverlays.clear();
 		editOverlay = null;
 		editTrack = null;
 
 		Track globalEditTrack = trackManager.getEditingTrack();
 		for (Track track : trackManager.getActiveTracks()) {
-
-
 			EditOverlay trackOverlay = new EditOverlay(getActivity(),
 					trackManager.getPointsModel(track),
 					0);
@@ -365,6 +364,16 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 
 			mapView.getOverlays().add(trackOverlay);
 		}
+
+		// Free points
+		EditOverlay freePointsOverlay = new EditOverlay(getActivity(),
+				trackManager.getPointsModel(null),
+				2);
+
+		freePointsOverlay.setListener(trackOverlayListener);
+		freePointsOverlay.setMarkerIndex(2);
+		trackOverlays.add(freePointsOverlay);
+		mapView.getOverlays().add(freePointsOverlay);
 
 		mapView.invalidate();
 	}

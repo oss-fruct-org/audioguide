@@ -40,7 +40,9 @@ public class EditOverlay extends Overlay implements Closeable, ModelListener {
 	}
 
 	private final static Logger log = LoggerFactory.getLogger(EditOverlay.class);
-	private final static int[] markers = {R.drawable.marker_1, R.drawable.marker_2};
+	private final static int[] markers = {R.drawable.marker_1,
+			R.drawable.marker_2,
+			R.drawable.marker_3};
 
 	private List<EditOverlayItem> items = new ArrayList<EditOverlayItem>();
 	private int itemSize;

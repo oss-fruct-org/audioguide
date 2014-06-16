@@ -1,31 +1,26 @@
 package org.fruct.oss.audioguide.track;
 
-import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Handler;
 import android.os.Message;
-import android.preference.PreferenceManager;
 
 import org.fruct.oss.audioguide.BuildConfig;
 import org.fruct.oss.audioguide.gets.Category;
-import org.fruct.oss.audioguide.util.AUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 public class DatabaseStorage implements ILocalStorage {
 	private final static Logger log = LoggerFactory.getLogger(DatabaseStorage.class);
 
 	public static final String DB_NAME = "tracksdb";
-	public static final int DB_VERSION = 66671; // published 11
+	public static final int DB_VERSION = 66672; // published 11
 	public static final String CREATE_TRACKS_SQL = "CREATE TABLE tracks " +
 			"(id INTEGER PRIMARY KEY AUTOINCREMENT," +
 			"name TEXT," +
@@ -221,22 +216,29 @@ public class DatabaseStorage implements ILocalStorage {
 	public List<Point> getPoints(Track track) {
 		ArrayList<Point> points = new ArrayList<Point>();
 
-		if (!track.isLocal())
+		if (track != null && !track.isLocal())
 			throw new IllegalArgumentException("Non local track");
 
-		Cursor cursor = db.query("points", SELECT_POINT_COLUMNS, "trackId=?",
-				new String[] {String.valueOf(track.getLocalId())}, null, null, null);
+		String whereString;
+		String[] whereArgs;
+		if (track != null) {
+			whereString = "trackId=?";
+			whereArgs = new String[]{ String.valueOf(track.getLocalId()) };
+		} else {
+			whereString = "trackId IS NULL";
+			whereArgs = null;
+		}
 
-		if (!cursor.moveToFirst())
-			return points;
+		Cursor cursor = db.query("points", SELECT_POINT_COLUMNS, whereString,
+				whereArgs, null, null, null);
 
-		do {
+		while (cursor.moveToNext()) {
 			Point point = new Point(cursor.getString(1), cursor.getString(2),
 					cursor.getString(5), cursor.getString(7),
 					cursor.getInt(3), cursor.getInt(4));
 			point.setCategoryId(cursor.isNull(8) ? -1 : cursor.getLong(8));
 			points.add(point);
-		} while (cursor.moveToNext());
+		}
 
 		cursor.close();
 
@@ -293,7 +295,7 @@ public class DatabaseStorage implements ILocalStorage {
 		}
 	}
 
-	public void setCategoryState(Category category, boolean isActive) {
+	public void setCategoryState(Category category) {
 		ContentValues cv = new ContentValues(1);
 		cv.put("state", category.isActive() ? 1 : 0);
 
