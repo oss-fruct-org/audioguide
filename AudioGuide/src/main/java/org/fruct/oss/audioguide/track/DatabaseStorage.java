@@ -11,6 +11,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceManager;
 
+import org.fruct.oss.audioguide.BuildConfig;
 import org.fruct.oss.audioguide.gets.Category;
 import org.fruct.oss.audioguide.util.AUtils;
 import org.slf4j.Logger;
@@ -24,7 +25,7 @@ public class DatabaseStorage implements ILocalStorage {
 	private final static Logger log = LoggerFactory.getLogger(DatabaseStorage.class);
 
 	public static final String DB_NAME = "tracksdb";
-	public static final int DB_VERSION = 66669; // published 11
+	public static final int DB_VERSION = 66671; // published 11
 	public static final String CREATE_TRACKS_SQL = "CREATE TABLE tracks " +
 			"(id INTEGER PRIMARY KEY AUTOINCREMENT," +
 			"name TEXT," +
@@ -136,7 +137,9 @@ public class DatabaseStorage implements ILocalStorage {
 		cv.put("photoUrl", point.getPhotoUrl());
 		if (track != null)
 			cv.put("trackId", track.getLocalId());
-		cv.put("categoryId", point.getCategoryId());
+
+		if (point.getCategoryId() != -1)
+			cv.put("categoryId", point.getCategoryId());
 
 		db.insert("points", null, cv);
 	}
@@ -315,6 +318,28 @@ public class DatabaseStorage implements ILocalStorage {
 
 			if (!db.isReadOnly())
 				db.execSQL("PRAGMA foreign_keys=ON;");
+
+			if (BuildConfig.DEBUG) {
+				StringBuilder str = new StringBuilder();
+				dumpDatabase(db, str, "tracks");
+				dumpDatabase(db, str, "points");
+				dumpDatabase(db, str, "categories");
+				log.debug("Database dump:\n{}", str.toString());
+			}
+		}
+
+		private void dumpDatabase(SQLiteDatabase db, StringBuilder str, String database) {
+			// Dump tracks
+			Cursor cTracks = db.query(database, null, null, null, null, null, null, null);
+			while (cTracks.moveToNext()) {
+				for (int i = 0; i < cTracks.getColumnCount(); i++) {
+					str.append(cTracks.getString(i));
+					str.append('\t');
+				}
+				str.append('\n');
+			}
+			str.append('\n');
+
 		}
 
 		@Override

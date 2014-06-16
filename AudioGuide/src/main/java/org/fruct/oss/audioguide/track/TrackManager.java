@@ -457,6 +457,7 @@ public class TrackManager {
 					}
 				}
 			});
+
 			try {
 				lock.wait(5000);
 			} catch (InterruptedException e) {
