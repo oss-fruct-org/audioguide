@@ -62,7 +62,6 @@ public class DatabaseStorage implements ILocalStorage {
 			"id", "name", "description", "url", "state"
 	};
 
-
 	private final Context context;
 
 	private TrackDatabaseHelper helper;

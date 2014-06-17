@@ -49,6 +49,16 @@ public class Point implements Parcelable {
 	public Point() {
 	}
 
+	public Point(Point point) {
+		name = point.name;
+		description = point.description;
+		latE6 = point.latE6;
+		lonE6 = point.lonE6;
+		audioUrl = point.audioUrl;
+		photoUrl = point.photoUrl;
+		categoryId = point.categoryId;
+	}
+
 	public Point(String name, String description, String audioUrl, String photoUrl, int latE6, int lonE6) {
 		this.name = name;
 		this.description = description;

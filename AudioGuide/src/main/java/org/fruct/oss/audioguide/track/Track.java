@@ -21,6 +21,17 @@ public class Track implements Parcelable, Comparable<Track> {
 		this("", "", "");
 	}
 
+	public Track(Track track) {
+		name = track.name;
+		description = track.description;
+		hname = track.hname;
+		url = track.url;
+		isLocal = track.isLocal;
+		isActive = track.isActive;
+		isPrivate = track.isPrivate;
+		localId = track.localId;
+	}
+
 	public Track(String name, String description, String url) {
 		this.name = name;
 		this.description = description;

@@ -20,6 +20,9 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.security.MessageDigest;
@@ -385,6 +388,17 @@ public class Utils {
 		}
 
 		return Math.abs(l);
+	}
+
+	public static <T> T createThrowerImplementation(Class<? extends T> iface) {
+		Object obj = Proxy.newProxyInstance(iface.getClassLoader(), new Class<?>[] { iface }, new InvocationHandler() {
+			@Override
+			public Object invoke(Object o, Method method, Object[] objects) throws Throwable {
+				throw new UnsupportedOperationException("Method \"" + method.getName() + "\" not implemented yet");
+			}
+		});
+
+		return iface.cast(obj);
 	}
 
 	public static int color(int r, int g, int b) {
