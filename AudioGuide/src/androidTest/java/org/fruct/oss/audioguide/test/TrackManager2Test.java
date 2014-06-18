@@ -2,6 +2,7 @@ package org.fruct.oss.audioguide.test;
 
 import android.content.Context;
 import android.test.AndroidTestCase;
+import android.test.RenamingDelegatingContext;
 
 import org.fruct.oss.audioguide.models.Model;
 import org.fruct.oss.audioguide.track.Point;
@@ -21,17 +22,21 @@ public class TrackManager2Test extends AndroidTestCase {
 	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
+		RenamingDelegatingContext context = new RenamingDelegatingContext(getContext(), "test_context");
+		context.deleteDatabase("tracksdb2");
+		this.context = context;
 	}
 
 	private void createSimpleTrackManager() {
-		trackManager = new DefaultTrackManager(null);
+		trackManager = new DefaultTrackManager(context, null, null);
 	}
 
 	private void createTrackManagerWithBackend(StorageBackend backend) {
-		trackManager = new DefaultTrackManager(createTestBackend());
+		TestStorageBackend s = createTestBackend();
+		trackManager = new DefaultTrackManager(context, s, s);
 	}
 
-	private StorageBackend createTestBackend() {
+	private TestStorageBackend createTestBackend() {
 		TestStorageBackend backend = new TestStorageBackend();
 
 		Track track = new Track("AAA", "BBB", "CCC");

@@ -404,4 +404,13 @@ public class Utils {
 	public static int color(int r, int g, int b) {
 		return (r << 16) + (g << 8) + b;
 	}
+
+	public static String[] toArray(Object... objects) {
+		String[] arr = new String[objects.length];
+		int c = 0;
+		for (Object obj : objects) {
+			arr[c++] = obj.toString();
+		}
+		return arr;
+	}
 }
