@@ -58,11 +58,6 @@ public class TrackModelAdapter extends BaseAdapter implements ModelListener, Clo
 			public boolean check(Track track) {
 				return trackFilter.check(track);
 			}
-
-			@Override
-			public void dataSetChanged() {
-				super.dataSetChanged();
-			}
 		};
 
 		stackTraceException = new RuntimeException();

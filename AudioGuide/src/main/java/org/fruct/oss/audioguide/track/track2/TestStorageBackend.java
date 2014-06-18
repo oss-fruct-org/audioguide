@@ -14,7 +14,7 @@ import java.util.Map;
  * Test storage backend that stores all data in memory and interprets latitude and longitude as metric units
  */
 public class TestStorageBackend implements StorageBackend, CategoriesBackend {
-	public HashMap<Track, List<Point>> storage;
+	public HashMap<Track, List<Point>> storage = new HashMap<Track, List<Point>>();
 
 	@Override
 	public void updateTrack(Track track, List<Point> points) {

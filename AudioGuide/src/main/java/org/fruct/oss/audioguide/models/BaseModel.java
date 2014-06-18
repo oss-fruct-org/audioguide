@@ -73,5 +73,4 @@ public class BaseModel<T> implements Model<T> {
 			}
 		};
 	}
-
 }

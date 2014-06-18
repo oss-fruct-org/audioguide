@@ -39,6 +39,7 @@ public abstract class FilterModel<T> extends BaseModel<T> implements ModelListen
 		super.finalize();
 
 		if (!isClosed) {
+			close();
 			log.warn("FilterModel haven't closed correctly!");
 		}
 	}

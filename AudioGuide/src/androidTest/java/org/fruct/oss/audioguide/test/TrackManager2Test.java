@@ -1,10 +1,16 @@
 package org.fruct.oss.audioguide.test;
 
 import android.content.Context;
+import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.Looper;
 import android.test.AndroidTestCase;
+import android.test.InstrumentationTestCase;
 import android.test.RenamingDelegatingContext;
 
 import org.fruct.oss.audioguide.models.Model;
+import org.fruct.oss.audioguide.models.ModelListener;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.Track;
 import org.fruct.oss.audioguide.track.track2.DefaultTrackManager;
@@ -14,17 +20,25 @@ import org.fruct.oss.audioguide.track.track2.TrackManager;
 import org.fruct.oss.audioguide.util.Utils;
 
 import java.util.ArrayList;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
-public class TrackManager2Test extends AndroidTestCase {
+public class TrackManager2Test extends InstrumentationTestCase {
 	private Context context;
 	private TrackManager trackManager;
+
 
 	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
-		RenamingDelegatingContext context = new RenamingDelegatingContext(getContext(), "test_context");
+		RenamingDelegatingContext context = new RenamingDelegatingContext(getInstrumentation().getTargetContext(), "test_context");
 		context.deleteDatabase("tracksdb2");
 		this.context = context;
+	}
+
+	@Override
+	protected void tearDown() throws Exception {
+		super.tearDown();
 	}
 
 	private void createSimpleTrackManager() {
@@ -106,16 +120,47 @@ public class TrackManager2Test extends AndroidTestCase {
 		assertTrue(pointModel.getItem(0).equals(pointModel2.getItem(0)));
 	}
 
-	public void testRemoteLoading() throws Exception {
+	public void testRemoteLoading() throws Throwable {
 		createTrackManagerWithBackend(createTestBackend());
 
-		Model<Track> remoteTrack = trackManager.getRemoteTracksModel();
+		final Model<Track> remoteTrack = trackManager.getRemoteTracksModel();
 		Model<Point> remotePoint = trackManager.getRemotePointsModel();
 
-		trackManager.requestTracksInRadius(7);
-		assertEquals(1, remoteTrack.getCount());
+		final CountDownLatch latch = new CountDownLatch(1);
+		final CountDownLatch latch2 = new CountDownLatch(2);
+		final CountDownLatch latch3 = new CountDownLatch(3);
 
-		trackManager.requestPointsInTrack(remoteTrack.getItem(0));
+		final ModelListener listener = new ModelListener() {
+			@Override
+			public void dataSetChanged() {
+				latch.countDown();
+				latch2.countDown();
+				latch3.countDown();
+			}
+		};
+
+		remoteTrack.addListener(listener);
+		remotePoint.addListener(listener);
+
+		runTestOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				trackManager.requestTracksInRadius(7f);
+			}
+		});
+
+		assertTrue(latch.await(1000, TimeUnit.MILLISECONDS));
+
+		runTestOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				trackManager.requestPointsInRadius(7f);
+			}
+		});
+
+		assertTrue(latch2.await(1000, TimeUnit.MILLISECONDS));
+
+		assertEquals(1, remoteTrack.getCount());
 		assertEquals(3, remotePoint.getCount());
 
 		assertEquals("AAA",  remoteTrack.getItem(0).getName());
@@ -123,5 +168,42 @@ public class TrackManager2Test extends AndroidTestCase {
 		assertEquals("MMM1",  remotePoint.getItem(0).getName());
 		assertEquals("MMM3",  remotePoint.getItem(1).getName());
 		assertEquals("MMM4",  remotePoint.getItem(2).getName());
+
+		runTestOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				trackManager.requestPointsInTrack(remoteTrack.getItem(0));
+			}
+		});
+
+		assertTrue(latch3.await(1000, TimeUnit.MILLISECONDS));
+		assertEquals(4, remotePoint.getCount());
+	}
+
+	public void testAsync() throws Throwable {
+		final CountDownLatch latch = new CountDownLatch(1);
+
+		final AsyncTask<Void, Void, String> at = new AsyncTask<Void, Void, String>() {
+			@Override
+			protected String doInBackground(Void... voids) {
+				return "123";
+			}
+
+			@Override
+			protected void onPostExecute(String aVoid) {
+				super.onPostExecute(aVoid);
+				latch.countDown();
+			}
+		};
+
+		runTestOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				at.execute();
+			}
+		});
+
+		assertTrue(latch.await(1000, TimeUnit.MILLISECONDS));
+		assertEquals("123", at.get());
 	}
 }

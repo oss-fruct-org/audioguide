@@ -10,13 +10,19 @@ import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.Track;
 import org.fruct.oss.audioguide.util.Utils;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Database {
 	private boolean isClosed;
 
 	private final SQLiteDatabase db;
 	private final Helper helper;
 
-	public static final String[] SEARCH_POINT_COLUMNS = { "name", "description", "lat", "long" };
+	public static final String[] SELECT_POINTS_COLUMNS = { "name", "description", "lat", "lon", "audioUrl", "photoUrl" };
+	public static final String[] SELECT_TRACKS_COLUMNS = { "name", "description", "url", "hname", "active" };
+
+	public static final String[] SEARCH_POINT_COLUMNS = { "name", "description", "lat", "lon" };
 	public static final String[] ID_COLUMNS = {"id"};
 
 	public Database(Context context) {
@@ -74,6 +80,42 @@ public class Database {
 		db.execSQL("INSERT INTO tp VALUES (?, ?, (SELECT (IFNULL (MAX(idx), 0) + 1) FROM tp));", Utils.toArray(trackId, pointId));
 	}
 
+	public List<Track> loadTracks() {
+		List<Track> tracks = new ArrayList<Track>();
+
+		Cursor cursor = db.query("track", SELECT_TRACKS_COLUMNS, null, null, null, null, null);
+
+		while (cursor.moveToNext()) {
+			Track track = new Track(cursor.getString(0), cursor.getString(1), cursor.getString(2));
+			tracks.add(track);
+		}
+
+		cursor.close();
+
+		return tracks;
+	}
+
+	public List<Point> loadPoints(Track track) {
+		List<Point> points = new ArrayList<Point>();
+
+		Cursor cursor = db.rawQuery("SELECT point.name, point.description, point.audioUrl, point.photoUrl, point.lat, point.lon " +
+				"FROM point INNER JOIN tp " +
+				"ON tp.pointId=point.id " +
+				"WHERE tp.trackId IN (SELECT track.id FROM track WHERE track.name=?) " +
+				"ORDER BY tp.idx;", Utils.toArray(track.getName()));
+
+
+		while (cursor.moveToNext()) {
+			Point point = new Point(cursor.getString(0), cursor.getString(1), cursor.getString(2),
+					cursor.getString(3), cursor.getInt(4), cursor.getInt(5));
+			points.add(point);
+		}
+
+		cursor.close();
+
+		return points;
+	}
+
 	private long findPointId(Point point) {
 		Cursor cursor = db.query("point", ID_COLUMNS, "name=? and description=? and lat=? and lon=?",
 				Utils.toArray(point.getName(), point.getDescription(), point.getLatE6(), point.getLonE6()), null, null, null);
@@ -122,10 +164,8 @@ public class Database {
 				"lon INTEGER," +
 				"audioUrl TEXT," +
 				"photoUrl TEXT," +
-				"trackId INTEGER," +
 				"categoryId INTEGER," +
 
-				"FOREIGN KEY(trackId) REFERENCES track(id)," +
 				"FOREIGN KEY(categoryId) REFERENCES category(id));";
 
 		public static final String CREATE_TRACK_POINTS_SQL = "CREATE TABLE tp " +
