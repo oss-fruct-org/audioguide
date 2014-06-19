@@ -356,14 +356,14 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 		}
 
 		// Free points
-		EditOverlay freePointsOverlay = new EditOverlay(getActivity(),
+		/*EditOverlay freePointsOverlay = new EditOverlay(getActivity(),
 				trackManager.getTrackPointsModel(null),
-				2);
+				2);*/
 
-		freePointsOverlay.setListener(trackOverlayListener);
+		/*freePointsOverlay.setListener(trackOverlayListener);
 		freePointsOverlay.setMarkerIndex(2);
 		trackOverlays.add(freePointsOverlay);
-		mapView.getOverlays().add(freePointsOverlay);
+		mapView.getOverlays().add(freePointsOverlay);*/
 
 		mapView.invalidate();
 	}

@@ -167,7 +167,7 @@ public class Database {
 
 	private static class Helper extends SQLiteOpenHelper {
 		public static final String DB_NAME = "tracksdb2";
-		public static final int DB_VERSION = 4; // published None
+		public static final int DB_VERSION = 2; // published None
 
 		public static final String CREATE_TRACKS_SQL = "CREATE TABLE track " +
 				"(id INTEGER PRIMARY KEY AUTOINCREMENT," +

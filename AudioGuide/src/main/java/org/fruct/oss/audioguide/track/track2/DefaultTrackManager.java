@@ -35,7 +35,6 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 
 	private boolean cacheDirty = true;
 
-
 	public DefaultTrackManager(Context context, StorageBackend backend, CategoriesBackend catBackend) {
 		this.categoriesBackend = catBackend;
 		this.backend = backend;
@@ -56,14 +55,12 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	@Override
 	public void insertTrack(Track track) {
 		cacheDirty = true;
-
 		database.insertTrack(track);
 	}
 
 	@Override
 	public void insertToTrack(Track track, Point point) {
 		cacheDirty = true;
-
 		database.insertToTrack(track, point);
 	}
 
@@ -213,6 +210,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 
 		cacheDirty = false;
 		localTrackModel.setData(database.loadTracks());
+		refreshTracksModel();
 	}
 
 	private static TrackManager instance;
@@ -228,18 +226,14 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	private static TestStorageBackend createTestBackend() {
 		TestStorageBackend backend = new TestStorageBackend();
 
-		final Point p1, p2, p3, p4;
-		p1 = new Point("MMM1", "NNN1", "", 0f, 0f);
-		p2 = new Point("MMM2", "NNN2", "", 10f, 10f);
-		p3 = new Point("MMM3", "NNN3", "", -5f, -1f);
-		p4 = new Point("MMM4", "NNN4", "", 0f, 1f);
-
 		Track track = new Track("AAA", "BBB", "CCC");
 		ArrayList<Point> points = new ArrayList<Point>() {{
-			add(p1);
-			add(p2);
-			add(p3);
-			add(p4);
+			add(new Point("MMM1", "NNN1", "", 0f, 0f));
+			add(new Point("MMM2", "NNN2", "", 10f, 10f));
+			add(new Point("MMM3", "NNN3", "", -5f, -1f));
+			add(new Point("MMM4", "NNN4", "", 0f, 1f));
+			add(new Point("PTZ", "Petrozavodsk", "", 61.783f, 34.35f));
+
 		}};
 
 		Track category = new Track("ca_other", "Other", "CCC");
