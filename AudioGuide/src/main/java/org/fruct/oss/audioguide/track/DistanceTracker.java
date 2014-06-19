@@ -32,7 +32,7 @@ public class DistanceTracker implements LocationReceiver.Listener, ModelListener
 		this.trackManager = trackManager;
 		this.locationReceiver = locationReceiver;
 
-		activeTrackModel = trackManager.getTracksModel();
+		activeTrackModel = trackManager.getLocalTracksModel();
 	}
 
 	@Override

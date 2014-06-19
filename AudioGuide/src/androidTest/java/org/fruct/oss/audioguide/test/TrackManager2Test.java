@@ -64,7 +64,7 @@ public class TrackManager2Test extends InstrumentationTestCase {
 	public void testEmpty() throws Exception {
 		createSimpleTrackManager();
 
-		assertTrue(trackManager.getTracksModel().getCount() == 0);
+		assertTrue(trackManager.getLocalTracksModel().getCount() == 0);
 	}
 
 	public void testStorePoint() throws Exception {
@@ -77,7 +77,7 @@ public class TrackManager2Test extends InstrumentationTestCase {
 		trackManager.insertTrack(track);
 		trackManager.insertToTrack(track, point);
 
-		Model<Track> trackModel = trackManager.getTracksModel();
+		Model<Track> trackModel = trackManager.getLocalTracksModel();
 		Model<Point> pointModel = trackManager.getTrackPointsModel(track);
 
 		assertEquals(1, trackModel.getCount());

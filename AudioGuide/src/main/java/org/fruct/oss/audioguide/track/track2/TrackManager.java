@@ -26,6 +26,8 @@ public interface TrackManager {
 	// Accessors
 	Model<Track> getTracksModel();
 
+	Model<Track> getLocalTracksModel();
+
 	Model<Track> getRemoteTracksModel();
 
 	Model<Point> getRemotePointsModel();

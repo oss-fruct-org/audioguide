@@ -88,6 +88,7 @@ public class Database {
 
 		while (cursor.moveToNext()) {
 			Track track = new Track(cursor.getString(0), cursor.getString(1), cursor.getString(2));
+			track.setLocal(true);
 			tracks.add(track);
 		}
 
@@ -151,7 +152,7 @@ public class Database {
 	}
 
 	private long findTrackId(Track track) {
-		Cursor cursor = db.query("point", ID_COLUMNS, "name=?",	Utils.toArray(track.getName()), null, null, null);
+		Cursor cursor = db.query("track", ID_COLUMNS, "name=?",	Utils.toArray(track.getName()), null, null, null);
 
 		try {
 			if (!cursor.moveToFirst())
@@ -166,11 +167,11 @@ public class Database {
 
 	private static class Helper extends SQLiteOpenHelper {
 		public static final String DB_NAME = "tracksdb2";
-		public static final int DB_VERSION = 1; // published None
+		public static final int DB_VERSION = 4; // published None
 
 		public static final String CREATE_TRACKS_SQL = "CREATE TABLE track " +
 				"(id INTEGER PRIMARY KEY AUTOINCREMENT," +
-				"name TEXT," +
+				"name TEXT UNIQUE," +
 				"description TEXT," +
 				"hname TEXT," +
 				"url TEXT," +
@@ -223,7 +224,13 @@ public class Database {
 
 		@Override
 		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-
+			if (oldVersion != newVersion) {
+				db.execSQL("drop table category");
+				db.execSQL("drop table track");
+				db.execSQL("drop table tp");
+				db.execSQL("drop table point");
+				onCreate(db);
+			}
 		}
 	}
 }

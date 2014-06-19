@@ -46,6 +46,17 @@ public class BaseModel<T> implements Model<T> {
 		});
 	}
 
+	public void insertElement(T t) {
+		list.add(t);
+
+		handler.post(new Runnable() {
+			@Override
+			public void run() {
+				notifyDataSetChanged();
+			}
+		});
+	}
+
 	public void notifyDataSetChanged() {
 		for (ModelListener listener : listeners) {
 			listener.dataSetChanged();

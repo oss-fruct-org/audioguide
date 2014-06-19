@@ -15,12 +15,16 @@ import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class DefaultTrackManager implements TrackManager, Closeable {
 	private final StorageBackend backend;
 	private final CategoriesBackend categoriesBackend;
 	private final Database database;
+
+	private final BaseModel<Track> tracksModel = new BaseModel<Track>();
 
 	private final BaseModel<Track> localTrackModel = new BaseModel<Track>();
 
@@ -29,7 +33,8 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 
 	private final HashMap<Track, Reference<Model<Point>>> pointModels = new HashMap<Track, Reference<Model<Point>>>();
 
-	private boolean cacheDirty = false;
+	private boolean cacheDirty = true;
+
 
 	public DefaultTrackManager(Context context, StorageBackend backend, CategoriesBackend catBackend) {
 		this.categoriesBackend = catBackend;
@@ -73,6 +78,9 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 				for (Point point : points) {
 					database.insertToTrack(track, point);
 				}
+				track.setLocal(true);
+				localTrackModel.insertElement(track);
+				refreshTracksModel();
 
 				return points;
 			}
@@ -91,6 +99,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 			@Override
 			protected void onPostExecute(List<Track> tracks) {
 				remoteTrackModel.setData(tracks);
+				refreshTracksModel();
 			}
 		}.execute(radius);
 	}
@@ -130,9 +139,14 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	@Override
 	public Model<Track> getTracksModel() {
 		refreshCache();
-		return localTrackModel;
+		return tracksModel;
 	}
 
+	@Override
+	public Model<Track> getLocalTracksModel() {
+		refreshCache();
+		return localTrackModel;
+	}
 
 	@Override
 	public Model<Track> getRemoteTracksModel() {
@@ -167,10 +181,30 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 		return null;
 	}
 
-
 	@Override
 	public List<Category> getCategories() {
 		return categoriesBackend.loadCategories();
+	}
+
+	private void refreshTracksModel() {
+		Set<String> trackNames = new HashSet<String>();
+		ArrayList<Track> tracks = new ArrayList<Track>();
+
+		for (Track track : localTrackModel) {
+			if (trackNames.contains(track.getName()))
+				continue;
+			tracks.add(track);
+			trackNames.add(track.getName());
+		}
+
+		for (Track track : remoteTrackModel) {
+			if (trackNames.contains(track.getName()))
+				continue;
+			tracks.add(track);
+			trackNames.add(track.getName());
+		}
+
+		tracksModel.setData(tracks);
 	}
 
 	private void refreshCache() {

@@ -9,6 +9,7 @@ import android.widget.BaseAdapter;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.models.FilterModel;
@@ -186,6 +187,7 @@ public class TrackModelAdapter extends BaseAdapter implements ModelListener, Clo
 				throw new UnsupportedOperationException();
 			} else if (holder.localImage == view && !track.isLocal()) {
 				trackManager.storeTrackLocal(holder.track);
+				Toast.makeText(context, "Start track downloading", Toast.LENGTH_LONG).show();
 			}
 		}
 	}

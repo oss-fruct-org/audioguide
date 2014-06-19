@@ -33,7 +33,6 @@ import android.view.animation.AnimationUtils;
 import org.fruct.oss.audioguide.MultiPanel;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.fragments.edit.EditPointDialog;
-import org.fruct.oss.audioguide.gets.Category;
 import org.fruct.oss.audioguide.overlays.EditOverlay;
 import org.fruct.oss.audioguide.overlays.MyPositionOverlay;
 import org.fruct.oss.audioguide.preferences.SettingsActivity;
@@ -335,7 +334,7 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 		editTrack = null;
 
 		//Track globalEditTrack = trackManager.getEditingTrack();
-		for (Track track : trackManager.getTracksModel()) {
+		for (Track track : trackManager.getLocalTracksModel()) {
 			EditOverlay trackOverlay = new EditOverlay(getActivity(),
 					trackManager.getTrackPointsModel(track),
 					0);

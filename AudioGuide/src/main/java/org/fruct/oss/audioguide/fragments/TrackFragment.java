@@ -11,7 +11,6 @@ import android.support.v7.widget.PopupMenu;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.SubMenu;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
@@ -21,7 +20,6 @@ import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.adapters.TrackModelAdapter;
 import org.fruct.oss.audioguide.fragments.edit.EditTrackDialog;
 import org.fruct.oss.audioguide.models.CombineModel;
-import org.fruct.oss.audioguide.track.GetsStorage;
 import org.fruct.oss.audioguide.track.Track;
 import org.fruct.oss.audioguide.track.track2.DefaultTrackManager;
 import org.fruct.oss.audioguide.track.track2.TrackManager;
@@ -67,10 +65,8 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 
 		trackManager = DefaultTrackManager.getInstance();
 
-		CombineModel<Track> allTrackModel = new CombineModel<Track>(trackManager.getTracksModel(), trackManager.getRemoteTracksModel());
-
 		trackAdapter = new TrackModelAdapter(getActivity(), R.layout.list_track_item,
-				allTrackModel);
+				trackManager.getTracksModel());
 		//trackAdapter.addTrackHighlight(trackManager.getEditingTrack(), HIGHLIGHT_COLOR);
 
 		setListAdapter(trackAdapter);
