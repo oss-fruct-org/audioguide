@@ -3,11 +3,9 @@ package org.fruct.oss.audioguide.fragments;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
@@ -20,7 +18,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
-import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.view.LayoutInflater;
@@ -33,10 +30,8 @@ import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 
-import org.fruct.oss.audioguide.CategoriesDialog;
 import org.fruct.oss.audioguide.MultiPanel;
 import org.fruct.oss.audioguide.R;
-import org.fruct.oss.audioguide.adapters.CategoryAdapter;
 import org.fruct.oss.audioguide.fragments.edit.EditPointDialog;
 import org.fruct.oss.audioguide.gets.Category;
 import org.fruct.oss.audioguide.overlays.EditOverlay;
@@ -44,8 +39,9 @@ import org.fruct.oss.audioguide.overlays.MyPositionOverlay;
 import org.fruct.oss.audioguide.preferences.SettingsActivity;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.Track;
-import org.fruct.oss.audioguide.track.TrackManager;
 import org.fruct.oss.audioguide.track.TrackingService;
+import org.fruct.oss.audioguide.track.track2.DefaultTrackManager;
+import org.fruct.oss.audioguide.track.track2.TrackManager;
 import org.fruct.oss.audioguide.util.AUtils;
 import org.osmdroid.api.IGeoPoint;
 import org.osmdroid.util.GeoPoint;
@@ -104,14 +100,9 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 	public void onCreate(Bundle savedInstanceState) {
 		log.trace("MapFragment onCreate");
 
-		// TODO: remove debug code
-		for (Category cat : TrackManager.getInstance().getCategories()) {
-			log.debug("CATEGORY {} {}", cat.getId(), cat.getName());
-		}
-
 		super.onCreate(savedInstanceState);
 
-		trackManager = TrackManager.getInstance();
+		trackManager = DefaultTrackManager.getInstance();
 		setHasOptionsMenu(true);
 
 		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getActivity());
@@ -343,31 +334,31 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 		editOverlay = null;
 		editTrack = null;
 
-		Track globalEditTrack = trackManager.getEditingTrack();
-		for (Track track : trackManager.getActiveTracks()) {
+		//Track globalEditTrack = trackManager.getEditingTrack();
+		for (Track track : trackManager.getTracksModel()) {
 			EditOverlay trackOverlay = new EditOverlay(getActivity(),
-					trackManager.getPointsModel(track),
+					trackManager.getTrackPointsModel(track),
 					0);
 			trackOverlays.add(trackOverlay);
 
-			if (globalEditTrack == track) {
+			/*if (globalEditTrack == track) {
 				// Save track that user edits
 				editOverlay = trackOverlay;
 				editOverlay.setMarkerIndex(1);
 				editTrack = track;
 				trackOverlay.setEditable(true);
 				trackOverlay.setListener(editOverlayListener);
-			} else {
+			} else {*/
 				trackOverlay.setMarkerIndex(0);
 				trackOverlay.setListener(trackOverlayListener);
-			}
+			//}
 
 			mapView.getOverlays().add(trackOverlay);
 		}
 
 		// Free points
 		EditOverlay freePointsOverlay = new EditOverlay(getActivity(),
-				trackManager.getPointsModel(null),
+				trackManager.getTrackPointsModel(null),
 				2);
 
 		freePointsOverlay.setListener(trackOverlayListener);
@@ -461,15 +452,14 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 
 			if (editOverlay != null)
 				editOverlay.addPoint(AUtils.copyGeoPoint(mapCenter), point);
-			
-			trackManager.storePoint(editTrack, point);
-			mapView.invalidate();
+
+			throw new UnsupportedOperationException();
 		}
 
 		@Override
 		public void pointUpdated(Point point) {
 			log.debug("Point updated callback");
-			trackManager.storePoint(editTrack, point);
+			throw new UnsupportedOperationException();
 		}
 	};
 
@@ -509,7 +499,8 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 		@Override
 		public void pointMoved(Point point, IGeoPoint geoPoint) {
 			point.setCoordinates(geoPoint.getLatitudeE6(), geoPoint.getLongitudeE6());
-			trackManager.storePoint(editTrack, point);
+			//trackManager.storePoint(editTrack, point);
+			throw new UnsupportedOperationException();
 		}
 
 		@Override

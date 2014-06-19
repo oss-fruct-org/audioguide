@@ -23,6 +23,8 @@ import org.fruct.oss.audioguide.LocationReceiver;
 import org.fruct.oss.audioguide.MainActivity;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.preferences.SettingsActivity;
+import org.fruct.oss.audioguide.track.track2.DefaultTrackManager;
+import org.fruct.oss.audioguide.track.track2.TrackManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -169,7 +171,7 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 		audioPlayer = new AudioPlayer(this);
 
 		locationReceiver = new LocationReceiver(this);
-		TrackManager trackManager = TrackManager.getInstance();
+		TrackManager trackManager = DefaultTrackManager.getInstance();
 
 		distanceTracker = new DistanceTracker(trackManager, locationReceiver);
 
@@ -380,8 +382,8 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 		intent.putExtra(ARG_LOCATION, location);
 
 		LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
-		TrackManager.getInstance().updateUserLocation(location);
-		TrackManager.getInstance().updateLoadRadius(pref.getInt(SettingsActivity.PREF_LOAD_RADIUS, 1000));
+		//TrackManager2.getInstance().updateUserLocation(location);
+		//TrackManager2.getInstance().updateLoadRadius(pref.getInt(SettingsActivity.PREF_LOAD_RADIUS, 1000));
 	}
 
 	public void sendLastLocation() {
@@ -406,8 +408,7 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 			}
 		} else if (s.equals(SettingsActivity.PREF_LOAD_RADIUS)) {
 			int newRadius = sharedPreferences.getInt(s, 1000);
-			TrackManager.getInstance().updateLoadRadius(pref.getInt(SettingsActivity.PREF_LOAD_RADIUS, 1000));
-
+			//TrackManager2.getInstance().updateLoadRadius(pref.getInt(SettingsActivity.PREF_LOAD_RADIUS, 1000));
 		}
 	}
 

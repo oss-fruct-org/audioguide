@@ -15,12 +15,12 @@ import org.fruct.oss.audioguide.models.FilterModel;
 import org.fruct.oss.audioguide.models.Model;
 import org.fruct.oss.audioguide.models.ModelListener;
 import org.fruct.oss.audioguide.track.Track;
-import org.fruct.oss.audioguide.track.TrackManager;
+import org.fruct.oss.audioguide.track.track2.DefaultTrackManager;
+import org.fruct.oss.audioguide.track.track2.TrackManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -112,6 +112,9 @@ public class TrackModelAdapter extends BaseAdapter implements ModelListener, Clo
 			holder.text1 = (TextView) view.findViewById(android.R.id.text1);
 			holder.text2 = (TextView) view.findViewById(android.R.id.text2);
 
+			holder.publicImage = (ImageButton) view.findViewById(R.id.publicImage);
+			holder.publicImage.setTag(holder);
+
 			holder.localImage = (ImageButton) view.findViewById(R.id.localImage);
 			holder.localImage.setTag(holder);
 
@@ -130,6 +133,7 @@ public class TrackModelAdapter extends BaseAdapter implements ModelListener, Clo
 		holder.text1.setText(track.getHumanReadableName());
 		holder.text2.setText(track.getDescription());
 
+		setupButton(holder.publicImage, !holder.track.isPrivate());
 		setupButton(holder.localImage, holder.track.isLocal());
 		setupButton(holder.activeImage, holder.track.isActive());
 
@@ -170,18 +174,18 @@ public class TrackModelAdapter extends BaseAdapter implements ModelListener, Clo
 
 	@Override
 	public void onClick(View view) {
-		TrackManager trackManager = TrackManager.getInstance();
-
+		TrackManager trackManager = DefaultTrackManager.getInstance();
 		TrackHolder holder = (TrackHolder) view.getTag();
 		if (holder != null) {
 			Track track = holder.track;
 			if (holder.activeImage == view) {
-				if (track.isActive())
+				/*if (track.isActive())
 					trackManager.deactivateTrack(track);
 				else if (track.isLocal())
-					trackManager.activateTrack(track);
+					trackManager.activateTrack(track);*/
+				throw new UnsupportedOperationException();
 			} else if (holder.localImage == view && !track.isLocal()) {
-				trackManager.refreshPoints(track);
+				trackManager.storeTrackLocal(holder.track);
 			}
 		}
 	}
@@ -195,6 +199,7 @@ public class TrackModelAdapter extends BaseAdapter implements ModelListener, Clo
 		Track track;
 		TextView text1;
 		TextView text2;
+		ImageButton publicImage;
 		ImageButton localImage;
 		ImageButton activeImage;
 	}

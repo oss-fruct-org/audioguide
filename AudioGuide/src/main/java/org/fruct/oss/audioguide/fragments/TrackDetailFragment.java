@@ -12,7 +12,8 @@ import android.widget.TextView;
 
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.track.Track;
-import org.fruct.oss.audioguide.track.TrackManager;
+import org.fruct.oss.audioguide.track.track2.DefaultTrackManager;
+import org.fruct.oss.audioguide.track.track2.TrackManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,7 +60,7 @@ public class TrackDetailFragment extends Fragment {
 		if (savedInstanceState != null)
 			track = savedInstanceState.getParcelable(STATE_TRACK);
 
-		trackManager = TrackManager.getInstance();
+		trackManager = DefaultTrackManager.getInstance();
 	}
 
 	@Override
@@ -84,8 +85,10 @@ public class TrackDetailFragment extends Fragment {
 		downloadButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View view) {
-				trackManager.storeLocal(track);
-				trackManager.refreshPoints(track);
+				//trackManager.storeLocal(track);
+				//trackManager.refreshPoints(track);
+				throw new UnsupportedOperationException();
+
 			}
 		});
 
@@ -93,11 +96,13 @@ public class TrackDetailFragment extends Fragment {
 		activateButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View view) {
-				if (track.isActive())
-					trackManager.deactivateTrack(track);
-				else
-					trackManager.activateTrack(track);
+				//if (track.isActive())
+				//	trackManager.deactivateTrack(track);
+				//else
+				//	trackManager.activateTrack(track);
 				setActivateButtonText(activateButton);
+				throw new UnsupportedOperationException();
+
 			}
 		});
 

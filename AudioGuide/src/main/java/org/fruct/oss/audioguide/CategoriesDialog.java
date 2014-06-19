@@ -4,12 +4,10 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
-import android.view.View;
 
-import org.fruct.oss.audioguide.adapters.CategoryAdapter;
 import org.fruct.oss.audioguide.gets.Category;
-import org.fruct.oss.audioguide.track.TrackManager;
-import org.fruct.oss.audioguide.util.Utils;
+import org.fruct.oss.audioguide.track.track2.DefaultTrackManager;
+import org.fruct.oss.audioguide.track.track2.TrackManager;
 
 import java.util.List;
 
@@ -56,7 +54,7 @@ public class CategoriesDialog extends DialogFragment
 			isSingle = getArguments().getBoolean("isSingle");
 		}
 
-		trackManager = TrackManager.getInstance();
+		trackManager = DefaultTrackManager.getInstance();
 		categories = trackManager.getCategories();
 
 		labels = new String[categories.size()];
@@ -92,6 +90,7 @@ public class CategoriesDialog extends DialogFragment
 
 	@Override
 	public void onClick(DialogInterface dialogInterface, int index, boolean isActive) {
-		trackManager.setCategoryState(categories.get(index), isActive);
+		throw new UnsupportedOperationException();
+		//trackManager.setCategoryState(categories.get(index), isActive);
 	}
 }

@@ -337,7 +337,68 @@ public class FileManager implements SharedPreferences.OnSharedPreferenceChangeLi
 	public static FileManager instance;
 	public synchronized static FileManager getInstance() {
 		if (instance == null) {
-			instance = new FileManager(App.getContext());
+			instance = new FileManager(App.getContext()) {
+				@Override
+				public synchronized void close() {
+					super.close();
+				}
+
+				@Override
+				public void addWeakListener(FileListener listener) {
+					super.addWeakListener(listener);
+				}
+
+				@Override
+				public void startLoading() {
+				}
+
+				@Override
+				public Model<FileContent> getImagesModel() {
+					return super.getImagesModel();
+				}
+
+				@Override
+				public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+					super.onSharedPreferenceChanged(sharedPreferences, key);
+				}
+
+				@Override
+				public void addFile(FileContent file) {
+				}
+
+				@Override
+				public Bitmap getImageBitmap(String remoteUrl, int width, int height, ScaleMode mode) {
+					return super.getImageBitmap(remoteUrl, width, height, mode);
+				}
+
+				@Override
+				public Bitmap getImageBitmap(String remoteUrl, int width, int height) {
+					return super.getImageBitmap(remoteUrl, width, height);
+				}
+
+				@Override
+				public Bitmap getImageBitmap(String remoteUrl) {
+					return super.getImageBitmap(remoteUrl);
+				}
+
+				@Override
+				public boolean isFileLocal(String remoteUrl) {
+					return super.isFileLocal(remoteUrl);
+				}
+
+				@Override
+				public void insertImageUri(Uri uri) {
+				}
+
+				@Override
+				public void insertAudioUri(String uri) {
+				}
+
+				@Override
+				public Uri getAudioUri(Uri remoteUri) {
+					return super.getAudioUri(remoteUri);
+				}
+			};
 		}
 
 		return instance;

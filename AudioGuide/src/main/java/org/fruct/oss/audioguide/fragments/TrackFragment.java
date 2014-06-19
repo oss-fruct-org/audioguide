@@ -4,29 +4,27 @@ import android.app.Activity;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.ListFragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.PopupMenu;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.SubMenu;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.SpinnerAdapter;
 
 import org.fruct.oss.audioguide.MultiPanel;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.adapters.TrackModelAdapter;
 import org.fruct.oss.audioguide.fragments.edit.EditTrackDialog;
+import org.fruct.oss.audioguide.models.CombineModel;
 import org.fruct.oss.audioguide.track.GetsStorage;
 import org.fruct.oss.audioguide.track.Track;
-import org.fruct.oss.audioguide.track.TrackManager;
+import org.fruct.oss.audioguide.track.track2.DefaultTrackManager;
+import org.fruct.oss.audioguide.track.track2.TrackManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,10 +65,13 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 
 		pref = PreferenceManager.getDefaultSharedPreferences(getActivity());
 
-		trackManager = TrackManager.getInstance();
+		trackManager = DefaultTrackManager.getInstance();
 
-		trackAdapter = new TrackModelAdapter(getActivity(), R.layout.list_track_item, trackManager.getTracksModel());
-		trackAdapter.addTrackHighlight(trackManager.getEditingTrack(), HIGHLIGHT_COLOR);
+		CombineModel<Track> allTrackModel = new CombineModel<Track>(trackManager.getTracksModel(), trackManager.getRemoteTracksModel());
+
+		trackAdapter = new TrackModelAdapter(getActivity(), R.layout.list_track_item,
+				allTrackModel);
+		//trackAdapter.addTrackHighlight(trackManager.getEditingTrack(), HIGHLIGHT_COLOR);
 
 		setListAdapter(trackAdapter);
 
@@ -198,9 +199,13 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 	@Override
 	public void onListItemClick(ListView l, View v, int position, long id) {
 		Track track = trackAdapter.getItem(position);
+		multiPanel.replaceFragment(PointFragment.newInstance(track), this);
+		trackManager.requestPointsInTrack(track);
 
+		/*
 		PopupMenu popupMenu = new PopupMenu(getActivity(), v);
 		Menu menu = popupMenu.getMenu();
+
 
 		if (track.isLocal()) {
 			popupShowPoints = menu.add("Show points");
@@ -228,7 +233,7 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 		selectedTrack = track;
 		popupMenu.setOnMenuItemClickListener(this);
 		popupMenu.show();
-
+*/
 		//trackClicked(track);
 	}
 
@@ -250,7 +255,7 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case R.id.action_refresh:
-			trackManager.loadRemoteTracks();
+			trackManager.requestTracksInRadius(0, 0, 7);
 			break;
 		case R.id.action_add:
 			EditTrackDialog dialog = EditTrackDialog.newInstance(null);
@@ -275,11 +280,11 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 	@Override
 	public boolean onMenuItemClick(MenuItem menuItem) {
 		if (menuItem == popupItemActivate) {
-			trackManager.activateTrack(selectedTrack);
+			//trackManager.activateTrack(selectedTrack);
 		} else if (menuItem == popupItemDeactivate) {
-			trackManager.deactivateTrack(selectedTrack);
+			//trackManager.deactivateTrack(selectedTrack);
 		} else if (menuItem == popupItemDownload) {
-			trackManager.refreshPoints(selectedTrack);
+			//trackManager.refreshPoints(selectedTrack);
 		} else if (menuItem == popupShowPoints) {
 			multiPanel.replaceFragment(PointFragment.newInstance(selectedTrack), this);
 		} else if (menuItem == popupItemEdit) {
@@ -287,14 +292,14 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 			dialog.setListener(editDialogListener);
 			dialog.show(getFragmentManager(), "edit-track-dialog");
 		} else if (menuItem == popupItemEditPoints) {
-			trackManager.setEditingTrack(selectedTrack);
+			//trackManager.setEditingTrack(selectedTrack);
 
 			trackAdapter.clearTrackHighlights();
-			trackAdapter.addTrackHighlight(trackManager.getEditingTrack(), HIGHLIGHT_COLOR);
+			//trackAdapter.addTrackHighlight(trackManager.getEditingTrack(), HIGHLIGHT_COLOR);
 			trackAdapter.notifyDataSetChanged();
 		} else if (menuItem == popupItemSend) {
-			trackManager.sendTrack(selectedTrack);
-			trackManager.setEditingTrack(null);
+			//trackManager.sendTrack(selectedTrack);
+			//trackManager.setEditingTrack(null);
 			trackAdapter.clearTrackHighlights();
 			trackAdapter.notifyDataSetChanged();
 		}
@@ -306,13 +311,13 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 		@Override
 		public void trackCreated(Track track) {
 			log.debug("Track created callback");
-			trackManager.storeLocal(track);
+			//trackManager.storeLocal(track);
 		}
 
 		@Override
 		public void trackUpdated(Track track) {
 			log.debug("Track updated callback");
-			trackManager.storeLocal(track);
+			//trackManager.storeLocal(track);
 		}
 	};
 

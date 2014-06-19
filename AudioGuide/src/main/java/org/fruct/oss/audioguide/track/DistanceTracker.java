@@ -1,21 +1,16 @@
 package org.fruct.oss.audioguide.track;
 
-import android.content.Intent;
-import android.content.SharedPreferences;
 import android.location.Location;
-import android.preference.PreferenceManager;
-
-import com.sonyericsson.illumination.IlluminationIntent;
 
 import org.fruct.oss.audioguide.LocationReceiver;
 import org.fruct.oss.audioguide.models.Model;
 import org.fruct.oss.audioguide.models.ModelListener;
+import org.fruct.oss.audioguide.track.track2.TrackManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -37,7 +32,7 @@ public class DistanceTracker implements LocationReceiver.Listener, ModelListener
 		this.trackManager = trackManager;
 		this.locationReceiver = locationReceiver;
 
-		activeTrackModel = trackManager.getActiveTracksModel();
+		activeTrackModel = trackManager.getTracksModel();
 	}
 
 	@Override
@@ -45,7 +40,7 @@ public class DistanceTracker implements LocationReceiver.Listener, ModelListener
 		clearPointModels();
 
 		for (Track track : activeTrackModel) {
-			pointModels.add(new PointModelHolder(trackManager.getPointsModel(track)));
+			pointModels.add(new PointModelHolder(trackManager.getTrackPointsModel(track)));
 		}
 	}
 

@@ -41,8 +41,8 @@ import java.util.concurrent.Executors;
 @interface DatasetModifier {
 }
 
-public class TrackManager {
-	private final static Logger log = LoggerFactory.getLogger(TrackManager.class);
+public class TrackManager2 {
+	private final static Logger log = LoggerFactory.getLogger(TrackManager2.class);
 
 	public static final String PREF_EDITING_TRACK = "pref-editing-track-id";
 
@@ -77,7 +77,7 @@ public class TrackManager {
 
 	private List<Listener> listeners = new ArrayList<Listener>();
 
-	public TrackManager(ILocalStorage localStorage, IStorage remoteStorage) {
+	public TrackManager2(ILocalStorage localStorage, IStorage remoteStorage) {
 		this.localStorage = localStorage;
 		this.remoteStorage = remoteStorage;
 	}
@@ -441,15 +441,15 @@ public class TrackManager {
 			throw new IllegalStateException("TrackManager not initialized");
 	}
 
-	private static TrackManager instance;
-	public synchronized static TrackManager getInstance() {
+	private static TrackManager2 instance;
+	public synchronized static TrackManager2 getInstance() {
 		if (instance != null)
 			return instance;
 
 		ILocalStorage localStorage = new DatabaseStorage(App.getContext());
 		GetsStorage getsStorage = new GetsStorage();
 
-		instance = new TrackManager(localStorage, getsStorage);
+		instance = new TrackManager2(localStorage, getsStorage);
 		instance.initialize();
 		instance.loadCategories();
 		instance.loadRemoteTracks();

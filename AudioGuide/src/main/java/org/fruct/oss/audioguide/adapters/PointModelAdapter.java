@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
-import android.net.Uri;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
@@ -18,7 +17,6 @@ import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.models.Model;
 import org.fruct.oss.audioguide.models.ModelListener;
 import org.fruct.oss.audioguide.track.Point;
-import org.fruct.oss.audioguide.track.TrackManager;
 import org.fruct.oss.audioguide.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +30,6 @@ import java.util.Set;
 public class PointModelAdapter extends BaseAdapter implements Closeable, ModelListener, FileListener {
 	private final static Logger log = LoggerFactory.getLogger(PointModelAdapter.class);
 
-	private final TrackManager trackManager;
 	private final FileManager fileManager;
 
 	private final RuntimeException stackTraceException;
@@ -53,9 +50,7 @@ public class PointModelAdapter extends BaseAdapter implements Closeable, ModelLi
 		this.model = model;
 		this.model.addListener(this);
 
-		this.trackManager = TrackManager.getInstance();
 		this.fileManager = FileManager.getInstance();
-
 		this.fileManager.addWeakListener(this);
 
 		stackTraceException = new RuntimeException();

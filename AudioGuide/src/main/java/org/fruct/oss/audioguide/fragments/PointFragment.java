@@ -22,8 +22,9 @@ import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.adapters.PointModelAdapter;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.Track;
-import org.fruct.oss.audioguide.track.TrackManager;
 import org.fruct.oss.audioguide.track.TrackingService;
+import org.fruct.oss.audioguide.track.track2.DefaultTrackManager;
+import org.fruct.oss.audioguide.track.track2.TrackManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,7 +74,7 @@ public class PointFragment extends ListFragment {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		trackManager = TrackManager.getInstance();
+		trackManager = DefaultTrackManager.getInstance();
 
 		Bundle arguments = getArguments();
 		if (arguments != null) {
@@ -84,9 +85,15 @@ public class PointFragment extends ListFragment {
 			track = savedInstanceState.getParcelable(STATE_TRACK);
 		}
 
-		pointAdapter = new PointModelAdapter(getActivity(),
-				R.layout.list_point_item,
-				trackManager.getPointsModel(track));
+		if (track.isLocal()) {
+			pointAdapter = new PointModelAdapter(getActivity(),
+					R.layout.list_point_item,
+					trackManager.getTrackPointsModel(track));
+		} else {
+			pointAdapter = new PointModelAdapter(getActivity(),
+					R.layout.list_point_item,
+					trackManager.getRemotePointsModel());
+		}
 		setListAdapter(pointAdapter);
 
 		setHasOptionsMenu(true);
@@ -128,7 +135,7 @@ public class PointFragment extends ListFragment {
 		switch (item.getItemId()) {
 		case R.id.action_refresh:
 			log.debug("Action refresh selected from PointFragment");
-			trackManager.refreshPoints(track);
+			//trackManager.refreshPoints(track);
 			break;
 		}
 

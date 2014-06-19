@@ -3,6 +3,7 @@ package org.fruct.oss.audioguide.track.track2;
 import android.content.Context;
 import android.os.AsyncTask;
 
+import org.fruct.oss.audioguide.App;
 import org.fruct.oss.audioguide.gets.Category;
 import org.fruct.oss.audioguide.models.BaseModel;
 import org.fruct.oss.audioguide.models.Model;
@@ -12,6 +13,7 @@ import org.fruct.oss.audioguide.track.Track;
 import java.io.Closeable;
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -61,37 +63,52 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	}
 
 	@Override
-	public void requestTracksInRadius(float latitude, float longitude, float radius) {
-		AsyncTask<Float, Void, List<Track>> at = new AsyncTask<Float, Void, List<Track>>() {
+	public void storeTrackLocal(final Track track) {
+		new AsyncTask<Void, Void, List<Point>>() {
+			@Override
+			protected List<Point> doInBackground(Void... voids) {
+				List<Point> points = backend.loadPointsInTrack(track);
+
+				database.insertTrack(track);
+				for (Point point : points) {
+					database.insertToTrack(track, point);
+				}
+
+				return points;
+			}
+		}.execute();
+	}
+
+	@Override
+	public void requestTracksInRadius(final float latitude, final float longitude, float radius) {
+		new AsyncTask<Float, Void, List<Track>>() {
 			@Override
 			protected List<Track> doInBackground(Float... floats) {
 				float radius = floats[0];
-				return backend.loadTracksInRadius(0, 0, radius);
+				return backend.loadTracksInRadius(latitude, longitude, radius);
 			}
 
 			@Override
 			protected void onPostExecute(List<Track> tracks) {
 				remoteTrackModel.setData(tracks);
 			}
-		};
-		at.execute(radius);
+		}.execute(radius);
 	}
 
 	@Override
-	public void requestPointsInRadius(float latitude, float longitude, float radius) {
-		AsyncTask<Float, Void, List<Point>> at = new AsyncTask<Float, Void, List<Point>>() {
+	public void requestPointsInRadius(final float latitude, final float longitude, float radius) {
+		new AsyncTask<Float, Void, List<Point>>() {
 			@Override
 			protected List<Point> doInBackground(Float... floats) {
 				float radius = floats[0];
-				return backend.loadPointsInRadius(0, 0, radius);
+				return backend.loadPointsInRadius(latitude, longitude, radius);
 			}
 
 			@Override
 			protected void onPostExecute(List<Point> tracks) {
 				remotePointModel.setData(tracks);
 			}
-		};
-		at.execute(radius);
+		}.execute(radius);
 	}
 
 	@Override
@@ -163,4 +180,40 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 		cacheDirty = false;
 		localTrackModel.setData(database.loadTracks());
 	}
+
+	private static TrackManager instance;
+	public synchronized static TrackManager getInstance() {
+		if (instance == null) {
+			TestStorageBackend storage = createTestBackend();
+			instance = new DefaultTrackManager(App.getContext(), storage, storage);
+		}
+
+		return instance;
+	}
+
+	private static TestStorageBackend createTestBackend() {
+		TestStorageBackend backend = new TestStorageBackend();
+
+		final Point p1, p2, p3, p4;
+		p1 = new Point("MMM1", "NNN1", "", 0f, 0f);
+		p2 = new Point("MMM2", "NNN2", "", 10f, 10f);
+		p3 = new Point("MMM3", "NNN3", "", -5f, -1f);
+		p4 = new Point("MMM4", "NNN4", "", 0f, 1f);
+
+		Track track = new Track("AAA", "BBB", "CCC");
+		ArrayList<Point> points = new ArrayList<Point>() {{
+			add(p1);
+			add(p2);
+			add(p3);
+			add(p4);
+		}};
+
+		Track category = new Track("ca_other", "Other", "CCC");
+
+		backend.updateTrack(track, points);
+		backend.updateTrack(category, points);
+
+		return backend;
+	}
+
 }

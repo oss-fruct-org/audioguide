@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import org.fruct.oss.audioguide.gets.Category;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.Track;
 import org.fruct.oss.audioguide.util.Utils;
@@ -103,6 +104,25 @@ public class Database {
 				"ON tp.pointId=point.id " +
 				"WHERE tp.trackId IN (SELECT track.id FROM track WHERE track.name=?) " +
 				"ORDER BY tp.idx;", Utils.toArray(track.getName()));
+
+		while (cursor.moveToNext()) {
+			Point point = new Point(cursor.getString(0), cursor.getString(1), cursor.getString(2),
+					cursor.getString(3), cursor.getInt(4), cursor.getInt(5));
+			points.add(point);
+		}
+
+		cursor.close();
+
+		return points;
+	}
+
+	public List<Point> loadPoints(Category category) {
+		List<Point> points = new ArrayList<Point>();
+
+		Cursor cursor = db.rawQuery("SELECT point.name, point.description, point.audioUrl, point.photoUrl, point.lat, point.lon " +
+				"FROM point INNER JOIN category " +
+				"ON category.id = point.categoryId;",
+				Utils.toArray(category.getId()));
 
 
 		while (cursor.moveToNext()) {
