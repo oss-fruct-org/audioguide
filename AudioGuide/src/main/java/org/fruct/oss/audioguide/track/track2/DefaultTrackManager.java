@@ -61,7 +61,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	}
 
 	@Override
-	public void requestTracksInRadius(float radius) {
+	public void requestTracksInRadius(float latitude, float longitude, float radius) {
 		AsyncTask<Float, Void, List<Track>> at = new AsyncTask<Float, Void, List<Track>>() {
 			@Override
 			protected List<Track> doInBackground(Float... floats) {
@@ -78,7 +78,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	}
 
 	@Override
-	public void requestPointsInRadius(float radius) {
+	public void requestPointsInRadius(float latitude, float longitude, float radius) {
 		AsyncTask<Float, Void, List<Point>> at = new AsyncTask<Float, Void, List<Point>>() {
 			@Override
 			protected List<Point> doInBackground(Float... floats) {

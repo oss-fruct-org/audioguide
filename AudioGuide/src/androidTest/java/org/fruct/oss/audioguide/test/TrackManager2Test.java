@@ -2,10 +2,6 @@ package org.fruct.oss.audioguide.test;
 
 import android.content.Context;
 import android.os.AsyncTask;
-import android.os.Handler;
-import android.os.HandlerThread;
-import android.os.Looper;
-import android.test.AndroidTestCase;
 import android.test.InstrumentationTestCase;
 import android.test.RenamingDelegatingContext;
 
@@ -17,7 +13,6 @@ import org.fruct.oss.audioguide.track.track2.DefaultTrackManager;
 import org.fruct.oss.audioguide.track.track2.StorageBackend;
 import org.fruct.oss.audioguide.track.track2.TestStorageBackend;
 import org.fruct.oss.audioguide.track.track2.TrackManager;
-import org.fruct.oss.audioguide.util.Utils;
 
 import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
@@ -145,7 +140,7 @@ public class TrackManager2Test extends InstrumentationTestCase {
 		runTestOnUiThread(new Runnable() {
 			@Override
 			public void run() {
-				trackManager.requestTracksInRadius(7f);
+				trackManager.requestTracksInRadius(0, 0, 7f);
 			}
 		});
 
@@ -154,7 +149,7 @@ public class TrackManager2Test extends InstrumentationTestCase {
 		runTestOnUiThread(new Runnable() {
 			@Override
 			public void run() {
-				trackManager.requestPointsInRadius(7f);
+				trackManager.requestPointsInRadius(0, 0, 7f);
 			}
 		});
 

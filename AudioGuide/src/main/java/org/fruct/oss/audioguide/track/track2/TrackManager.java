@@ -14,9 +14,9 @@ public interface TrackManager {
 
 	void insertToTrack(Track track, Point point);
 
-	void requestTracksInRadius(float radius);
+	void requestTracksInRadius(float latitude, float longitude, float radius);
 
-	void requestPointsInRadius(float radius);
+	void requestPointsInRadius(float latitude, float longitude, float radius);
 
 	void requestPointsInTrack(Track track);
 
