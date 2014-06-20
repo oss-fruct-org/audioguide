@@ -11,7 +11,7 @@ public interface StorageBackend {
 
 	List<Track> loadTracksInRadius(float lat, float lon, float radius, List<Category> categories);
 
-	List<Point> loadPointsInRadius(float lat, float lon, float radius);
+	List<Point> loadPointsInRadius(float lat, float lon, float radius, List<Category> activeCategories);
 
 	List<Point> loadPointsInTrack(Track track);
 

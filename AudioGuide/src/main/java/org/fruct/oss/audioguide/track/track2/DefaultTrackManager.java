@@ -120,7 +120,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 			@Override
 			protected List<Point> doInBackground(Float... floats) {
 				float radius = floats[0];
-				return backend.loadPointsInRadius(latitude, longitude, radius);
+				return backend.loadPointsInRadius(latitude, longitude, radius, database.getActiveCategories());
 			}
 
 			@Override

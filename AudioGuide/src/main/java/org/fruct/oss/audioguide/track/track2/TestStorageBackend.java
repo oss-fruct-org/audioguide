@@ -41,18 +41,8 @@ public class TestStorageBackend implements StorageBackend, CategoriesBackend {
 		List<Track> tracksInRadius = new ArrayList<Track>();
 
 		for (final Map.Entry<Track, List<Point>> trackEntry: storage.entrySet()) {
-			if (activeCategories != null) {
-				boolean found = false;
-				for (Category cat : activeCategories) {
-					if (cat.getId() == trackEntry.getKey().getCategoryId()) {
-						found = true;
-						break;
-					}
-				}
-
-				if (!found)
-					continue;
-			}
+			if (!checkTrackCategoryIsActive(trackEntry.getKey(), activeCategories))
+				continue;
 
 			for (Point point : trackEntry.getValue()) {
 				float pLat = point.getLatE6() / 1e6f;
@@ -68,13 +58,32 @@ public class TestStorageBackend implements StorageBackend, CategoriesBackend {
 		return tracksInRadius;
 	}
 
+	private boolean checkTrackCategoryIsActive(Track track, List<Category> activeCategories) {
+		if (activeCategories != null) {
+			boolean found = false;
+			for (Category cat : activeCategories) {
+				if (cat.getId() == track.getCategoryId()) {
+					found = true;
+					break;
+				}
+			}
+
+			if (!found)
+				return false;
+		}
+		return true;
+	}
+
 	@Override
-	public List<Point> loadPointsInRadius(float lat, float lon, float radius) {
+	public List<Point> loadPointsInRadius(float lat, float lon, float radius, List<Category> activeCategories) {
 		checkEnabled();
 
 		List<Point> pointsInRadius = new ArrayList<Point>();
 
 		for (Map.Entry<Track, List<Point>> trackEntry: storage.entrySet()) {
+			if (!checkTrackCategoryIsActive(trackEntry.getKey(), activeCategories))
+				continue;
+
 			for (Point point : trackEntry.getValue()) {
 				float pLat = point.getLatE6() / 1e6f;
 				float pLon = point.getLonE6() / 1e6f;
