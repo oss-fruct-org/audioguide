@@ -228,7 +228,7 @@ public class Database {
 
 		try {
 			for (Category category : categories) {
-				ContentValues cv = new ContentValues(4);
+				ContentValues cv = new ContentValues(5);
 				cv.put("name", category.getName());
 				cv.put("description", category.getDescription());
 				cv.put("url", category.getUrl());
@@ -241,6 +241,7 @@ public class Database {
 							new String[]{String.valueOf(category.getId())});
 					category.setActive(cursor.getInt(0) == 1);
 				} else {
+					cv.put("state", 1);
 					cv.put("id", category.getId());
 					db.insert("category", null, cv);
 				}

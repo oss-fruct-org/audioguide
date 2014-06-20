@@ -43,16 +43,16 @@ public class TestStorageBackend implements StorageBackend, CategoriesBackend {
 
 		for (final Map.Entry<Track, List<Point>> trackEntry: storage.entrySet()) {
 			if (activeCategories != null) {
-				Category cat = Utils.find(categories, new Utils.Predicate<Category>() {
-					@Override
-					public boolean apply(Category category) {
-						return trackEntry.getKey().getCategoryId() == category.getId();
+				boolean found = false;
+				for (Category cat : activeCategories) {
+					if (cat.getId() == trackEntry.getKey().getCategoryId()) {
+						found = true;
+						break;
 					}
-				});
-
-				if (!activeCategories.contains(cat)) {
-					continue;
 				}
+
+				if (!found)
+					continue;
 			}
 
 			for (Point point : trackEntry.getValue()) {

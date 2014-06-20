@@ -7,6 +7,7 @@ import org.fruct.oss.audioguide.App;
 import org.fruct.oss.audioguide.gets.Category;
 import org.fruct.oss.audioguide.models.BaseModel;
 import org.fruct.oss.audioguide.models.Model;
+import org.fruct.oss.audioguide.track.DatabaseStorage;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.Track;
 
@@ -34,8 +35,6 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	private final BaseModel<Point> localPointModel = new BaseModel<Point>();
 	private final HashMap<Track, Reference<Model<Point>>> pointModels = new HashMap<Track, Reference<Model<Point>>>();
 
-	private boolean cacheDirty = true;
-
 	private List<Category> categories;
 
 	private float lastLat, lastLon, lastRadius;
@@ -53,20 +52,19 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 
 	@Override
 	public void insertPoint(Point point) {
-		cacheDirty = true;
 		database.insertPoint(point);
 	}
 
 	@Override
 	public void insertTrack(Track track) {
-		cacheDirty = true;
 		database.insertTrack(track);
+		refreshTracksModel();
 	}
 
 	@Override
 	public void insertToTrack(Track track, Point point) {
-		cacheDirty = true;
 		database.insertToTrack(track, point);
+		refreshTracksModel();
 	}
 
 	@Override
@@ -82,9 +80,13 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 				}
 				track.setLocal(true);
 				localTrackModel.insertElement(track);
-				refreshTracksModel();
-
 				return points;
+			}
+
+			@Override
+			protected void onPostExecute(List<Point> points) {
+				refreshTracksModel();
+				refreshPointsModel();
 			}
 		}.execute();
 	}
@@ -146,31 +148,26 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 
 	@Override
 	public Model<Track> getTracksModel() {
-		refreshCache();
 		return tracksModel;
 	}
 
 	@Override
 	public Model<Track> getLocalTracksModel() {
-		refreshCache();
 		return localTrackModel;
 	}
 
 	@Override
 	public Model<Track> getRemoteTracksModel() {
-		refreshCache();
 		return remoteTrackModel;
 	}
 
 	@Override
 	public Model<Point> getRemotePointsModel() {
-		refreshCache();
 		return remotePointModel;
 	}
 
 	@Override
 	public Model<Point> getPointsModel() {
-		refreshCache();
 		return localPointModel;
 	}
 
@@ -198,8 +195,8 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	@Override
 	public List<Category> getCategories() {
 		if (categories == null) {
-			categories = categoriesBackend.loadCategories();
-			database.updateCategories(categories);
+			categories = database.getCategories();
+			loadRemoteCategories();
 		}
 
 		return categories;
@@ -209,12 +206,28 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	public void setCategoryState(Category category, boolean isActive) {
 		category.setActive(isActive);
 		database.setCategoryState(category);
-		cacheDirty = true;
-		refreshCache();
 		requestTracksInRadius(lastLat, lastLon, lastRadius);
 	}
 
+	private void loadRemoteCategories() {
+		new AsyncTask<Void, Void, List<Category>>() {
+			@Override
+			protected List<Category> doInBackground(Void... voids) {
+				return categoriesBackend.loadCategories();
+			}
+
+			@Override
+			protected void onPostExecute(List<Category> loadedCategories) {
+				categories = loadedCategories;
+				database.updateCategories(categories);
+				requestTracksInRadius(lastLat, lastLon, lastRadius);
+			}
+		}.execute();
+	}
+
 	private void refreshTracksModel() {
+		localTrackModel.setData(database.loadTracks());
+
 		Set<String> trackNames = new HashSet<String>();
 		ArrayList<Track> tracks = new ArrayList<Track>();
 
@@ -237,17 +250,6 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 
 	private void refreshPointsModel() {
 		localPointModel.setData(database.loadPoints());
-	}
-
-	private void refreshCache() {
-		if (!cacheDirty)
-			return;
-
-		cacheDirty = false;
-		localTrackModel.setData(database.loadTracks());
-
-		refreshTracksModel();
-		refreshPointsModel();
 	}
 
 	private static TrackManager instance;
