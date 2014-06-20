@@ -206,6 +206,13 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	public void setCategoryState(Category category, boolean isActive) {
 		category.setActive(isActive);
 		database.setCategoryState(category);
+
+		for (Category cat : categories) {
+			if (category.getId() == cat.getId()) {
+				cat.setActive(isActive);
+			}
+		}
+
 		requestTracksInRadius(lastLat, lastLon, lastRadius);
 	}
 
@@ -220,6 +227,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 			protected void onPostExecute(List<Category> loadedCategories) {
 				categories = loadedCategories;
 				database.updateCategories(categories);
+
 				requestTracksInRadius(lastLat, lastLon, lastRadius);
 			}
 		}.execute();
