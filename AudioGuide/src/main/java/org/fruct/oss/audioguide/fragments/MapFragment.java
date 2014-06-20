@@ -33,6 +33,8 @@ import android.view.animation.AnimationUtils;
 import org.fruct.oss.audioguide.MultiPanel;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.fragments.edit.EditPointDialog;
+import org.fruct.oss.audioguide.gets.Category;
+import org.fruct.oss.audioguide.models.Model;
 import org.fruct.oss.audioguide.overlays.EditOverlay;
 import org.fruct.oss.audioguide.overlays.MyPositionOverlay;
 import org.fruct.oss.audioguide.preferences.SettingsActivity;
@@ -334,36 +336,31 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 		editTrack = null;
 
 		//Track globalEditTrack = trackManager.getEditingTrack();
-		for (Track track : trackManager.getLocalTracksModel()) {
+		/*for (Track track : trackManager.getLocalTracksModel()) {
 			EditOverlay trackOverlay = new EditOverlay(getActivity(),
 					trackManager.getTrackPointsModel(track),
 					0);
 			trackOverlays.add(trackOverlay);
-
-			/*if (globalEditTrack == track) {
-				// Save track that user edits
-				editOverlay = trackOverlay;
-				editOverlay.setMarkerIndex(1);
-				editTrack = track;
-				trackOverlay.setEditable(true);
-				trackOverlay.setListener(editOverlayListener);
-			} else {*/
-				trackOverlay.setMarkerIndex(0);
-				trackOverlay.setListener(trackOverlayListener);
-			//}
-
+			trackOverlay.setMarkerIndex(0);
+			trackOverlay.setListener(trackOverlayListener);
 			mapView.getOverlays().add(trackOverlay);
+		}*/
+
+		List<Model<Point>> trackModels = new ArrayList<Model<Point>>();
+
+		for (Track track : trackManager.getLocalTracksModel()) {
+			trackModels.add(trackManager.getTrackPointsModel(track));
 		}
 
 		// Free points
-		/*EditOverlay freePointsOverlay = new EditOverlay(getActivity(),
-				trackManager.getTrackPointsModel(null),
-				2);*/
+		EditOverlay freePointsOverlay = new EditOverlay(getActivity(),
+				trackManager.getPointsModel(), trackModels,
+				1);
 
-		/*freePointsOverlay.setListener(trackOverlayListener);
-		freePointsOverlay.setMarkerIndex(2);
+		freePointsOverlay.setListener(trackOverlayListener);
+		freePointsOverlay.setMarkerIndex(1);
 		trackOverlays.add(freePointsOverlay);
-		mapView.getOverlays().add(freePointsOverlay);*/
+		mapView.getOverlays().add(freePointsOverlay);
 
 		mapView.invalidate();
 	}

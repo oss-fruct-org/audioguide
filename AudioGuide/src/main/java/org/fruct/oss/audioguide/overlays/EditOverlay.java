@@ -26,9 +26,12 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
-
+import java.util.Set;
 
 
 public class EditOverlay extends Overlay implements Closeable, ModelListener {
@@ -44,7 +47,7 @@ public class EditOverlay extends Overlay implements Closeable, ModelListener {
 			R.drawable.marker_2,
 			R.drawable.marker_3};
 
-	private List<EditOverlayItem> items = new ArrayList<EditOverlayItem>();
+	private Map<Point, EditOverlayItem> items = new HashMap<Point, EditOverlayItem>();
 	private int itemSize;
 
 	private final Paint itemBackgroundDragPaint;
@@ -75,8 +78,9 @@ public class EditOverlay extends Overlay implements Closeable, ModelListener {
 
 	private Listener listener;
 	private final Model<Point> model;
+	private final List<Model<Point>> trackModels;
 
-	public EditOverlay(Context ctx, Model<Point> model, int markerIndex) {
+	public EditOverlay(Context ctx, Model<Point> model, List<Model<Point>> tracks, int markerIndex) {
 		super(ctx);
 
 		this.context = ctx;
@@ -102,6 +106,8 @@ public class EditOverlay extends Overlay implements Closeable, ModelListener {
 
 		this.model = model;
 		this.model.addListener(this);
+
+		this.trackModels = tracks;
 
 		fileManager = FileManager.getInstance();
 
@@ -178,12 +184,19 @@ public class EditOverlay extends Overlay implements Closeable, ModelListener {
 	}
 
 	private void drawPath(Canvas canvas, MapView view) {
-		for (int i = 0; i < items.size() - 1; i++) {
-			EditOverlayItem item = items.get(i);
-			EditOverlayItem item2 = items.get(i + 1);
+		for (Model<Point> track : trackModels) {
+			for (int i = 0; i < items.size() - 1; i++) {
+				Point p1 = track.getItem(i);
+				Point p2 = track.getItem(i + 1);
 
-			drawLine(canvas, view, item, item2);
+				EditOverlayItem item = items.get(p1);
+				EditOverlayItem item2 = items.get(p2);
+
+				drawLine(canvas, view, item, item2);
+			}
 		}
+
+		/**/
 	}
 
 	// TODO: projection points can be performed only if map position changes
@@ -196,9 +209,9 @@ public class EditOverlay extends Overlay implements Closeable, ModelListener {
 	}
 
 	private void drawItems(Canvas canvas, MapView view) {
-		for (int i = 0; i < items.size(); i++) {
-			EditOverlayItem item = items.get(i);
-			drawItem(canvas, view, item, i);
+		int i = 0;
+		for (EditOverlayItem item : items.values()) {
+			drawItem(canvas, view, item, i++);
 		}
 	}
 
@@ -233,7 +246,7 @@ public class EditOverlay extends Overlay implements Closeable, ModelListener {
 					Utils.getDP(48), Utils.getDP(48), FileManager.ScaleMode.SCALE_CROP);
 		}
 
-		items.add(item);
+		items.put(item.data, item);
 	}
 
 	public boolean testHit(MotionEvent e, MapView mapView, EditOverlayItem item, HitResult result) {
@@ -258,7 +271,7 @@ public class EditOverlay extends Overlay implements Closeable, ModelListener {
 	}
 
 	public HitResult testHit(MotionEvent e, MapView mapView) {
-		for (EditOverlayItem item : items) {
+		for (EditOverlayItem item : items.values()) {
 			if (testHit(e, mapView, item, hitResult))
 				return hitResult;
 		}
@@ -341,6 +354,24 @@ public class EditOverlay extends Overlay implements Closeable, ModelListener {
 		Point data;
 		GeoPoint geoPoint;
 		Bitmap iconBitmap;
+
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) return true;
+			if (o == null || getClass() != o.getClass()) return false;
+
+			EditOverlayItem that = (EditOverlayItem) o;
+
+			if (!data.equals(that.data)) return false;
+
+			return true;
+		}
+
+		@Override
+		public int hashCode() {
+			return data.hashCode();
+		}
 	}
 
 	class HitResult {

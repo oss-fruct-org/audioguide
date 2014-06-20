@@ -31,6 +31,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	private final BaseModel<Track> remoteTrackModel = new BaseModel<Track>();
 	private final BaseModel<Point> remotePointModel = new BaseModel<Point>();
 
+	private final BaseModel<Point> localPointModel = new BaseModel<Point>();
 	private final HashMap<Track, Reference<Model<Point>>> pointModels = new HashMap<Track, Reference<Model<Point>>>();
 
 	private boolean cacheDirty = true;
@@ -158,6 +159,12 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	}
 
 	@Override
+	public Model<Point> getPointsModel() {
+		refreshCache();
+		return localPointModel;
+	}
+
+	@Override
 	public Model<Point> getTrackPointsModel(Track track) {
 		Reference<Model<Point>> modelRef = pointModels.get(track);
 		Model<Point> pointModel;
@@ -204,6 +211,10 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 		tracksModel.setData(tracks);
 	}
 
+	private void refreshPointsModel() {
+		localPointModel.setData(database.loadPoints());
+	}
+
 	private void refreshCache() {
 		if (!cacheDirty)
 			return;
@@ -211,6 +222,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 		cacheDirty = false;
 		localTrackModel.setData(database.loadTracks());
 		refreshTracksModel();
+		refreshPointsModel();
 	}
 
 	private static TrackManager instance;
@@ -233,7 +245,6 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 			add(new Point("MMM3", "NNN3", "", -5f, -1f));
 			add(new Point("MMM4", "NNN4", "", 0f, 1f));
 			add(new Point("PTZ", "Petrozavodsk", "", 61.783f, 34.35f));
-
 		}};
 
 		Track category = new Track("ca_other", "Other", "CCC");

@@ -137,6 +137,25 @@ public class Database {
 		return points;
 	}
 
+	public List<Point> loadPoints() {
+		List<Point> points = new ArrayList<Point>();
+
+		Cursor cursor = db.rawQuery("SELECT point.name, point.description," +
+				" point.audioUrl, point.photoUrl, point.lat, point.lon " +
+						"FROM point;", null);
+
+
+		while (cursor.moveToNext()) {
+			Point point = new Point(cursor.getString(0), cursor.getString(1), cursor.getString(2),
+					cursor.getString(3), cursor.getInt(4), cursor.getInt(5));
+			points.add(point);
+		}
+
+		cursor.close();
+
+		return points;
+	}
+
 	private long findPointId(Point point) {
 		Cursor cursor = db.query("point", ID_COLUMNS, "name=? and description=? and lat=? and lon=?",
 				Utils.toArray(point.getName(), point.getDescription(), point.getLatE6(), point.getLonE6()), null, null, null);

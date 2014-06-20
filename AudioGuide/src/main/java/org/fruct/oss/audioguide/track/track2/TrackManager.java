@@ -33,6 +33,8 @@ public interface TrackManager {
 	Model<Point> getRemotePointsModel();
 
 
+	Model<Point> getPointsModel();
+
 	Model<Point> getTrackPointsModel(Track category);
 
 	Model<Point> getCategoryPointsModel(Category track);
