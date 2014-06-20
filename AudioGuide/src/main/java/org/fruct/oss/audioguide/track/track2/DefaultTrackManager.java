@@ -225,7 +225,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 		}.execute();
 	}
 
-	private void refreshTracksModel() {
+	void refreshTracksModel() {
 		localTrackModel.setData(database.loadTracks());
 
 		Set<String> trackNames = new HashSet<String>();
@@ -248,15 +248,17 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 		tracksModel.setData(tracks);
 	}
 
-	private void refreshPointsModel() {
+	void refreshPointsModel() {
 		localPointModel.setData(database.loadPoints());
 	}
 
-	private static TrackManager instance;
+	private static DefaultTrackManager instance;
 	public synchronized static TrackManager getInstance() {
 		if (instance == null) {
 			TestStorageBackend storage = createTestBackend();
 			instance = new DefaultTrackManager(App.getContext(), storage, storage);
+			instance.refreshPointsModel();
+			instance.refreshTracksModel();
 		}
 
 		return instance;
