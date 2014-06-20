@@ -251,7 +251,7 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case R.id.action_refresh:
-			trackManager.requestTracksInRadius(0, 0, 7);
+			trackManager.requestTracksInRadius(0, 0, 7000);
 			break;
 		case R.id.action_add:
 			EditTrackDialog dialog = EditTrackDialog.newInstance(null);

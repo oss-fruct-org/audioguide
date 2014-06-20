@@ -7,7 +7,6 @@ import org.fruct.oss.audioguide.App;
 import org.fruct.oss.audioguide.gets.Category;
 import org.fruct.oss.audioguide.models.BaseModel;
 import org.fruct.oss.audioguide.models.Model;
-import org.fruct.oss.audioguide.track.DatabaseStorage;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.Track;
 
@@ -285,11 +284,14 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 			add(new Point("PTZ", "Petrozavodsk", "", 61.783f, 34.35f));
 		}};
 
-		Track category = new Track("ca_audio.other", "Other", "CCC");
-		category.setCategoryId(1);
+		Track category = new Track("ca_audio.shops", "Other", "CCC");
+		category.setCategoryId(2);
+		ArrayList<Point> points2 = new ArrayList<Point>() {{
+			add(new Point("Free", "Free", "", 61.785f, 34.356f));
+		}};
 
 		backend.updateTrack(track, points);
-		backend.updateTrack(category, points);
+		backend.updateTrack(category, points2);
 
 		return backend;
 	}

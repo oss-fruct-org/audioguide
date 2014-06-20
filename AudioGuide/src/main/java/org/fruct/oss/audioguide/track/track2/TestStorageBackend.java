@@ -24,7 +24,6 @@ public class TestStorageBackend implements StorageBackend, CategoriesBackend {
 
 	@Override
 	public void updateTrack(Track track, List<Point> points) {
-
 		Track track2 = new Track(track);
 		List<Point> points2 = Utils.map(points, new Utils.Function<Point, Point>() {
 			@Override
@@ -106,7 +105,6 @@ public class TestStorageBackend implements StorageBackend, CategoriesBackend {
 
 	@Override
 	public List<Category> loadCategories() {
-
 		return categories;
 	}
 

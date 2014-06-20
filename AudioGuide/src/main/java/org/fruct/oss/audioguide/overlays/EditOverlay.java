@@ -185,7 +185,7 @@ public class EditOverlay extends Overlay implements Closeable, ModelListener {
 
 	private void drawPath(Canvas canvas, MapView view) {
 		for (Model<Point> track : trackModels) {
-			for (int i = 0; i < items.size() - 1; i++) {
+			for (int i = 0; i < track.getCount() - 1; i++) {
 				Point p1 = track.getItem(i);
 				Point p2 = track.getItem(i + 1);
 
@@ -195,8 +195,6 @@ public class EditOverlay extends Overlay implements Closeable, ModelListener {
 				drawLine(canvas, view, item, item2);
 			}
 		}
-
-		/**/
 	}
 
 	// TODO: projection points can be performed only if map position changes
