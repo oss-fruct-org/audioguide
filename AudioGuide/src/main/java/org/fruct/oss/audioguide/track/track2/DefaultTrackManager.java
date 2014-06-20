@@ -35,6 +35,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	private final HashMap<Track, Reference<Model<Point>>> pointModels = new HashMap<Track, Reference<Model<Point>>>();
 
 	private List<Category> categories;
+	private List<Category> activeCategories;
 
 	private float lastLat, lastLon, lastRadius;
 
@@ -100,7 +101,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 			@Override
 			protected List<Track> doInBackground(Float... floats) {
 				float radius = floats[0];
-				return backend.loadTracksInRadius(latitude, longitude, radius, database.getActiveCategories());
+				return backend.loadTracksInRadius(latitude, longitude, radius, activeCategories);
 			}
 
 			@Override
@@ -120,7 +121,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 			@Override
 			protected List<Point> doInBackground(Float... floats) {
 				float radius = floats[0];
-				return backend.loadPointsInRadius(latitude, longitude, radius, database.getActiveCategories());
+				return backend.loadPointsInRadius(latitude, longitude, radius, activeCategories);
 			}
 
 			@Override
@@ -196,6 +197,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	public List<Category> getCategories() {
 		if (categories == null) {
 			categories = database.getCategories();
+			activeCategories = database.getActiveCategories();
 			loadRemoteCategories();
 		}
 
@@ -213,6 +215,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 			}
 		}
 
+		activeCategories = database.getActiveCategories();
 		requestTracksInRadius(lastLat, lastLon, lastRadius);
 	}
 
@@ -227,7 +230,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 			protected void onPostExecute(List<Category> loadedCategories) {
 				categories = loadedCategories;
 				database.updateCategories(categories);
-
+				activeCategories = database.getActiveCategories();
 				requestTracksInRadius(lastLat, lastLon, lastRadius);
 			}
 		}.execute();
