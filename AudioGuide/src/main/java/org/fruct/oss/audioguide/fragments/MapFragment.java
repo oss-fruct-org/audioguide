@@ -29,12 +29,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.Toast;
 
 import org.fruct.oss.audioguide.MultiPanel;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.fragments.edit.EditPointDialog;
 import org.fruct.oss.audioguide.gets.Category;
 import org.fruct.oss.audioguide.models.Model;
+import org.fruct.oss.audioguide.models.ModelListener;
 import org.fruct.oss.audioguide.overlays.EditOverlay;
 import org.fruct.oss.audioguide.overlays.MyPositionOverlay;
 import org.fruct.oss.audioguide.preferences.SettingsActivity;
@@ -84,6 +86,8 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 
 	private EditOverlay editOverlay;
 	private Track editTrack;
+
+	private Model<Point> searchingPoints;
 
 	/**
 	 * Use this factory method to create a new instance of
@@ -135,8 +139,31 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 				mapView.getController().animateTo(newMapCenter);
 			}
 			break;
+		case R.id.action_search:
+			startSearchingPoints();
+			break;
 		}
 		return super.onOptionsItemSelected(item);
+	}
+
+	private void startSearchingPoints() {
+		Toast.makeText(getActivity(), "Searching near points...", Toast.LENGTH_LONG).show();
+
+		searchingPoints = trackManager.getRemotePointsModel();
+		searchingPoints.addListener(new ModelListener() {
+			@Override
+			public void dataSetChanged() {
+				for (Point point : searchingPoints) {
+					trackManager.insertPoint(point);
+				}
+				searchingPoints.removeListener(this);
+				mapView.invalidate();
+			}
+		});
+
+		trackManager.requestPointsInRadius((float) myPositionOverlay.getLocation().getLatitude(),
+				(float) myPositionOverlay.getLocation().getLatitude(),
+				1000);
 	}
 
 	private void startAddingPoint() {

@@ -7,6 +7,11 @@
           android:title="Add point"
           app:showAsAction="ifRoom" />
 
+    <item android:id="@+id/action_search"
+          android:icon="@drawable/ic_action_search"
+          android:title="Search"
+          app:showAsAction="ifRoom"/>
+
     <item android:id="@+id/action_place"
           android:icon="@drawable/ic_action_accept"
           android:title="Place"

@@ -52,6 +52,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	@Override
 	public void insertPoint(Point point) {
 		database.insertPoint(point);
+		refreshPointsModel();
 	}
 
 	@Override
