@@ -40,15 +40,15 @@ public class TrackManager2Test extends InstrumentationTestCase {
 		trackManager = new DefaultTrackManager(context, null, null);
 	}
 
-	private void createTrackManagerWithBackend(StorageBackend backend) {
-		TestStorageBackend s = createTestBackend();
-		trackManager = new DefaultTrackManager(context, s, s);
+	private void createTrackManagerWithBackend(TestStorageBackend backend) {
+		trackManager = new DefaultTrackManager(context, backend, backend);
 	}
 
 	private TestStorageBackend createTestBackend() {
 		TestStorageBackend backend = new TestStorageBackend();
 
 		Track track = new Track("AAA", "BBB", "CCC");
+		track.setCategoryId(1);
 		ArrayList<Point> points = new ArrayList<Point>() {{
 			add(new Point("MMM1", "NNN1", "BBB1", 0f, 0f));
 			add(new Point("MMM2", "NNN2", "BBB2", 10f, 10f));

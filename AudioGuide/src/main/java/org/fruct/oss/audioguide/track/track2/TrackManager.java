@@ -40,4 +40,6 @@ public interface TrackManager {
 	Model<Point> getCategoryPointsModel(Category track);
 
 	List<Category> getCategories();
+
+	void setCategoryState(Category category, boolean isActive);
 }

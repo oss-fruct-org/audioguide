@@ -36,6 +36,10 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 
 	private boolean cacheDirty = true;
 
+	private List<Category> categories;
+
+	private float lastLat, lastLon, lastRadius;
+
 	public DefaultTrackManager(Context context, StorageBackend backend, CategoriesBackend catBackend) {
 		this.categoriesBackend = catBackend;
 		this.backend = backend;
@@ -87,11 +91,14 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 
 	@Override
 	public void requestTracksInRadius(final float latitude, final float longitude, float radius) {
+		lastLat = latitude;
+		lastLon = longitude;
+		lastRadius = radius;
 		new AsyncTask<Float, Void, List<Track>>() {
 			@Override
 			protected List<Track> doInBackground(Float... floats) {
 				float radius = floats[0];
-				return backend.loadTracksInRadius(latitude, longitude, radius);
+				return backend.loadTracksInRadius(latitude, longitude, radius, database.getActiveCategories());
 			}
 
 			@Override
@@ -104,6 +111,9 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 
 	@Override
 	public void requestPointsInRadius(final float latitude, final float longitude, float radius) {
+		lastLat = latitude;
+		lastLon = longitude;
+		lastRadius = radius;
 		new AsyncTask<Float, Void, List<Point>>() {
 			@Override
 			protected List<Point> doInBackground(Float... floats) {
@@ -187,7 +197,21 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 
 	@Override
 	public List<Category> getCategories() {
-		return categoriesBackend.loadCategories();
+		if (categories == null) {
+			categories = categoriesBackend.loadCategories();
+			database.updateCategories(categories);
+		}
+
+		return categories;
+	}
+
+	@Override
+	public void setCategoryState(Category category, boolean isActive) {
+		category.setActive(isActive);
+		database.setCategoryState(category);
+		cacheDirty = true;
+		refreshCache();
+		requestTracksInRadius(lastLat, lastLon, lastRadius);
 	}
 
 	private void refreshTracksModel() {
@@ -221,6 +245,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 
 		cacheDirty = false;
 		localTrackModel.setData(database.loadTracks());
+
 		refreshTracksModel();
 		refreshPointsModel();
 	}
@@ -239,6 +264,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 		TestStorageBackend backend = new TestStorageBackend();
 
 		Track track = new Track("AAA", "BBB", "CCC");
+		track.setCategoryId(1);
 		ArrayList<Point> points = new ArrayList<Point>() {{
 			add(new Point("MMM1", "NNN1", "", 0f, 0f));
 			add(new Point("MMM2", "NNN2", "", 10f, 10f));
@@ -247,7 +273,8 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 			add(new Point("PTZ", "Petrozavodsk", "", 61.783f, 34.35f));
 		}};
 
-		Track category = new Track("ca_other", "Other", "CCC");
+		Track category = new Track("ca_audio.other", "Other", "CCC");
+		category.setCategoryId(1);
 
 		backend.updateTrack(track, points);
 		backend.updateTrack(category, points);

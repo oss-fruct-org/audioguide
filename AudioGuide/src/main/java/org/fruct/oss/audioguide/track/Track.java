@@ -16,6 +16,7 @@ public class Track implements Parcelable, Comparable<Track> {
 	private boolean isPrivate;
 
 	private long localId;
+	private long categoryId = -1;
 
 	public Track() {
 		this("", "", "");
@@ -30,6 +31,7 @@ public class Track implements Parcelable, Comparable<Track> {
 		isActive = track.isActive;
 		isPrivate = track.isPrivate;
 		localId = track.localId;
+		categoryId = track.categoryId;
 	}
 
 	public Track(String name, String description, String url) {
@@ -67,6 +69,10 @@ public class Track implements Parcelable, Comparable<Track> {
 		return isPrivate;
 	}
 
+	public long getCategoryId() {
+		return categoryId;
+	}
+
 
 	// Setters
 	public void setName(String name) {
@@ -97,6 +103,9 @@ public class Track implements Parcelable, Comparable<Track> {
 		this.isPrivate = isPrivate;
 	}
 
+	public void setCategoryId(long categoryId) {
+		this.categoryId = categoryId;
+	}
 
 	public long getLocalId() {
 		return localId;
@@ -147,8 +156,8 @@ public class Track implements Parcelable, Comparable<Track> {
 		parcel.writeInt(isActive ? 1 : 0);
 		parcel.writeInt(isLocal ? 1 : 0);
 		parcel.writeInt(isPrivate ? 1 : 0);
-
 		parcel.writeLong(localId);
+		parcel.writeLong(categoryId);
 	}
 
 	public static final Creator<Track> CREATOR = new Creator<Track>() {
@@ -164,6 +173,7 @@ public class Track implements Parcelable, Comparable<Track> {
 			track.setPrivate(parcel.readInt() != 0);
 
 			track.localId = parcel.readLong();
+			track.categoryId = parcel.readLong();
 
 			return track;
 		}

@@ -17,6 +17,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import org.fruct.oss.audioguide.CategoriesDialog;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.track.TrackingService;
 import org.slf4j.Logger;
@@ -118,6 +119,8 @@ public class CommonFragment extends Fragment {
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
 		super.onCreateOptionsMenu(menu, inflater);
 		inflater.inflate(R.menu.navigate, menu);
+		inflater.inflate(R.menu.categories_filter, menu);
+
 		navigateAction = menu.findItem(R.id.action_navigate);
 		updateMenuIcon(isTrackingActive);
 	}
@@ -138,9 +141,10 @@ public class CommonFragment extends Fragment {
 			updateMenuIcon(isTrackingActive);
 			return true;
 
-		/*case R.id.action_refresh:
-			TrackManager.getInstance().refresh();
-			return true;*/
+		case R.id.action_filter:
+			CategoriesDialog dialog = CategoriesDialog.newInstance();
+			dialog.show(getFragmentManager(), "categories-dialog");
+			return true;
 		}
 
 		return super.onOptionsItemSelected(item);

@@ -22,6 +22,9 @@ public class Database {
 
 	public static final String[] SELECT_POINTS_COLUMNS = { "name", "description", "lat", "lon", "audioUrl", "photoUrl" };
 	public static final String[] SELECT_TRACKS_COLUMNS = { "name", "description", "url", "hname", "active" };
+	public static final String[] SELECT_CATEGORIES_COLUMNS = {
+			"id", "name", "description", "url", "state"
+	};
 
 	public static final String[] SEARCH_POINT_COLUMNS = { "name", "description", "lat", "lon" };
 	public static final String[] ID_COLUMNS = {"id"};
@@ -65,6 +68,7 @@ public class Database {
 		cv.put("hname", track.getHname());
 		cv.put("url", track.getUrl());
 		cv.put("active", track.isActive());
+		cv.put("categoryId", track.getCategoryId());
 
 		return db.insert("track", null, cv);
 	}
@@ -84,7 +88,9 @@ public class Database {
 	public List<Track> loadTracks() {
 		List<Track> tracks = new ArrayList<Track>();
 
-		Cursor cursor = db.query("track", SELECT_TRACKS_COLUMNS, null, null, null, null, null);
+		Cursor cursor = db.rawQuery("SELECT track.name, track.description, track.url " +
+				"FROM track INNER JOIN category ON track.categoryId=category.id " +
+				"WHERE category.state=1;", null);
 
 		while (cursor.moveToNext()) {
 			Track track = new Track(cursor.getString(0), cursor.getString(1), cursor.getString(2));
@@ -183,10 +189,81 @@ public class Database {
 		}
 	}
 
+	public List<Category> getCategories() {
+		List<Category> categories = new ArrayList<Category>();
+
+		Cursor cursor = db.query("category", SELECT_CATEGORIES_COLUMNS,
+				null, null, null, null, null, null);
+
+		while (cursor.moveToNext()) {
+			Category category = new Category(cursor.getLong(0), cursor.getString(1),
+					cursor.getString(2), cursor.getString(3), cursor.getInt(4) == 1);
+			categories.add(category);
+		}
+
+		cursor.close();
+
+		return categories;
+	}
+
+	public List<Category> getActiveCategories() {
+		List<Category> categories = new ArrayList<Category>();
+
+		Cursor cursor = db.query("category", SELECT_CATEGORIES_COLUMNS,
+				"state=1", null, null, null, null, null);
+
+		while (cursor.moveToNext()) {
+			Category category = new Category(cursor.getLong(0), cursor.getString(1),
+					cursor.getString(2), cursor.getString(3), cursor.getInt(4) == 1);
+			categories.add(category);
+		}
+
+		cursor.close();
+
+		return categories;
+	}
+
+	public void updateCategories(List<Category> categories) {
+		db.beginTransaction();
+
+		try {
+			for (Category category : categories) {
+				ContentValues cv = new ContentValues(4);
+				cv.put("name", category.getName());
+				cv.put("description", category.getDescription());
+				cv.put("url", category.getUrl());
+
+				Cursor cursor = db.query("category", new String[]{"state"}, "id=?",
+						new String[]{String.valueOf(category.getId())}, null, null, null);
+
+				if (cursor.moveToFirst()) {
+					db.update("category", cv, "id=?",
+							new String[]{String.valueOf(category.getId())});
+					category.setActive(cursor.getInt(0) == 1);
+				} else {
+					cv.put("id", category.getId());
+					db.insert("category", null, cv);
+				}
+
+				cursor.close();
+			}
+			db.setTransactionSuccessful();
+		} finally {
+			db.endTransaction();
+		}
+	}
+
+
+	public void setCategoryState(Category category) {
+		ContentValues cv = new ContentValues(1);
+		cv.put("state", category.isActive() ? 1 : 0);
+
+		db.update("category", cv, "id=?", new String[]{String.valueOf(category.getId())});
+	}
 
 	private static class Helper extends SQLiteOpenHelper {
 		public static final String DB_NAME = "tracksdb2";
-		public static final int DB_VERSION = 2; // published None
+		public static final int DB_VERSION = 4; // published None
 
 		public static final String CREATE_TRACKS_SQL = "CREATE TABLE track " +
 				"(id INTEGER PRIMARY KEY AUTOINCREMENT," +
@@ -194,7 +271,8 @@ public class Database {
 				"description TEXT," +
 				"hname TEXT," +
 				"url TEXT," +
-				"active INTEGER);";
+				"active INTEGER," +
+				"categoryId INTEGER);";
 
 		public static final String CREATE_POINTS_SQL = "CREATE TABLE point " +
 				"(id INTEGER PRIMARY KEY AUTOINCREMENT," +

@@ -90,7 +90,6 @@ public class CategoriesDialog extends DialogFragment
 
 	@Override
 	public void onClick(DialogInterface dialogInterface, int index, boolean isActive) {
-		throw new UnsupportedOperationException();
-		//trackManager.setCategoryState(categories.get(index), isActive);
+		trackManager.setCategoryState(categories.get(index), isActive);
 	}
 }
