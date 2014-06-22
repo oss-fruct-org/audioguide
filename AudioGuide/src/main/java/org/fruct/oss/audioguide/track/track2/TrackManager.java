@@ -1,5 +1,7 @@
 package org.fruct.oss.audioguide.track.track2;
 
+import android.database.Cursor;
+
 import org.fruct.oss.audioguide.gets.Category;
 import org.fruct.oss.audioguide.models.Model;
 import org.fruct.oss.audioguide.track.Point;
@@ -21,6 +23,15 @@ public interface TrackManager {
 	void requestPointsInRadius(float latitude, float longitude, float radius);
 
 	void requestPointsInTrack(Track track);
+
+	void addListener(TrackListener listener);
+
+	void removeListener(TrackListener listener);
+
+
+	Cursor loadTracks();
+
+	Cursor loadPoints(Track track);
 
 
 	// Accessors

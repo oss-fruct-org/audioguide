@@ -85,6 +85,22 @@ public class Database {
 		db.execSQL("INSERT INTO tp VALUES (?, ?, (SELECT (IFNULL (MAX(idx), 0) + 1) FROM tp));", Utils.toArray(trackId, pointId));
 	}
 
+	public Cursor loadTracksCursor() {
+		Cursor cursor = db.rawQuery("SELECT track.name, track.description, track.url, track.ROWID AS _id " +
+				"FROM track;", null);
+		return cursor;
+	}
+
+	public Cursor loadPointsCursor(Track track) {
+		Cursor cursor = db.rawQuery(
+				"SELECT point.name, point.description, point.audioUrl, point.photoUrl, point.lat, point.lon, track.ROWID AS _id " +
+				"FROM point INNER JOIN tp " +
+				"ON tp.pointId=point.id " +
+				"WHERE tp.trackId IN (SELECT track.id FROM track WHERE track.name=?) " +
+				"ORDER BY tp.idx;", Utils.toArray(track.getName()));
+		return cursor;
+	}
+
 	public List<Track> loadTracks() {
 		List<Track> tracks = new ArrayList<Track>();
 
@@ -261,6 +277,7 @@ public class Database {
 
 		db.update("category", cv, "id=?", new String[]{String.valueOf(category.getId())});
 	}
+
 
 	private static class Helper extends SQLiteOpenHelper {
 		public static final String DB_NAME = "tracksdb2";

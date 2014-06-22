@@ -17,16 +17,18 @@ import android.widget.ListView;
 
 import org.fruct.oss.audioguide.MultiPanel;
 import org.fruct.oss.audioguide.R;
+import org.fruct.oss.audioguide.adapters.TrackCursorAdapter;
 import org.fruct.oss.audioguide.adapters.TrackModelAdapter;
 import org.fruct.oss.audioguide.fragments.edit.EditTrackDialog;
 import org.fruct.oss.audioguide.models.CombineModel;
 import org.fruct.oss.audioguide.track.Track;
 import org.fruct.oss.audioguide.track.track2.DefaultTrackManager;
+import org.fruct.oss.audioguide.track.track2.TrackListener;
 import org.fruct.oss.audioguide.track.track2.TrackManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemClickListener {
+public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemClickListener, TrackListener {
 	private final static Logger log = LoggerFactory.getLogger(TrackFragment.class);
 
 	public static final String STATE_SPINNER_STATE = "spinner-state";
@@ -38,7 +40,7 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 	private TrackManager trackManager;
 	private int selectedSpinnerItem = 0;
 
-	private TrackModelAdapter trackAdapter;
+	private TrackCursorAdapter trackCursorAdapter;
 
 	private MenuItem popupShowPoints;
 	private MenuItem popupItemEdit;
@@ -64,12 +66,11 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 		pref = PreferenceManager.getDefaultSharedPreferences(getActivity());
 
 		trackManager = DefaultTrackManager.getInstance();
+		trackManager.addListener(this);
 
-		trackAdapter = new TrackModelAdapter(getActivity(), R.layout.list_track_item,
-				trackManager.getTracksModel());
-		//trackAdapter.addTrackHighlight(trackManager.getEditingTrack(), HIGHLIGHT_COLOR);
+		trackCursorAdapter = new TrackCursorAdapter(getActivity(), trackManager.loadTracks());
 
-		setListAdapter(trackAdapter);
+		setListAdapter(trackCursorAdapter);
 
 		setHasOptionsMenu(true);
 
@@ -104,7 +105,7 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 				android.support.v7.appcompat.R.layout.support_simple_spinner_dropdown_item);
 
 		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
-		actionBar.setListNavigationCallbacks(spinnerAdapter, new ActionBar.OnNavigationListener() {
+		/*actionBar.setListNavigationCallbacks(spinnerAdapter, new ActionBar.OnNavigationListener() {
 			@Override
 			public boolean onNavigationItemSelected(int i, long l) {
 				selectedSpinnerItem = i;
@@ -160,7 +161,7 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 
 				return true;
 			}
-		});
+		});*/
 		actionBar.setSelectedNavigationItem(selectedSpinnerItem);
 	}
 
@@ -171,7 +172,8 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 
 	@Override
 	public void onDestroy() {
-		trackAdapter.close();
+		trackManager.removeListener(this);
+		trackCursorAdapter.changeCursor(null);
 		super.onDestroy();
 	}
 
@@ -194,7 +196,7 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 
 	@Override
 	public void onListItemClick(ListView l, View v, int position, long id) {
-		Track track = trackAdapter.getItem(position);
+		Track track = trackCursorAdapter.getTrack(position);
 		multiPanel.replaceFragment(PointFragment.newInstance(track), this);
 		trackManager.requestPointsInTrack(track);
 
@@ -290,14 +292,14 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 		} else if (menuItem == popupItemEditPoints) {
 			//trackManager.setEditingTrack(selectedTrack);
 
-			trackAdapter.clearTrackHighlights();
+			//trackAdapter.clearTrackHighlights();
 			//trackAdapter.addTrackHighlight(trackManager.getEditingTrack(), HIGHLIGHT_COLOR);
-			trackAdapter.notifyDataSetChanged();
+			//trackAdapter.notifyDataSetChanged();
 		} else if (menuItem == popupItemSend) {
 			//trackManager.sendTrack(selectedTrack);
 			//trackManager.setEditingTrack(null);
-			trackAdapter.clearTrackHighlights();
-			trackAdapter.notifyDataSetChanged();
+			//trackAdapter.clearTrackHighlights();
+			//trackAdapter.notifyDataSetChanged();
 		}
 
 		return false;
@@ -317,4 +319,8 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 		}
 	};
 
+	@Override
+	public void onDataChanged() {
+		trackCursorAdapter.changeCursor(trackManager.loadTracks());
+	}
 }

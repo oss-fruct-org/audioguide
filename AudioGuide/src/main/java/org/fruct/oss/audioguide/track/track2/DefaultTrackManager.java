@@ -1,6 +1,7 @@
 package org.fruct.oss.audioguide.track.track2;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.os.AsyncTask;
 
 import org.fruct.oss.audioguide.App;
@@ -38,6 +39,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	private List<Category> activeCategories;
 
 	private float lastLat, lastLon, lastRadius;
+	private final List<TrackListener> listeners = new ArrayList<TrackListener>();
 
 	public DefaultTrackManager(Context context, StorageBackend backend, CategoriesBackend catBackend) {
 		this.categoriesBackend = catBackend;
@@ -86,8 +88,9 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 
 			@Override
 			protected void onPostExecute(List<Point> points) {
-				refreshTracksModel();
-				refreshPointsModel();
+				notifyDataChanged();
+				//refreshTracksModel();
+				//refreshPointsModel();
 			}
 		}.execute();
 	}
@@ -101,13 +104,21 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 			@Override
 			protected List<Track> doInBackground(Float... floats) {
 				float radius = floats[0];
-				return backend.loadTracksInRadius(latitude, longitude, radius, activeCategories);
+				List<Track> tracks = backend.loadTracksInRadius(latitude, longitude, radius, activeCategories);
+
+				for (Track track : tracks) {
+					database.insertTrack(track);
+				}
+
+				return tracks;
 			}
 
 			@Override
 			protected void onPostExecute(List<Track> tracks) {
-				remoteTrackModel.setData(tracks);
-				refreshTracksModel();
+				notifyDataChanged();
+
+				//remoteTrackModel.setData(tracks);
+				//refreshTracksModel();
 			}
 		}.execute(radius);
 	}
@@ -145,6 +156,27 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 			}
 		};
 		at.execute(track);
+	}
+
+	@Override
+	public void addListener(TrackListener listener) {
+		listeners.add(listener);
+	}
+
+	@Override
+	public void removeListener(TrackListener listener) {
+		listeners.remove(listener);
+	}
+
+	@Override
+	public Cursor loadTracks() {
+		return database.loadTracksCursor();
+	}
+
+	@Override
+	public Cursor loadPoints(Track track) {
+		return database.loadPointsCursor(track);
+
 	}
 
 	@Override
@@ -234,6 +266,12 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 				requestTracksInRadius(lastLat, lastLon, lastRadius);
 			}
 		}.execute();
+	}
+
+	private void notifyDataChanged() {
+		for (TrackListener listener : listeners) {
+			listener.onDataChanged();
+		}
 	}
 
 	void refreshTracksModel() {

@@ -1,5 +1,6 @@
 package org.fruct.oss.audioguide.track;
 
+import android.database.Cursor;
 import android.os.Parcel;
 import android.os.Parcelable;
 
@@ -32,6 +33,10 @@ public class Track implements Parcelable, Comparable<Track> {
 		isPrivate = track.isPrivate;
 		localId = track.localId;
 		categoryId = track.categoryId;
+	}
+
+	public Track(Cursor cursor) {
+		this(cursor.getString(0), cursor.getString(1), cursor.getString(2));
 	}
 
 	public Track(String name, String description, String url) {
