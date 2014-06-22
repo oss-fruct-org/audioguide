@@ -132,12 +132,18 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 			@Override
 			protected List<Point> doInBackground(Float... floats) {
 				float radius = floats[0];
-				return backend.loadPointsInRadius(latitude, longitude, radius, activeCategories);
+				List<Point> points = backend.loadPointsInRadius(latitude, longitude, radius, activeCategories);
+
+				for (Point point : points) {
+					database.insertPoint(point);
+				}
+
+				return points;
 			}
 
 			@Override
 			protected void onPostExecute(List<Point> tracks) {
-				remotePointModel.setData(tracks);
+				notifyDataChanged();
 			}
 		}.execute(radius);
 	}
@@ -147,12 +153,18 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 		AsyncTask<Track, Void, List<Point>> at = new AsyncTask<Track, Void, List<Point>>() {
 			@Override
 			protected List<Point> doInBackground(Track... tracks) {
-				return backend.loadPointsInTrack(tracks[0]);
+				List<Point> points = backend.loadPointsInTrack(tracks[0]);
+
+				for (Point point : points) {
+					database.insertToTrack(tracks[0], point);
+				}
+
+				return points;
 			}
 
 			@Override
 			protected void onPostExecute(List<Point> tracks) {
-				remotePointModel.setData(tracks);
+				notifyDataChanged();
 			}
 		};
 		at.execute(track);

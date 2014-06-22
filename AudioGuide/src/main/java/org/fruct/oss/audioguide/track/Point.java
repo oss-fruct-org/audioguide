@@ -1,5 +1,6 @@
 package org.fruct.oss.audioguide.track;
 
+import android.database.Cursor;
 import android.location.Location;
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -47,6 +48,11 @@ public class Point implements Parcelable {
 	private transient Location cachedLocation;
 
 	public Point() {
+	}
+
+	public Point(Cursor cursor) {
+		this(cursor.getString(0), cursor.getString(1), cursor.getString(2),
+				cursor.getString(3), cursor.getInt(4), cursor.getInt(5));
 	}
 
 	public Point(Point point) {

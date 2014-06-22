@@ -19,11 +19,12 @@ import android.widget.ListView;
 
 import org.fruct.oss.audioguide.MultiPanel;
 import org.fruct.oss.audioguide.R;
-import org.fruct.oss.audioguide.adapters.PointModelAdapter;
+import org.fruct.oss.audioguide.adapters.PointCursorAdapter;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.Track;
 import org.fruct.oss.audioguide.track.TrackingService;
 import org.fruct.oss.audioguide.track.track2.DefaultTrackManager;
+import org.fruct.oss.audioguide.track.track2.TrackListener;
 import org.fruct.oss.audioguide.track.track2.TrackManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +38,7 @@ import java.util.List;
  * Activities containing this fragment MUST implement the {@link org.fruct.oss.audioguide.MultiPanel}
  * interface.
  */
-public class PointFragment extends ListFragment {
+public class PointFragment extends ListFragment implements TrackListener {
 	private final static Logger log = LoggerFactory.getLogger(PointFragment.class);
 
 	private static final String STATE_TRACK = "track";
@@ -50,7 +51,7 @@ public class PointFragment extends ListFragment {
 	private Track track;
 	private BroadcastReceiver inReceiver;
 	private BroadcastReceiver outReceiver;
-	private PointModelAdapter pointAdapter;
+	private PointCursorAdapter pointAdapter;
 	private TrackingService trackingService;
 
 	private TrackingServiceConnection serviceConnection = new TrackingServiceConnection();
@@ -75,6 +76,7 @@ public class PointFragment extends ListFragment {
 		super.onCreate(savedInstanceState);
 
 		trackManager = DefaultTrackManager.getInstance();
+		trackManager.addListener(this);
 
 		Bundle arguments = getArguments();
 		if (arguments != null) {
@@ -85,15 +87,8 @@ public class PointFragment extends ListFragment {
 			track = savedInstanceState.getParcelable(STATE_TRACK);
 		}
 
-		if (track.isLocal()) {
-			pointAdapter = new PointModelAdapter(getActivity(),
-					R.layout.list_point_item,
-					trackManager.getTrackPointsModel(track));
-		} else {
-			pointAdapter = new PointModelAdapter(getActivity(),
-					R.layout.list_point_item,
-					trackManager.getRemotePointsModel());
-		}
+		pointAdapter = new PointCursorAdapter(getActivity(),
+					trackManager.loadPoints(track));
 		setListAdapter(pointAdapter);
 
 		setHasOptionsMenu(true);
@@ -116,8 +111,11 @@ public class PointFragment extends ListFragment {
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
+
+		pointAdapter.changeCursor(null);
+		trackManager.removeListener(this);
+
 		trackManager = null;
-		pointAdapter.close();
 
 		LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(inReceiver);
 		LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(outReceiver);
@@ -191,7 +189,7 @@ public class PointFragment extends ListFragment {
 	public void onListItemClick(ListView l, View v, int position, long id) {
 		super.onListItemClick(l, v, position, id);
 
-		Point point = pointAdapter.getItem(position);
+		Point point = pointAdapter.getPoint(position);
 		multiPanel.replaceFragment(PointDetailFragment.newInstance(point, false), this);
 	}
 
@@ -200,6 +198,11 @@ public class PointFragment extends ListFragment {
 		super.onSaveInstanceState(outState);
 
 		outState.putParcelable(STATE_TRACK, track);
+	}
+
+	@Override
+	public void onDataChanged() {
+		pointAdapter.changeCursor(trackManager.loadPoints(track));
 	}
 
 	private class TrackingServiceConnection implements ServiceConnection {

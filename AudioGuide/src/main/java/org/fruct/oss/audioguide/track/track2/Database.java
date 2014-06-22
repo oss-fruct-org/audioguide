@@ -82,7 +82,10 @@ public class Database {
 		if (trackId == -1)
 			trackId = insertTrack(track);
 
-		db.execSQL("INSERT INTO tp VALUES (?, ?, (SELECT (IFNULL (MAX(idx), 0) + 1) FROM tp));", Utils.toArray(trackId, pointId));
+		long relationId = findRelationId(trackId, pointId);
+		if (relationId == -1) {
+			db.execSQL("INSERT INTO tp VALUES (?, ?, (SELECT (IFNULL (MAX(idx), 0) + 1) FROM tp));", Utils.toArray(trackId, pointId));
+		}
 	}
 
 	public Cursor loadTracksCursor() {
@@ -93,7 +96,7 @@ public class Database {
 
 	public Cursor loadPointsCursor(Track track) {
 		Cursor cursor = db.rawQuery(
-				"SELECT point.name, point.description, point.audioUrl, point.photoUrl, point.lat, point.lon, track.ROWID AS _id " +
+				"SELECT point.name, point.description, point.audioUrl, point.photoUrl, point.lat, point.lon, point.ROWID AS _id " +
 				"FROM point INNER JOIN tp " +
 				"ON tp.pointId=point.id " +
 				"WHERE tp.trackId IN (SELECT track.id FROM track WHERE track.name=?) " +
@@ -194,6 +197,20 @@ public class Database {
 
 	private long findTrackId(Track track) {
 		Cursor cursor = db.query("track", ID_COLUMNS, "name=?",	Utils.toArray(track.getName()), null, null, null);
+
+		try {
+			if (!cursor.moveToFirst())
+				return -1;
+			else
+				return cursor.getLong(0);
+		} finally {
+			cursor.close();
+		}
+	}
+
+	private long findRelationId(long trackId, long pointId) {
+		Cursor cursor = db.query("tp", Utils.toArray("ROWID"), "trackId=? and pointId=?", Utils.toArray(trackId, pointId),
+				null, null, null);
 
 		try {
 			if (!cursor.moveToFirst())
