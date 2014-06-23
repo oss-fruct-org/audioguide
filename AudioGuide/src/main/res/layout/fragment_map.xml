@@ -9,48 +9,15 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <LinearLayout
-        android:id="@+id/map_toolbar"
-        android:orientation="vertical"
-        android:background="#701a1a1a"
-        android:layout_width="match_parent"
+    <FrameLayout android:id="@+id/map_anchor"
+        android:layout_centerInParent="true"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:gravity="center"
-        android:visibility="gone">
+        android:layout_width="wrap_content"
 
-        <Button
-            android:id="@+id/button_play"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@null"
-            android:textColor="@color/button_selector_inverted"
-            android:textSize="32sp"
-            android:padding="8dp"
-            android:text="Play"
-            android:drawableLeft="@drawable/ic_action_volume_on"/>
+        android:minHeight="32dp"
+        android:minWidth="32dp"
 
-        <Button
-            android:id="@+id/button_stop"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@null"
-            android:textColor="@color/button_selector_inverted"
-            android:textSize="32sp"
-            android:padding="8dp"
-            android:text="Stop"
-            android:drawableLeft="@drawable/ic_action_volume_muted"/>
+        android:background="#ffffffff"
 
-        <Button
-            android:id="@+id/button_details"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@null"
-            android:textColor="@color/button_selector_inverted"
-            android:textSize="32sp"
-            android:padding="8dp"
-            android:text="Details"
-            android:drawableLeft="@drawable/ic_action_done"/>
-    </LinearLayout>
-
+        android:visibility="invisible" />
 </RelativeLayout>

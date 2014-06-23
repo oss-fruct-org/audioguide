@@ -20,6 +20,8 @@ import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v7.internal.view.menu.MenuPopupHelper;
+import android.support.v7.widget.PopupMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -29,6 +31,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.PopupWindow;
 import android.widget.Toast;
 
 import org.fruct.oss.audioguide.MultiPanel;
@@ -486,9 +489,14 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 		@Override
 		public void pointLongPressed(Point point) {
 			//Toast.makeText(getActivity(), "Long press detected", Toast.LENGTH_SHORT).show();
-			EditPointDialog dialog = EditPointDialog.newInstance(point);
+			/*EditPointDialog dialog = EditPointDialog.newInstance(point);
 			dialog.setListener(editDialogListener);
-			dialog.show(getFragmentManager(), "edit-track-dialog");
+			dialog.show(getFragmentManager(), "edit-track-dialog");*/
+
+
+			PopupMenu menu = new PopupMenu(getActivity(), getView().findViewById(R.id.map_anchor));
+			menu.getMenu().add("Add to track");
+			menu.show();
 		}
 	};
 
@@ -511,7 +519,6 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 
 		@Override
 		public void pointLongPressed(Point p) {
-
 		}
 	};
 }
