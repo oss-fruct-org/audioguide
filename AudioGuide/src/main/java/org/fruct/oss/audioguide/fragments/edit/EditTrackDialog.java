@@ -7,18 +7,24 @@ import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 
+import org.fruct.oss.audioguide.CategoriesDialog;
 import org.fruct.oss.audioguide.R;
+import org.fruct.oss.audioguide.gets.Category;
 import org.fruct.oss.audioguide.track.Track;
 import org.fruct.oss.audioguide.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class EditTrackDialog extends DialogFragment implements DialogInterface.OnClickListener {
+public class EditTrackDialog extends DialogFragment implements DialogInterface.OnClickListener, CategoriesDialog.Listener {
 	private final static Logger log = LoggerFactory.getLogger(EditTrackDialog.class);
 
 	private Listener listener;
+	private TextView categoryLabel;
+	private Button categoryButton;
 
 	public interface Listener {
 		void trackCreated(Track track);
@@ -75,6 +81,19 @@ public class EditTrackDialog extends DialogFragment implements DialogInterface.O
 			if (!Utils.isNullOrEmpty(track.getUrl())) editUrl.setText(track.getUrl());
 		}
 
+		categoryLabel = (TextView) view.findViewById(R.id.category_title);
+		categoryButton = (Button) view.findViewById(R.id.category_button);
+
+		categoryButton.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				CategoriesDialog categoriesDialog = CategoriesDialog.newChoiceInstance();
+				categoriesDialog.setListener(EditTrackDialog.this);
+				categoriesDialog.show(getFragmentManager(), "categories-dialog");
+			}
+		});
+
+
 		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 		builder.setView(view)
 				.setPositiveButton(android.R.string.ok, this)
@@ -115,6 +134,13 @@ public class EditTrackDialog extends DialogFragment implements DialogInterface.O
 			else
 				listener.trackUpdated(track);
 		}
+	}
+
+	@Override
+	public void categorySelected(Category category) {
+		categoryLabel.setText(category.getDescription());
+		//selectedCategory = category;
+		track.setCategoryId(category.getId());
 	}
 
 	private String createName(String hname) {

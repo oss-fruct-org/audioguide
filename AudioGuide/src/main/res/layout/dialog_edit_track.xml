@@ -29,4 +29,23 @@
         android:layout_height="wrap_content"
         android:inputType="textUri"
         android:id="@+id/edit_url"/>
+
+    <RelativeLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/category_title"
+            android:layout_centerVertical="true"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"/>
+
+        <Button
+            android:layout_alignParentRight="true"
+            android:id="@+id/category_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Select category"/>
+    </RelativeLayout>
 </LinearLayout>
