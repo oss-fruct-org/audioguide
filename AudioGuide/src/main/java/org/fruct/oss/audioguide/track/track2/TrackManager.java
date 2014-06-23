@@ -28,10 +28,9 @@ public interface TrackManager {
 
 	void removeListener(TrackListener listener);
 
+	CursorHolder loadTracks();
 
-	Cursor loadTracks();
-
-	Cursor loadPoints(Track track);
+	CursorHolder loadPoints(Track track);
 
 
 	// Accessors

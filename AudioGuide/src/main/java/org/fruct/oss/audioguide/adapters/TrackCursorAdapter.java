@@ -10,13 +10,16 @@ import android.widget.CursorAdapter;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.track.Track;
+import org.fruct.oss.audioguide.track.track2.DefaultTrackManager;
+import org.fruct.oss.audioguide.track.track2.TrackManager;
 
-public class TrackCursorAdapter extends CursorAdapter {
-	public TrackCursorAdapter(Context context, Cursor c) {
-		super(context, c, false);
+public class TrackCursorAdapter extends CursorAdapter implements View.OnClickListener {
+	public TrackCursorAdapter(Context context) {
+		super(context, null, false);
 	}
 
 	@Override
@@ -37,8 +40,8 @@ public class TrackCursorAdapter extends CursorAdapter {
 		holder.activeImage = (ImageButton) view.findViewById(R.id.activeImage);
 		holder.activeImage.setTag(holder);
 
-		//holder.localImage.setOnClickListener(this);
-		//holder.activeImage.setOnClickListener(this);
+		holder.localImage.setOnClickListener(this);
+		holder.activeImage.setOnClickListener(this);
 
 		view.setTag(holder);
 
@@ -78,6 +81,20 @@ public class TrackCursorAdapter extends CursorAdapter {
 	public Track getTrack(int position) {
 		Cursor cursor = (Cursor) getItem(position);
 		return new Track(cursor);
+	}
+
+	@Override
+	public void onClick(View view) {
+		TrackManager trackManager = DefaultTrackManager.getInstance();
+		TrackHolder holder = (TrackHolder) view.getTag();
+		if (holder != null) {
+			Track track = holder.track;
+			if (holder.activeImage == view) {
+				throw new UnsupportedOperationException();
+			} else if (holder.localImage == view && !track.isLocal()) {
+				trackManager.storeTrackLocal(holder.track);
+			}
+		}
 	}
 
 	private static class TrackHolder {

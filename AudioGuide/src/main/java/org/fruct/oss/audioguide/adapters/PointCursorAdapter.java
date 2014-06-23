@@ -42,8 +42,8 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener {
 	private HashMap<String, PointHolder> pendingAudioUrls = new HashMap<String, PointHolder>();
 
 
-	public PointCursorAdapter(Context context, Cursor cursor) {
-		super(context, cursor, false);
+	public PointCursorAdapter(Context context) {
+		super(context, null, false);
 
 		this.context = context;
 

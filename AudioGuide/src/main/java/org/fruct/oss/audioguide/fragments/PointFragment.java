@@ -23,6 +23,7 @@ import org.fruct.oss.audioguide.adapters.PointCursorAdapter;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.Track;
 import org.fruct.oss.audioguide.track.TrackingService;
+import org.fruct.oss.audioguide.track.track2.CursorHolder;
 import org.fruct.oss.audioguide.track.track2.DefaultTrackManager;
 import org.fruct.oss.audioguide.track.track2.TrackListener;
 import org.fruct.oss.audioguide.track.track2.TrackManager;
@@ -38,7 +39,7 @@ import java.util.List;
  * Activities containing this fragment MUST implement the {@link org.fruct.oss.audioguide.MultiPanel}
  * interface.
  */
-public class PointFragment extends ListFragment implements TrackListener {
+public class PointFragment extends ListFragment {
 	private final static Logger log = LoggerFactory.getLogger(PointFragment.class);
 
 	private static final String STATE_TRACK = "track";
@@ -51,7 +52,10 @@ public class PointFragment extends ListFragment implements TrackListener {
 	private Track track;
 	private BroadcastReceiver inReceiver;
 	private BroadcastReceiver outReceiver;
+
 	private PointCursorAdapter pointAdapter;
+	private CursorHolder cursorHolder;
+
 	private TrackingService trackingService;
 
 	private TrackingServiceConnection serviceConnection = new TrackingServiceConnection();
@@ -76,7 +80,6 @@ public class PointFragment extends ListFragment implements TrackListener {
 		super.onCreate(savedInstanceState);
 
 		trackManager = DefaultTrackManager.getInstance();
-		trackManager.addListener(this);
 
 		Bundle arguments = getArguments();
 		if (arguments != null) {
@@ -87,8 +90,10 @@ public class PointFragment extends ListFragment implements TrackListener {
 			track = savedInstanceState.getParcelable(STATE_TRACK);
 		}
 
-		pointAdapter = new PointCursorAdapter(getActivity(),
-					trackManager.loadPoints(track));
+		pointAdapter = new PointCursorAdapter(getActivity());
+		cursorHolder = trackManager.loadPoints(track);
+		cursorHolder.attachToAdapter(pointAdapter);
+
 		setListAdapter(pointAdapter);
 
 		setHasOptionsMenu(true);
@@ -112,9 +117,7 @@ public class PointFragment extends ListFragment implements TrackListener {
 	public void onDestroy() {
 		super.onDestroy();
 
-		pointAdapter.changeCursor(null);
-		trackManager.removeListener(this);
-
+		cursorHolder.close();
 		trackManager = null;
 
 		LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(inReceiver);
@@ -198,11 +201,6 @@ public class PointFragment extends ListFragment implements TrackListener {
 		super.onSaveInstanceState(outState);
 
 		outState.putParcelable(STATE_TRACK, track);
-	}
-
-	@Override
-	public void onDataChanged() {
-		pointAdapter.changeCursor(trackManager.loadPoints(track));
 	}
 
 	private class TrackingServiceConnection implements ServiceConnection {

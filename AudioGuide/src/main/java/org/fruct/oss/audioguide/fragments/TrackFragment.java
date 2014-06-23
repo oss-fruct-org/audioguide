@@ -18,17 +18,15 @@ import android.widget.ListView;
 import org.fruct.oss.audioguide.MultiPanel;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.adapters.TrackCursorAdapter;
-import org.fruct.oss.audioguide.adapters.TrackModelAdapter;
 import org.fruct.oss.audioguide.fragments.edit.EditTrackDialog;
-import org.fruct.oss.audioguide.models.CombineModel;
 import org.fruct.oss.audioguide.track.Track;
+import org.fruct.oss.audioguide.track.track2.CursorHolder;
 import org.fruct.oss.audioguide.track.track2.DefaultTrackManager;
-import org.fruct.oss.audioguide.track.track2.TrackListener;
 import org.fruct.oss.audioguide.track.track2.TrackManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemClickListener, TrackListener {
+public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemClickListener {
 	private final static Logger log = LoggerFactory.getLogger(TrackFragment.class);
 
 	public static final String STATE_SPINNER_STATE = "spinner-state";
@@ -41,6 +39,7 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 	private int selectedSpinnerItem = 0;
 
 	private TrackCursorAdapter trackCursorAdapter;
+	private CursorHolder cursorHolder;
 
 	private MenuItem popupShowPoints;
 	private MenuItem popupItemEdit;
@@ -66,9 +65,10 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 		pref = PreferenceManager.getDefaultSharedPreferences(getActivity());
 
 		trackManager = DefaultTrackManager.getInstance();
-		trackManager.addListener(this);
+		cursorHolder = trackManager.loadTracks();
 
-		trackCursorAdapter = new TrackCursorAdapter(getActivity(), trackManager.loadTracks());
+		trackCursorAdapter = new TrackCursorAdapter(getActivity());
+		cursorHolder.attachToAdapter(trackCursorAdapter);
 
 		setListAdapter(trackCursorAdapter);
 
@@ -172,8 +172,7 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 
 	@Override
 	public void onDestroy() {
-		trackManager.removeListener(this);
-		trackCursorAdapter.changeCursor(null);
+		cursorHolder.close();
 		super.onDestroy();
 	}
 
@@ -241,12 +240,6 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 
 		inflater.inflate(R.menu.refresh, menu);
 		inflater.inflate(R.menu.edit_track_menu, menu);
-	}
-
-	@Override
-	public void onActivityCreated(Bundle savedInstanceState) {
-		super.onActivityCreated(savedInstanceState);
-
 	}
 
 	@Override
@@ -318,9 +311,4 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 			//trackManager.storeLocal(track);
 		}
 	};
-
-	@Override
-	public void onDataChanged() {
-		trackCursorAdapter.changeCursor(trackManager.loadTracks());
-	}
 }

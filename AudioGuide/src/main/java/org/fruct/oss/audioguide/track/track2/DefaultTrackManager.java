@@ -17,6 +17,7 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -40,6 +41,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 
 	private float lastLat, lastLon, lastRadius;
 	private final List<TrackListener> listeners = new ArrayList<TrackListener>();
+	private final List<CursorHolder> cursorHolders = new ArrayList<CursorHolder>();
 
 	public DefaultTrackManager(Context context, StorageBackend backend, CategoriesBackend catBackend) {
 		this.categoriesBackend = catBackend;
@@ -55,19 +57,16 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	@Override
 	public void insertPoint(Point point) {
 		database.insertPoint(point);
-		refreshPointsModel();
 	}
 
 	@Override
 	public void insertTrack(Track track) {
 		database.insertTrack(track);
-		refreshTracksModel();
 	}
 
 	@Override
 	public void insertToTrack(Track track, Point point) {
 		database.insertToTrack(track, point);
-		refreshTracksModel();
 	}
 
 	@Override
@@ -77,12 +76,12 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 			protected List<Point> doInBackground(Void... voids) {
 				List<Point> points = backend.loadPointsInTrack(track);
 
+				track.setLocal(true);
 				database.insertTrack(track);
+
 				for (Point point : points) {
 					database.insertToTrack(track, point);
 				}
-				track.setLocal(true);
-				localTrackModel.insertElement(track);
 				return points;
 			}
 
@@ -107,6 +106,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 				List<Track> tracks = backend.loadTracksInRadius(latitude, longitude, radius, activeCategories);
 
 				for (Track track : tracks) {
+					track.setLocal(false);
 					database.insertTrack(track);
 				}
 
@@ -116,9 +116,6 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 			@Override
 			protected void onPostExecute(List<Track> tracks) {
 				notifyDataChanged();
-
-				//remoteTrackModel.setData(tracks);
-				//refreshTracksModel();
 			}
 		}.execute(radius);
 	}
@@ -181,14 +178,31 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	}
 
 	@Override
-	public Cursor loadTracks() {
-		return database.loadTracksCursor();
+	public CursorHolder loadTracks() {
+		CursorHolder cursorHolder = new CursorHolder() {
+			@Override
+			protected Cursor doQuery() {
+				return database.loadTracksCursor();
+			}
+		};
+
+		addCursorHolder(cursorHolder);
+		cursorHolder.queryAsync();
+		return cursorHolder;
 	}
 
 	@Override
-	public Cursor loadPoints(Track track) {
-		return database.loadPointsCursor(track);
+	public CursorHolder loadPoints(final Track track) {
+		CursorHolder cursorHolder = new CursorHolder() {
+			@Override
+			protected Cursor doQuery() {
+				return database.loadPointsCursor(track);
+			}
+		};
 
+		addCursorHolder(cursorHolder);
+		cursorHolder.queryAsync();
+		return cursorHolder;
 	}
 
 	@Override
@@ -284,42 +298,35 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 		for (TrackListener listener : listeners) {
 			listener.onDataChanged();
 		}
+
+		reQueryCursorHolders();
 	}
 
-	void refreshTracksModel() {
-		localTrackModel.setData(database.loadTracks());
+	private CursorHolder addCursorHolder(CursorHolder cursorHolder) {
+		cursorHolders.add(cursorHolder);
+		return cursorHolder;
+	}
 
-		Set<String> trackNames = new HashSet<String>();
-		ArrayList<Track> tracks = new ArrayList<Track>();
+	private void reQueryCursorHolders() {
+		for (Iterator<CursorHolder> iterator = cursorHolders.iterator(); iterator.hasNext(); ) {
+			CursorHolder holder = iterator.next();
 
-		for (Track track : localTrackModel) {
-			if (trackNames.contains(track.getName()))
+			if (holder.isClosed()) {
+				iterator.remove();
 				continue;
-			tracks.add(track);
-			trackNames.add(track.getName());
-		}
+			}
 
-		for (Track track : remoteTrackModel) {
-			if (trackNames.contains(track.getName()))
-				continue;
-			tracks.add(track);
-			trackNames.add(track.getName());
+			holder.queryAsync();
 		}
-
-		tracksModel.setData(tracks);
 	}
 
-	void refreshPointsModel() {
-		localPointModel.setData(database.loadPoints());
-	}
 
 	private static DefaultTrackManager instance;
 	public synchronized static TrackManager getInstance() {
 		if (instance == null) {
 			TestStorageBackend storage = createTestBackend();
 			instance = new DefaultTrackManager(App.getContext(), storage, storage);
-			instance.refreshPointsModel();
-			instance.refreshTracksModel();
+			instance.getCategories();
 		}
 
 		return instance;
