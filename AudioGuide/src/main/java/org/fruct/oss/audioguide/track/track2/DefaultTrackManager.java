@@ -152,6 +152,9 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 			protected List<Point> doInBackground(Track... tracks) {
 				List<Point> points = backend.loadPointsInTrack(tracks[0]);
 
+				if (points == null)
+					return null;
+
 				for (Point point : points) {
 					database.insertToTrack(tracks[0], point);
 				}
@@ -160,8 +163,10 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 			}
 
 			@Override
-			protected void onPostExecute(List<Point> tracks) {
-				notifyDataChanged();
+			protected void onPostExecute(List<Point> points) {
+				if (points != null) {
+					notifyDataChanged();
+				}
 			}
 		};
 		at.execute(track);
