@@ -102,7 +102,7 @@ public class Database {
 	}
 
 	public Cursor loadTracksCursor() {
-		Cursor cursor = db.rawQuery("SELECT track.name, track.description, track.url, track.local, track.categoryId, track.ROWID AS _id " +
+		Cursor cursor = db.rawQuery("SELECT track.name, track.description, track.url, track.local, track.categoryId, track.id AS _id " +
 				"FROM track INNER JOIN category " +
 				"ON category.id = track.categoryId " +
 				"WHERE category.state = 1;", null);
@@ -111,7 +111,7 @@ public class Database {
 
 	public Cursor loadPointsCursor(Track track) {
 		Cursor cursor = db.rawQuery(
-				"SELECT point.name, point.description, point.audioUrl, point.photoUrl, point.lat, point.lon, point.ROWID AS _id " +
+				"SELECT point.name, point.description, point.audioUrl, point.photoUrl, point.lat, point.lon, point.id AS _id " +
 				"FROM point INNER JOIN tp " +
 				"ON tp.pointId=point.id " +
 				"WHERE tp.trackId IN (SELECT track.id FROM track WHERE track.name=?) " +
@@ -122,27 +122,18 @@ public class Database {
 
 	public Cursor loadPointsCursor() {
 		Cursor cursor = db.rawQuery(
-				"SELECT point.name, point.description, point.audioUrl, point.photoUrl, point.lat, point.lon, point.ROWID AS _id " +
+				"SELECT point.name, point.description, point.audioUrl, point.photoUrl, point.lat, point.lon, point.id AS _id " +
 						"FROM point;", null);
 		return cursor;
 	}
 
-	public List<Track> loadTracks() {
-		List<Track> tracks = new ArrayList<Track>();
-
-		Cursor cursor = db.rawQuery("SELECT track.name, track.description, track.url " +
-				"FROM track INNER JOIN category ON track.categoryId=category.id " +
-				"WHERE category.state=1;", null);
-
-		while (cursor.moveToNext()) {
-			Track track = new Track(cursor.getString(0), cursor.getString(1), cursor.getString(2));
-			track.setLocal(true);
-			tracks.add(track);
-		}
-
-		cursor.close();
-
-		return tracks;
+	public Cursor loadRelationsCursor() {
+		Cursor cursor = db.rawQuery(
+				"SELECT tp.trackId, tp.pointId FROM tp INNER JOIN track " +
+						"ON track.id = tp.trackId " +
+						"WHERE track.local = 1 " +
+						"ORDER BY tp.trackId, tp.idx ", null);
+		return cursor;
 	}
 
 	public List<Point> loadPoints(Track track) {

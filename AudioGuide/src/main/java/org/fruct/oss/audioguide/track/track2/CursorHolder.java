@@ -2,7 +2,7 @@ package org.fruct.oss.audioguide.track.track2;
 
 import android.database.Cursor;
 import android.os.AsyncTask;
-import android.widget.CursorAdapter;
+import android.support.v4.widget.CursorAdapter;
 
 import java.io.Closeable;
 
@@ -16,15 +16,15 @@ public abstract class CursorHolder implements Closeable {
 		this.cursorReceiver = receiver;
 
 		if (cursor != null) {
-			cursorReceiver.changeCursor(cursor);
+			cursorReceiver.swapCursor(cursor);
 		}
 	}
 
 	public synchronized void attachToAdapter(final CursorAdapter adapter) {
 		attachToReceiver(new CursorReceiver() {
 			@Override
-			public void changeCursor(Cursor cursor) {
-				adapter.changeCursor(cursor);
+			public Cursor swapCursor(Cursor cursor) {
+				return adapter.swapCursor(cursor);
 			}
 		});
 	}
@@ -39,7 +39,11 @@ public abstract class CursorHolder implements Closeable {
 
 	synchronized void onCursorReady(Cursor cursor) {
 		this.cursor = cursor;
-		cursorReceiver.changeCursor(cursor);
+
+		Cursor oldCursor = cursorReceiver.swapCursor(cursor);
+		if (oldCursor != null) {
+			oldCursor.close();
+		}
 	}
 
 	boolean isClosed() {

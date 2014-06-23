@@ -12,6 +12,7 @@ import org.fruct.oss.audioguide.track.Point;
 
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
+import android.util.Pair;
 import android.view.MotionEvent;
 
 import org.fruct.oss.audioguide.track.track2.CursorHolder;
@@ -32,7 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-public class EditOverlay extends Overlay implements Closeable, CursorReceiver {
+public class EditOverlay extends Overlay implements Closeable {
 	private final Context context;
 
 	public interface Listener {
@@ -45,7 +46,7 @@ public class EditOverlay extends Overlay implements Closeable, CursorReceiver {
 			R.drawable.marker_2,
 			R.drawable.marker_3};
 
-	private Map<Point, EditOverlayItem> items = new HashMap<Point, EditOverlayItem>();
+	private Map<Long, EditOverlayItem> items = new HashMap<Long, EditOverlayItem>();
 	private int itemSize;
 
 	private final Paint itemBackgroundDragPaint;
@@ -75,16 +76,25 @@ public class EditOverlay extends Overlay implements Closeable, CursorReceiver {
 	private transient HitResult hitResult = new HitResult();
 
 	private Listener listener;
-	private final CursorHolder cursorHolder;
-	private final List<Point> points = new ArrayList<Point>();
 
+	private final CursorHolder relationsCursorHolder;
+	private Cursor currentRelationsCursor;
 
-	public EditOverlay(Context ctx, CursorHolder cursorHolder, int markerIndex) {
+	private final CursorHolder pointsCursorHolder;
+	private Cursor currentPointsCursor;
+
+	private final List<Pair<Long, Long>> relations = new ArrayList<Pair<Long, Long>>();
+
+	public EditOverlay(Context ctx, CursorHolder pointsCursorHolder,
+					   CursorHolder relationsCursorHolder, int markerIndex) {
 		super(ctx);
 
 		this.context = ctx;
-		this.cursorHolder = cursorHolder;
-		cursorHolder.attachToReceiver(this);
+		this.pointsCursorHolder = pointsCursorHolder;
+		this.relationsCursorHolder = relationsCursorHolder;
+
+		pointsCursorHolder.attachToReceiver(pointsCursorReceiver);
+		relationsCursorHolder.attachToReceiver(relationsCursorReceiver);
 
 		itemSize = Utils.getDP(24);
 
@@ -110,7 +120,8 @@ public class EditOverlay extends Overlay implements Closeable, CursorReceiver {
 
 	@Override
 	public void close() {
-		cursorHolder.close();
+		pointsCursorHolder.close();
+		relationsCursorHolder.close();
 	}
 
 	private int getMeanColor(Drawable drawable) {
@@ -173,23 +184,19 @@ public class EditOverlay extends Overlay implements Closeable, CursorReceiver {
 		if (shadow)
 			return;
 
-		//drawPath(canvas, view);
+		drawPath(canvas, view);
 		drawItems(canvas, view);
 	}
 
-	/*private void drawPath(Canvas canvas, MapView view) {
-		for (Model<Point> track : points) {
-			for (int i = 0; i < track.getCount() - 1; i++) {
-				Point p1 = track.getItem(i);
-				Point p2 = track.getItem(i + 1);
+	private void drawPath(Canvas canvas, MapView view) {
+		for (Pair<Long, Long> line : relations) {
+			EditOverlayItem p1 = items.get(line.first);
+			EditOverlayItem p2 = items.get(line.second);
 
-				EditOverlayItem item = items.get(p1);
-				EditOverlayItem item2 = items.get(p2);
-
-				drawLine(canvas, view, item, item2);
-			}
+			if (p1 != null && p2 != null)
+				drawLine(canvas, view, p1, p2);
 		}
-	}*/
+	}
 
 	// TODO: projection points can be performed only if map position changes
 	private void drawLine(Canvas canvas, MapView view, EditOverlayItem item, EditOverlayItem item2) {
@@ -238,7 +245,7 @@ public class EditOverlay extends Overlay implements Closeable, CursorReceiver {
 					Utils.getDP(48), Utils.getDP(48), FileManager.ScaleMode.SCALE_CROP);
 		}
 
-		items.put(item.data, item);
+		items.put(-1l, item);
 	}
 
 	public boolean testHit(MotionEvent e, MapView mapView, EditOverlayItem item, HitResult result) {
@@ -328,15 +335,53 @@ public class EditOverlay extends Overlay implements Closeable, CursorReceiver {
 		mapView.invalidate();
 	}
 
-	@Override
-	public void changeCursor(Cursor cursor) {
-		points.clear();
+	private CursorReceiver pointsCursorReceiver = new CursorReceiver() {
+		@Override
+		public Cursor swapCursor(Cursor cursor) {
+			Cursor oldCursor = currentPointsCursor;
+			currentPointsCursor = cursor;
 
-		while (cursor.moveToNext()) {
-			Point point = new Point(cursor);
-			addPoint(new GeoPoint(point.getLatE6(), point.getLonE6()), point);
+			//points.clear();
+			items.clear();
+			Point.CursorFields cf = Point.getCursorFields(cursor);
+
+			while (cursor.moveToNext()) {
+				Point point = new Point(cursor);
+				long id = cursor.getLong(cf._id);
+				items.put(id, new EditOverlayItem(new GeoPoint(point.getLatE6(), point.getLonE6()), point));
+			}
+
+			return oldCursor;
 		}
-	}
+	};
+
+	private CursorReceiver relationsCursorReceiver = new CursorReceiver() {
+		@Override
+		public Cursor swapCursor(Cursor cursor) {
+			Cursor oldCursor = currentPointsCursor;
+			currentPointsCursor = cursor;
+
+			long currentTrackId = -1;
+			long prevPointId = -1;
+
+			while (cursor.moveToNext()) {
+				long trackId = cursor.getLong(0);
+
+				if (trackId != currentTrackId) {
+					currentTrackId = trackId;
+					prevPointId = cursor.getLong(1);
+					continue;
+				}
+
+				long currentPointId = cursor.getLong(1);
+
+				relations.add(Pair.create(prevPointId, currentPointId));
+				prevPointId = currentPointId;
+			}
+
+			return oldCursor;
+		}
+	};
 
 	class EditOverlayItem {
 		EditOverlayItem(GeoPoint geoPoint, Point data) {

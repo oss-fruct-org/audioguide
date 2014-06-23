@@ -221,6 +221,20 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	}
 
 	@Override
+	public CursorHolder loadRelations() {
+		CursorHolder cursorHolder = new CursorHolder() {
+			@Override
+			protected Cursor doQuery() {
+				return database.loadRelationsCursor();
+			}
+		};
+
+		addCursorHolder(cursorHolder);
+		cursorHolder.queryAsync();
+		return cursorHolder;
+	}
+
+	@Override
 	public Model<Track> getTracksModel() {
 		return tracksModel;
 	}

@@ -14,6 +14,16 @@ import java.io.IOException;
 import java.util.StringTokenizer;
 
 public class Point implements Parcelable {
+	public static class CursorFields {
+		public int name;
+		public int desc;
+		public int _id;
+		public int latitude;
+		public int longitude;
+		public int audioUrl;
+		public int photoUrl;
+	}
+
 	private String name;
 
 	private String description;
@@ -291,5 +301,17 @@ public class Point implements Parcelable {
 				Utils.skip(parser);
 			}
 		}
+	}
+
+	public static CursorFields getCursorFields(Cursor cursor) {
+		CursorFields cf = new CursorFields();
+		cf.name = cursor.getColumnIndex("name");
+		cf.desc = cursor.getColumnIndex("desc");
+		cf._id = cursor.getColumnIndex("_id");
+		cf.latitude = cursor.getColumnIndex("latitude");
+		cf.longitude = cursor.getColumnIndex("longitude");
+		cf.audioUrl = cursor.getColumnIndex("audioUrl");
+		cf.photoUrl = cursor.getColumnIndex("photoUrl");
+		return cf;
 	}
 }

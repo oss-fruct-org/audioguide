@@ -364,7 +364,7 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 
 		// Free points
 		EditOverlay freePointsOverlay = new EditOverlay(getActivity(),
-				trackManager.loadLocalPoints(),
+				trackManager.loadLocalPoints(), trackManager.loadRelations(),
 				1);
 
 		freePointsOverlay.setListener(trackOverlayListener);
