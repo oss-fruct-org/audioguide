@@ -61,6 +61,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	@Override
 	public void insertTrack(Track track) {
 		database.insertTrack(track);
+		notifyDataChanged();
 	}
 
 	@Override

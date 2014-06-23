@@ -302,6 +302,9 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 		@Override
 		public void trackCreated(Track track) {
 			log.debug("Track created callback");
+			track.setLocal(true);
+			track.setPrivate(true);
+			trackManager.insertTrack(track);
 			//trackManager.storeLocal(track);
 		}
 

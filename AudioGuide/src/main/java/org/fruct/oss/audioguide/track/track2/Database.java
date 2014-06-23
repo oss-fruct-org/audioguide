@@ -70,6 +70,7 @@ public class Database {
 
 		cv.put("active", track.isActive());
 		cv.put("local", track.isLocal());
+		cv.put("private", track.isPrivate());
 
 		cv.put("categoryId", track.getCategoryId());
 
@@ -102,10 +103,10 @@ public class Database {
 	}
 
 	public Cursor loadTracksCursor() {
-		Cursor cursor = db.rawQuery("SELECT track.name, track.description, track.url, track.local, track.categoryId, track.id AS _id " +
-				"FROM track INNER JOIN category " +
+		Cursor cursor = db.rawQuery("SELECT track.name, track.description, track.url, track.local, track.categoryId, track.private, track.id AS _id " +
+				"FROM track LEFT JOIN category " +
 				"ON category.id = track.categoryId " +
-				"WHERE category.state = 1;", null);
+				"WHERE category.state = 1 OR category.state IS NULL;", null);
 		return cursor;
 	}
 
@@ -311,7 +312,7 @@ public class Database {
 
 	private static class Helper extends SQLiteOpenHelper {
 		public static final String DB_NAME = "tracksdb2";
-		public static final int DB_VERSION = 5; // published None
+		public static final int DB_VERSION = 2; // published None
 
 		public static final String CREATE_TRACKS_SQL = "CREATE TABLE track " +
 				"(id INTEGER PRIMARY KEY AUTOINCREMENT," +
@@ -321,6 +322,7 @@ public class Database {
 				"url TEXT," +
 				"active INTEGER," +
 				"local INTEGER," +
+				"private INTEGER," +
 				"categoryId INTEGER);";
 
 		public static final String CREATE_POINTS_SQL = "CREATE TABLE point " +
