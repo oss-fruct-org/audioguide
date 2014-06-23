@@ -30,6 +30,8 @@ public interface TrackManager {
 
 	CursorHolder loadTracks();
 
+	CursorHolder loadLocalPoints();
+
 	CursorHolder loadPoints(Track track);
 
 
@@ -52,4 +54,5 @@ public interface TrackManager {
 	List<Category> getCategories();
 
 	void setCategoryState(Category category, boolean isActive);
+
 }

@@ -7,17 +7,26 @@ import android.widget.CursorAdapter;
 import java.io.Closeable;
 
 public abstract class CursorHolder implements Closeable {
-	private CursorAdapter adapter;
+	private CursorReceiver cursorReceiver;
 	private Cursor cursor;
 
 	private boolean isClosed;
 
-	public synchronized void attachToAdapter(CursorAdapter adapter) {
-		this.adapter = adapter;
+	public synchronized void attachToReceiver(CursorReceiver receiver) {
+		this.cursorReceiver = receiver;
 
 		if (cursor != null) {
-			adapter.changeCursor(cursor);
+			cursorReceiver.changeCursor(cursor);
 		}
+	}
+
+	public synchronized void attachToAdapter(final CursorAdapter adapter) {
+		attachToReceiver(new CursorReceiver() {
+			@Override
+			public void changeCursor(Cursor cursor) {
+				adapter.changeCursor(cursor);
+			}
+		});
 	}
 
 	public synchronized void close() {
@@ -30,7 +39,7 @@ public abstract class CursorHolder implements Closeable {
 
 	synchronized void onCursorReady(Cursor cursor) {
 		this.cursor = cursor;
-		adapter.changeCursor(cursor);
+		cursorReceiver.changeCursor(cursor);
 	}
 
 	boolean isClosed() {

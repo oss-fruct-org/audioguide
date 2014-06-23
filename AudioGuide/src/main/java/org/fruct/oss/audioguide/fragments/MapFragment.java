@@ -149,7 +149,7 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 	private void startSearchingPoints() {
 		Toast.makeText(getActivity(), "Searching near points...", Toast.LENGTH_LONG).show();
 
-		searchingPoints = trackManager.getRemotePointsModel();
+		/*searchingPoints = trackManager.getRemotePointsModel();
 		searchingPoints.addListener(new ModelListener() {
 			@Override
 			public void dataSetChanged() {
@@ -163,7 +163,7 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 
 		trackManager.requestPointsInRadius((float) myPositionOverlay.getLocation().getLatitude(),
 				(float) myPositionOverlay.getLocation().getLatitude(),
-				1000);
+				1000);*/
 	}
 
 	private void startAddingPoint() {
@@ -362,26 +362,9 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 		editOverlay = null;
 		editTrack = null;
 
-		//Track globalEditTrack = trackManager.getEditingTrack();
-		/*for (Track track : trackManager.getLocalTracksModel()) {
-			EditOverlay trackOverlay = new EditOverlay(getActivity(),
-					trackManager.getTrackPointsModel(track),
-					0);
-			trackOverlays.add(trackOverlay);
-			trackOverlay.setMarkerIndex(0);
-			trackOverlay.setListener(trackOverlayListener);
-			mapView.getOverlays().add(trackOverlay);
-		}*/
-
-		List<Model<Point>> trackModels = new ArrayList<Model<Point>>();
-
-		for (Track track : trackManager.getLocalTracksModel()) {
-			trackModels.add(trackManager.getTrackPointsModel(track));
-		}
-
 		// Free points
 		EditOverlay freePointsOverlay = new EditOverlay(getActivity(),
-				trackManager.getPointsModel(), trackModels,
+				trackManager.loadLocalPoints(),
 				1);
 
 		freePointsOverlay.setListener(trackOverlayListener);

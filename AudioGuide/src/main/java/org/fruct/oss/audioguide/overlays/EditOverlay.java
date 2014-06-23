@@ -1,6 +1,7 @@
 package org.fruct.oss.audioguide.overlays;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
@@ -13,8 +14,8 @@ import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.view.MotionEvent;
 
-import org.fruct.oss.audioguide.models.Model;
-import org.fruct.oss.audioguide.models.ModelListener;
+import org.fruct.oss.audioguide.track.track2.CursorHolder;
+import org.fruct.oss.audioguide.track.track2.CursorReceiver;
 import org.fruct.oss.audioguide.util.AUtils;
 import org.fruct.oss.audioguide.util.Utils;
 import org.osmdroid.api.IGeoPoint;
@@ -27,14 +28,11 @@ import org.slf4j.LoggerFactory;
 import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.Set;
 
-
-public class EditOverlay extends Overlay implements Closeable, ModelListener {
+public class EditOverlay extends Overlay implements Closeable, CursorReceiver {
 	private final Context context;
 
 	public interface Listener {
@@ -77,13 +75,16 @@ public class EditOverlay extends Overlay implements Closeable, ModelListener {
 	private transient HitResult hitResult = new HitResult();
 
 	private Listener listener;
-	private final Model<Point> model;
-	private final List<Model<Point>> trackModels;
+	private final CursorHolder cursorHolder;
+	private final List<Point> points = new ArrayList<Point>();
 
-	public EditOverlay(Context ctx, Model<Point> model, List<Model<Point>> tracks, int markerIndex) {
+
+	public EditOverlay(Context ctx, CursorHolder cursorHolder, int markerIndex) {
 		super(ctx);
 
 		this.context = ctx;
+		this.cursorHolder = cursorHolder;
+		cursorHolder.attachToReceiver(this);
 
 		itemSize = Utils.getDP(24);
 
@@ -104,14 +105,12 @@ public class EditOverlay extends Overlay implements Closeable, ModelListener {
 		itemBackgroundPaint.setAntiAlias(true);
 		itemBackgroundPaint.setTextAlign(Paint.Align.CENTER);
 
-		this.model = model;
-		this.model.addListener(this);
-
-		this.trackModels = tracks;
-
 		fileManager = FileManager.getInstance();
+	}
 
-		dataSetChanged();
+	@Override
+	public void close() {
+		cursorHolder.close();
 	}
 
 	private int getMeanColor(Drawable drawable) {
@@ -165,11 +164,6 @@ public class EditOverlay extends Overlay implements Closeable, ModelListener {
 		this.isEditable = isEditable;
 	}
 
-	@Override
-	public void close() {
-		this.model.removeListener(this);
-	}
-
 	public void setListener(Listener listener) {
 		this.listener = listener;
 	}
@@ -179,12 +173,12 @@ public class EditOverlay extends Overlay implements Closeable, ModelListener {
 		if (shadow)
 			return;
 
-		drawPath(canvas, view);
+		//drawPath(canvas, view);
 		drawItems(canvas, view);
 	}
 
-	private void drawPath(Canvas canvas, MapView view) {
-		for (Model<Point> track : trackModels) {
+	/*private void drawPath(Canvas canvas, MapView view) {
+		for (Model<Point> track : points) {
 			for (int i = 0; i < track.getCount() - 1; i++) {
 				Point p1 = track.getItem(i);
 				Point p2 = track.getItem(i + 1);
@@ -195,7 +189,7 @@ public class EditOverlay extends Overlay implements Closeable, ModelListener {
 				drawLine(canvas, view, item, item2);
 			}
 		}
-	}
+	}*/
 
 	// TODO: projection points can be performed only if map position changes
 	private void drawLine(Canvas canvas, MapView view, EditOverlayItem item, EditOverlayItem item2) {
@@ -335,10 +329,11 @@ public class EditOverlay extends Overlay implements Closeable, ModelListener {
 	}
 
 	@Override
-	public void dataSetChanged() {
-		items.clear();
+	public void changeCursor(Cursor cursor) {
+		points.clear();
 
-		for (Point point : model) {
+		while (cursor.moveToNext()) {
+			Point point = new Point(cursor);
 			addPoint(new GeoPoint(point.getLatE6(), point.getLonE6()), point);
 		}
 	}

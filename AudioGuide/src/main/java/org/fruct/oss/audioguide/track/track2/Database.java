@@ -119,6 +119,14 @@ public class Database {
 		return cursor;
 	}
 
+
+	public Cursor loadPointsCursor() {
+		Cursor cursor = db.rawQuery(
+				"SELECT point.name, point.description, point.audioUrl, point.photoUrl, point.lat, point.lon, point.ROWID AS _id " +
+						"FROM point;", null);
+		return cursor;
+	}
+
 	public List<Track> loadTracks() {
 		List<Track> tracks = new ArrayList<Track>();
 
@@ -309,7 +317,6 @@ public class Database {
 
 		db.update("category", cv, "id=?", new String[]{String.valueOf(category.getId())});
 	}
-
 
 	private static class Helper extends SQLiteOpenHelper {
 		public static final String DB_NAME = "tracksdb2";
