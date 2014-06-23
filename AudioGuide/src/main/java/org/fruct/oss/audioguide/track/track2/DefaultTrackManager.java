@@ -16,10 +16,8 @@ import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 public class DefaultTrackManager implements TrackManager, Closeable {
 	private final StorageBackend backend;
@@ -57,6 +55,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	@Override
 	public void insertPoint(Point point) {
 		database.insertPoint(point);
+		notifyDataChanged();
 	}
 
 	@Override
@@ -121,7 +120,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	}
 
 	@Override
-	public void requestPointsInRadius(final float latitude, final float longitude, float radius) {
+	public void requestPointsInRadius(final float latitude, final float longitude, float radius, boolean autoStore) {
 		lastLat = latitude;
 		lastLon = longitude;
 		lastRadius = radius;

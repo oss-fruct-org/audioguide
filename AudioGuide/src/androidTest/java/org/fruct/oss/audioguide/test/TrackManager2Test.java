@@ -10,7 +10,6 @@ import org.fruct.oss.audioguide.models.ModelListener;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.Track;
 import org.fruct.oss.audioguide.track.track2.DefaultTrackManager;
-import org.fruct.oss.audioguide.track.track2.StorageBackend;
 import org.fruct.oss.audioguide.track.track2.TestStorageBackend;
 import org.fruct.oss.audioguide.track.track2.TrackManager;
 
@@ -149,7 +148,7 @@ public class TrackManager2Test extends InstrumentationTestCase {
 		runTestOnUiThread(new Runnable() {
 			@Override
 			public void run() {
-				trackManager.requestPointsInRadius(0, 0, 7f);
+				trackManager.requestPointsInRadius(0, 0, 7f, false);
 			}
 		});
 

@@ -20,7 +20,7 @@ public interface TrackManager {
 
 	void requestTracksInRadius(float latitude, float longitude, float radius);
 
-	void requestPointsInRadius(float latitude, float longitude, float radius);
+	void requestPointsInRadius(float latitude, float longitude, float radius, boolean autoStore);
 
 	void requestPointsInTrack(Track track);
 

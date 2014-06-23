@@ -34,9 +34,7 @@ import android.widget.Toast;
 import org.fruct.oss.audioguide.MultiPanel;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.fragments.edit.EditPointDialog;
-import org.fruct.oss.audioguide.gets.Category;
 import org.fruct.oss.audioguide.models.Model;
-import org.fruct.oss.audioguide.models.ModelListener;
 import org.fruct.oss.audioguide.overlays.EditOverlay;
 import org.fruct.oss.audioguide.overlays.MyPositionOverlay;
 import org.fruct.oss.audioguide.preferences.SettingsActivity;
@@ -149,21 +147,9 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 	private void startSearchingPoints() {
 		Toast.makeText(getActivity(), "Searching near points...", Toast.LENGTH_LONG).show();
 
-		/*searchingPoints = trackManager.getRemotePointsModel();
-		searchingPoints.addListener(new ModelListener() {
-			@Override
-			public void dataSetChanged() {
-				for (Point point : searchingPoints) {
-					trackManager.insertPoint(point);
-				}
-				searchingPoints.removeListener(this);
-				mapView.invalidate();
-			}
-		});
-
 		trackManager.requestPointsInRadius((float) myPositionOverlay.getLocation().getLatitude(),
 				(float) myPositionOverlay.getLocation().getLatitude(),
-				1000);*/
+				1000, true);
 	}
 
 	private void startAddingPoint() {
@@ -456,10 +442,7 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 			IGeoPoint mapCenter = mapView.getMapCenter();
 			point.setCoordinates(mapCenter.getLatitudeE6(), mapCenter.getLongitudeE6());
 
-			if (editOverlay != null)
-				editOverlay.addPoint(AUtils.copyGeoPoint(mapCenter), point);
-
-			throw new UnsupportedOperationException();
+			trackManager.insertPoint(point);
 		}
 
 		@Override
