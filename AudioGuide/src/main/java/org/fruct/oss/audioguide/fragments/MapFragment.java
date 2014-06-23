@@ -482,6 +482,14 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 			//PointDetailFragment frag = PointDetailFragment.newInstance(point);
 			//multiPanel.replaceFragment(frag, MapFragment.this);
 		}
+
+		@Override
+		public void pointLongPressed(Point point) {
+			//Toast.makeText(getActivity(), "Long press detected", Toast.LENGTH_SHORT).show();
+			EditPointDialog dialog = EditPointDialog.newInstance(point);
+			dialog.setListener(editDialogListener);
+			dialog.show(getFragmentManager(), "edit-track-dialog");
+		}
 	};
 
 	private EditOverlay.Listener editOverlayListener = new EditOverlay.Listener() {
@@ -499,6 +507,11 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 			EditPointDialog dialog = EditPointDialog.newInstance(point);
 			dialog.setListener(editDialogListener);
 			dialog.show(getFragmentManager(), "edit-track-dialog");
+		}
+
+		@Override
+		public void pointLongPressed(Point p) {
+
 		}
 	};
 }

@@ -12,6 +12,7 @@ import org.fruct.oss.audioguide.track.Point;
 
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
+import android.os.Handler;
 import android.util.Pair;
 import android.view.MotionEvent;
 
@@ -37,8 +38,9 @@ public class EditOverlay extends Overlay implements Closeable {
 	private final Context context;
 
 	public interface Listener {
-		void pointMoved(Point t, IGeoPoint geoPoint);
-		void pointPressed(Point t);
+		void pointMoved(Point p, IGeoPoint geoPoint);
+		void pointPressed(Point p);
+		void pointLongPressed(Point p);
 	}
 
 	private final static Logger log = LoggerFactory.getLogger(EditOverlay.class);
@@ -56,6 +58,7 @@ public class EditOverlay extends Overlay implements Closeable {
 
 	private Rect markerPadding;
 	private Drawable markerDrawable;
+	private Drawable markerDrawable2;
 
 	private Paint linePaint;
 
@@ -70,6 +73,8 @@ public class EditOverlay extends Overlay implements Closeable {
 
 	private transient android.graphics.Point point = new android.graphics.Point();
 	private transient android.graphics.Point point2 = new android.graphics.Point();
+	private transient android.graphics.Point point3 = new android.graphics.Point();
+
 	private transient Rect rect = new Rect();
 	private transient Rect rect2 = new Rect();
 
@@ -165,10 +170,11 @@ public class EditOverlay extends Overlay implements Closeable {
 		markerPadding = new Rect();
 
 		markerDrawable = context.getResources().getDrawable(markers[markerIndex % markers.length]);
+		markerDrawable2 = context.getResources().getDrawable(markers[0]);
+
 		markerDrawable.getPadding(markerPadding);
 
 		linePaint.setColor(getMeanColor(markerDrawable));
-
 	}
 
 	public void setEditable(boolean isEditable) {
@@ -215,20 +221,19 @@ public class EditOverlay extends Overlay implements Closeable {
 	}
 
 	private void drawItem(Canvas canvas, MapView view, EditOverlayItem item, int index) {
-		if (item == draggingItem)
-			return;
-
 		MapView.Projection proj = view.getProjection();
 
 		proj.toMapPixels(item.geoPoint, point);
 
-		markerDrawable.setBounds(point.x - itemSize - markerPadding.left,
+		Drawable marker = draggingItem == item ? markerDrawable2 : markerDrawable;
+
+		marker.setBounds(point.x - itemSize - markerPadding.left,
 				point.y - 2 * itemSize - markerPadding.bottom - markerPadding.top,
 				point.x + itemSize + markerPadding.right,
 				point.y);
-		markerDrawable.draw(canvas);
+		marker.draw(canvas);
 
-		Rect bounds = markerDrawable.getBounds();
+		Rect bounds = marker.getBounds();
 
 		if (item.iconBitmap != null) {
 			canvas.drawBitmap(item.iconBitmap, bounds.left + markerPadding.left, bounds.top + markerPadding.top, null);
@@ -291,6 +296,8 @@ public class EditOverlay extends Overlay implements Closeable {
 				dragStartY = (int) event.getY();
 				dragStarted = false;
 
+				setupLongPressHandler(draggingItem);
+
 				mapView.invalidate();
 				return true;
 			} else {
@@ -306,6 +313,7 @@ public class EditOverlay extends Overlay implements Closeable {
 					listener.pointPressed(draggingItem.data);
 				}
 			}
+
 			draggingItem = null;
 			mapView.invalidate();
 			return true;
@@ -325,13 +333,49 @@ public class EditOverlay extends Overlay implements Closeable {
 		}
 	}
 
+	private void setupLongPressHandler(final EditOverlayItem requestedItem) {
+		Handler handler = new Handler();
+		handler.postDelayed(new Runnable() {
+			@Override
+			public void run() {
+				if (draggingItem == requestedItem && !dragStarted) {
+					if (listener != null) {
+						listener.pointLongPressed(draggingItem.data);
+					}
+					draggingItem = null;
+				}
+			}
+		}, 500);
+	}
+
+/*
+private void checkDistance(MapView mapView, android.graphics.Point p) {
+		MapView.Projection proj = mapView.getProjection();
+
+		double min = Long.MAX_VALUE;
+		for (Pair<Long, Long> line : relations) {
+			EditOverlayItem p1 = items.get(line.first);
+			EditOverlayItem p2 = items.get(line.second);
+
+			if (p1 != null && p2 != null) {
+				proj.toPixels(p1.geoPoint, point);
+				proj.toPixels(p2.geoPoint, point2);
+
+				min = Math.min(min, AUtils.distanceToLine(point, point2, p));
+			}
+		}
+
+		log.debug("Min distance: " + min);
+	}
+*/
+
 	private void moveItem(EditOverlayItem item, MotionEvent e, MapView mapView) {
 		final MapView.Projection proj = mapView.getProjection();
 
-		point.set((int) e.getX() + dragRelX, (int) e.getY() + dragRelY);
-
-		IGeoPoint ret = proj.fromPixels(point.x, point.y);
+		point3.set((int) e.getX() + dragRelX, (int) e.getY() + dragRelY);
+		IGeoPoint ret = proj.fromPixels(point3.x, point3.y);
 		item.geoPoint = AUtils.copyGeoPoint(ret);
+
 		mapView.invalidate();
 	}
 
@@ -417,6 +461,4 @@ public class EditOverlay extends Overlay implements Closeable {
 		int relHookX;
 		int relHookY;
 	}
-
-
 }

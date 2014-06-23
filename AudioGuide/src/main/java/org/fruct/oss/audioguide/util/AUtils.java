@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Point;
 import android.os.Build;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.TypedValue;
@@ -16,6 +17,7 @@ import junit.framework.Assert;
 import org.fruct.oss.audioguide.App;
 import org.fruct.oss.audioguide.BuildConfig;
 import org.fruct.oss.audioguide.fragments.CommonFragment;
+import org.fruct.oss.audioguide.models.Model;
 import org.osmdroid.api.IGeoPoint;
 import org.osmdroid.util.GeoPoint;
 
@@ -95,5 +97,22 @@ public class AUtils {
 		LocalBroadcastManager.getInstance(context).sendBroadcast(
 				new Intent(CommonFragment.BC_ERROR_MESSAGE)
 						.putExtra(CommonFragment.BC_ARG_MESSAGE, errorMessage));
+	}
+
+	private static long distance2(Point a, Point b) {
+		return (a.x - (long) b.x) * (a.x - (long) b.x) + (a.y - (long) b.y) * (a.y - (long) b.y);
+	}
+
+	public static double distanceToLine(Point a, Point b, Point c) {
+		long d1 = distance2(a, c);
+		long d2 = distance2(b, c);
+
+		long dx = b.x - (long) a.x;
+		long dy = b.y - (long) a.y;
+
+		long num = dy * c.x - dx * c.y - a.x * (long) b.y + a.y * (long) b.x;
+
+		double res = Math.min(Math.min(d1, d2), Math.abs(num) / Math.sqrt((dx * dx + dy * dy)));
+		return res;
 	}
 }
