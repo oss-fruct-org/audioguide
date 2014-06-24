@@ -49,6 +49,7 @@ import org.osmdroid.api.IGeoPoint;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.util.ResourceProxyImpl;
 import org.osmdroid.views.MapView;
+import org.osmdroid.views.Projection;
 import org.osmdroid.views.overlay.Overlay;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -330,8 +331,8 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 				if (shadow)
 					return;
 
-				MapView.Projection proj = mapView.getProjection();
-				android.graphics.Point mapCenter = proj.toMapPixels(mapView.getMapCenter(), null);
+				Projection proj = mapView.getProjection();
+				android.graphics.Point mapCenter = proj.toPixels(mapView.getMapCenter(), null);
 				canvas.drawCircle(mapCenter.x, mapCenter.y, 5, paint);
 			}
 		};

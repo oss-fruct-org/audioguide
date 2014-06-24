@@ -75,7 +75,7 @@ android {
 dependencies {
     compile 'com.android.support:support-v4:19.1.0'
     compile 'com.android.support:appcompat-v7:19.1.0'
-    compile 'org.osmdroid:osmdroid-android:4.1'
+    compile 'org.osmdroid:osmdroid-android:4.2'
     //compile 'org.simpleframework:simple-xml:2.7.1@jar'
     compile 'org.slf4j:slf4j-android:1.6.1-RC1'
     // 

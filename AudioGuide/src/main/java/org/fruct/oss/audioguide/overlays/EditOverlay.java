@@ -23,6 +23,7 @@ import org.fruct.oss.audioguide.util.Utils;
 import org.osmdroid.api.IGeoPoint;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
+import org.osmdroid.views.Projection;
 import org.osmdroid.views.overlay.Overlay;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -206,9 +207,9 @@ public class EditOverlay extends Overlay implements Closeable {
 
 	// TODO: projection points can be performed only if map position changes
 	private void drawLine(Canvas canvas, MapView view, EditOverlayItem item, EditOverlayItem item2) {
-		MapView.Projection proj = view.getProjection();
-		proj.toMapPixels(item.geoPoint, point);
-		proj.toMapPixels(item2.geoPoint, point2);
+		Projection proj = view.getProjection();
+		proj.toPixels(item.geoPoint, point);
+		proj.toPixels(item2.geoPoint, point2);
 
 		canvas.drawLine(point.x, point.y, point2.x, point2.y, linePaint);
 	}
@@ -221,9 +222,9 @@ public class EditOverlay extends Overlay implements Closeable {
 	}
 
 	private void drawItem(Canvas canvas, MapView view, EditOverlayItem item, int index) {
-		MapView.Projection proj = view.getProjection();
+		Projection proj = view.getProjection();
 
-		proj.toMapPixels(item.geoPoint, point);
+		proj.toPixels(item.geoPoint, point);
 
 		Drawable marker = draggingItem == item ? markerDrawable2 : markerDrawable;
 
@@ -254,13 +255,13 @@ public class EditOverlay extends Overlay implements Closeable {
 	}
 
 	public boolean testHit(MotionEvent e, MapView mapView, EditOverlayItem item, HitResult result) {
-		final MapView.Projection proj = mapView.getProjection();
+		final Projection proj = mapView.getProjection();
 		final Rect screenRect = proj.getIntrinsicScreenRect();
 
 		final int x = screenRect.left + (int) e.getX();
 		final int y = screenRect.top + (int) e.getY();
 
-		proj.toMapPixels(item.geoPoint, point);
+		proj.toPixels(item.geoPoint, point);
 
 		final int ix = point.x - x;
 		final int iy = point.y - y;
@@ -368,7 +369,7 @@ private void checkDistance(MapView mapView, android.graphics.Point p) {
 */
 
 	private void moveItem(EditOverlayItem item, MotionEvent e, MapView mapView) {
-		final MapView.Projection proj = mapView.getProjection();
+		final Projection proj = mapView.getProjection();
 
 		point3.set((int) e.getX() + dragRelX, (int) e.getY() + dragRelY);
 		IGeoPoint ret = proj.fromPixels(point3.x, point3.y);

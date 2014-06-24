@@ -1,13 +1,5 @@
 package org.fruct.oss.audioguide.overlays;
 
-import org.fruct.oss.audioguide.track.DistanceTracker;
-import org.fruct.oss.audioguide.util.AUtils;
-import org.osmdroid.api.IGeoPoint;
-import org.osmdroid.util.GeoPoint;
-import org.osmdroid.views.MapView;
-import org.osmdroid.views.MapView.Projection;
-import org.osmdroid.views.overlay.Overlay;
-
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
@@ -16,6 +8,13 @@ import android.graphics.Path;
 import android.graphics.Point;
 import android.location.Location;
 import android.view.MotionEvent;
+
+import org.fruct.oss.audioguide.util.AUtils;
+import org.osmdroid.api.IGeoPoint;
+import org.osmdroid.util.GeoPoint;
+import org.osmdroid.views.MapView;
+import org.osmdroid.views.Projection;
+import org.osmdroid.views.overlay.Overlay;
 
 public class MyPositionOverlay extends Overlay {
 	interface OnScrollListener {
@@ -81,8 +80,8 @@ public class MyPositionOverlay extends Overlay {
 		GeoPoint locationPoint = new GeoPoint(location);
 		IGeoPoint mapCenter = mapView.getMapCenter();
 
-		proj.toMapPixels(locationPoint, point);
-		proj.toMapPixels(mapCenter, centerPoint);
+		proj.toPixels(locationPoint, point);
+		proj.toPixels(mapCenter, centerPoint);
 
 		canvas.save();
 
