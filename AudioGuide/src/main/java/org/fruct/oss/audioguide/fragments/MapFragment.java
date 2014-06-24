@@ -84,10 +84,6 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 
 	private List<EditOverlay> trackOverlays = new ArrayList<EditOverlay>();
 
-	private EditOverlay editOverlay;
-	private Track editTrack;
-
-	private Model<Point> searchingPoints;
 
 	/**
 	 * Use this factory method to create a new instance of
@@ -347,8 +343,6 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 		}
 
 		trackOverlays.clear();
-		editOverlay = null;
-		editTrack = null;
 
 		// Free points
 		EditOverlay freePointsOverlay = new EditOverlay(getActivity(),
@@ -466,7 +460,10 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 	private EditOverlay.Listener trackOverlayListener = new EditOverlay.Listener() {
 		@Override
 		public void pointMoved(Point point, IGeoPoint geoPoint) {
-			assert false;
+			Point newPoint = new Point(point);
+			newPoint.setCoordinates(geoPoint.getLatitudeE6(), geoPoint.getLongitudeE6());
+			trackManager.updatePoint(newPoint, point);
+			point.setCoordinates(geoPoint.getLatitudeE6(), geoPoint.getLongitudeE6());
 		}
 
 		@Override

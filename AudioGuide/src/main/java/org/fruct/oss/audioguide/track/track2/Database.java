@@ -41,25 +41,42 @@ public class Database {
 		}
 	}
 
-	public long insertPoint(Point point) {
-		if (findPointId(point) != -1)
+	public long insertPoint(Point newPoint, Point oldPoint) {
+		if (oldPoint == null && findPointId(newPoint) != -1)
 			return -1;
 
-		ContentValues cv = new ContentValues(7);
-		cv.put("name", point.getName());
-		cv.put("description", point.getDescription());
-		cv.put("lat", point.getLatE6());
-		cv.put("lon", point.getLonE6());
-		cv.put("private", point.isPrivate());
+		long oldPointId = -1;
+		if (oldPoint != null) {
+			oldPointId = findPointId(oldPoint);
+			if (oldPointId == -1)
+				return -1;
+		}
 
-		if (point.hasAudio())
-			cv.put("audioUrl", point.getAudioUrl());
-		if (point.hasPhoto())
-			cv.put("photoUrl", point.getPhotoUrl());
-		if (point.getCategoryId() != -1)
-			cv.put("categoryId", point.getCategoryId());
+		ContentValues cv = new ContentValues(8);
+		cv.put("name", newPoint.getName());
+		cv.put("description", newPoint.getDescription());
+		cv.put("lat", newPoint.getLatE6());
+		cv.put("lon", newPoint.getLonE6());
+		cv.put("private", newPoint.isPrivate());
 
-		return db.insert("point", null, cv);
+		if (newPoint.hasAudio())
+			cv.put("audioUrl", newPoint.getAudioUrl());
+		if (newPoint.hasPhoto())
+			cv.put("photoUrl", newPoint.getPhotoUrl());
+		if (newPoint.getCategoryId() != -1)
+			cv.put("categoryId", newPoint.getCategoryId());
+
+		if (oldPoint == null) {
+			return db.insert("point", null, cv);
+		} else {
+			ContentValues updateCv = new ContentValues(1);
+			updateCv.put("pointId", oldPointId);
+
+			db.update("point", cv, "id=?", Utils.toArray(oldPointId));
+			db.insert("point_update", null, updateCv);
+
+			return oldPointId;
+		}
 	}
 
 	public long insertTrack(Track track) {
@@ -91,7 +108,7 @@ public class Database {
 	public void insertToTrack(Track track, Point point) {
 		long pointId = findPointId(point);
 		if (pointId == -1)
-			pointId = insertPoint(point);
+			pointId = insertPoint(point, null);
 
 		long trackId = findTrackId(track);
 		if (trackId == -1)
@@ -321,7 +338,11 @@ public class Database {
 
 	private static class Helper extends SQLiteOpenHelper {
 		public static final String DB_NAME = "tracksdb2";
-		public static final int DB_VERSION = 3; // published None
+		public static final int DB_VERSION = 2; // published None
+
+		public static final String CREATE_POINT_UPDATES_SQL = "CREATE TABLE point_update " +
+				"(pointId INTEGER," +
+				"FOREIGN KEY(pointId) REFERENCES point(id) ON DELETE CASCADE);";
 
 		public static final String CREATE_TRACKS_SQL = "CREATE TABLE track " +
 				"(id INTEGER PRIMARY KEY AUTOINCREMENT," +
@@ -369,6 +390,7 @@ public class Database {
 			db.execSQL(CREATE_POINTS_SQL);
 			db.execSQL(CREATE_TRACKS_SQL);
 			db.execSQL(CREATE_TRACK_POINTS_SQL);
+			db.execSQL(CREATE_POINT_UPDATES_SQL);
 		}
 
 		@Override

@@ -22,6 +22,7 @@ public class Point implements Parcelable {
 		public int longitude;
 		public int audioUrl;
 		public int photoUrl;
+		public int isPrivate;
 	}
 
 	private String name;
@@ -76,6 +77,7 @@ public class Point implements Parcelable {
 		audioUrl = point.audioUrl;
 		photoUrl = point.photoUrl;
 		categoryId = point.categoryId;
+		isPrivate = point.isPrivate;
 	}
 
 	public Point(String name, String description, String audioUrl, String photoUrl, int latE6, int lonE6) {
@@ -325,6 +327,7 @@ public class Point implements Parcelable {
 		cf.longitude = cursor.getColumnIndex("longitude");
 		cf.audioUrl = cursor.getColumnIndex("audioUrl");
 		cf.photoUrl = cursor.getColumnIndex("photoUrl");
+		cf.isPrivate = cursor.getColumnIndex("private");
 		return cf;
 	}
 }

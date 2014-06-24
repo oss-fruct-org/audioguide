@@ -54,8 +54,13 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 
 	@Override
 	public void insertPoint(Point point) {
-		database.insertPoint(point);
+		database.insertPoint(point, null);
 		notifyDataChanged();
+	}
+
+	@Override
+	public void updatePoint(Point newPoint, Point oldPoint) {
+		database.insertPoint(newPoint, oldPoint);
 	}
 
 	@Override
@@ -133,7 +138,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 				List<Point> points = backend.loadPointsInRadius(latitude, longitude, radius, activeCategories);
 
 				for (Point point : points) {
-					database.insertPoint(point);
+					database.insertPoint(point, null);
 				}
 
 				return points;

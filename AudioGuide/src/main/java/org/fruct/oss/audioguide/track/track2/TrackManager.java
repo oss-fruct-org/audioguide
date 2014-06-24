@@ -12,6 +12,8 @@ import java.util.List;
 public interface TrackManager {
 	void insertPoint(Point point);
 
+	void updatePoint(Point newPoint, Point oldPoint);
+
 	void insertTrack(Track track);
 
 	void insertToTrack(Track track, Point point);
@@ -23,6 +25,7 @@ public interface TrackManager {
 	void requestPointsInRadius(float latitude, float longitude, float radius, boolean autoStore);
 
 	void requestPointsInTrack(Track track);
+
 
 	void addListener(TrackListener listener);
 
