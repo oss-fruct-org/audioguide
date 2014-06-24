@@ -50,6 +50,7 @@ public class Database {
 		cv.put("description", point.getDescription());
 		cv.put("lat", point.getLatE6());
 		cv.put("lon", point.getLonE6());
+		cv.put("private", point.isPrivate());
 
 		if (point.hasAudio())
 			cv.put("audioUrl", point.getAudioUrl());
@@ -112,7 +113,7 @@ public class Database {
 
 	public Cursor loadPointsCursor(Track track) {
 		Cursor cursor = db.rawQuery(
-				"SELECT point.name, point.description, point.audioUrl, point.photoUrl, point.lat, point.lon, point.id AS _id " +
+				"SELECT point.name, point.description, point.audioUrl, point.photoUrl, point.lat, point.lon, point.private, point.id AS _id " +
 				"FROM point INNER JOIN tp " +
 				"ON tp.pointId=point.id " +
 				"WHERE tp.trackId IN (SELECT track.id FROM track WHERE track.name=?) " +
@@ -123,7 +124,7 @@ public class Database {
 
 	public Cursor loadPointsCursor() {
 		Cursor cursor = db.rawQuery(
-				"SELECT point.name, point.description, point.audioUrl, point.photoUrl, point.lat, point.lon, point.id AS _id " +
+				"SELECT point.name, point.description, point.audioUrl, point.photoUrl, point.lat, point.lon, point.private, point.id AS _id " +
 						"FROM point;", null);
 		return cursor;
 	}
@@ -320,7 +321,7 @@ public class Database {
 
 	private static class Helper extends SQLiteOpenHelper {
 		public static final String DB_NAME = "tracksdb2";
-		public static final int DB_VERSION = 2; // published None
+		public static final int DB_VERSION = 3; // published None
 
 		public static final String CREATE_TRACKS_SQL = "CREATE TABLE track " +
 				"(id INTEGER PRIMARY KEY AUTOINCREMENT," +
@@ -342,6 +343,7 @@ public class Database {
 				"audioUrl TEXT," +
 				"photoUrl TEXT," +
 				"categoryId INTEGER," +
+				"private INTEGER, " +
 
 				"FOREIGN KEY(categoryId) REFERENCES category(id));";
 

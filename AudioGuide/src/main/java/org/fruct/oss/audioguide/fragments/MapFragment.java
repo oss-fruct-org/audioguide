@@ -452,6 +452,7 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 			IGeoPoint mapCenter = mapView.getMapCenter();
 			point.setCoordinates(mapCenter.getLatitudeE6(), mapCenter.getLongitudeE6());
 
+			point.setPrivate(true);
 			trackManager.insertPoint(point);
 		}
 
@@ -472,34 +473,14 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 		public void pointPressed(Point point) {
 			log.debug("Simple point pressed");
 
-			/*DetailsOverlay detailsOverlay = new DetailsOverlay(getActivity(), mapView, point);
-			mapView.getOverlays().add(detailsOverlay);
-			mapView.invalidate();*/
-
-			/*View detailContainer = getActivity().findViewById(R.id.panel_details);
-			RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
-					getView().getMeasuredWidth() - Utils.getDP(24),
-					getView().getMeasuredHeight() - Utils.getDP(24));
-			params.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
-
-			detailContainer.setLayoutParams(params);*/
-
 			PointDetailFragment detailsFragment = PointDetailFragment.newInstance(point, true);
 			getActivity().getSupportFragmentManager().beginTransaction()
 					.replace(R.id.panel_details, detailsFragment, "details-fragment")
 					.commit();
-
-			//PointDetailFragment frag = PointDetailFragment.newInstance(point);
-			//multiPanel.replaceFragment(frag, MapFragment.this);
 		}
 
 		@Override
 		public void pointLongPressed(final Point point) {
-			//Toast.makeText(getActivity(), "Long press detected", Toast.LENGTH_SHORT).show();
-			/*EditPointDialog dialog = EditPointDialog.newInstance(point);
-			dialog.setListener(editDialogListener);
-			dialog.show(getFragmentManager(), "edit-track-dialog");*/
-
 			PopupMenu menu = new PopupMenu(getActivity(), getView().findViewById(R.id.map_anchor));
 			final MenuItem item = menu.getMenu().add("Add to track");
 			menu.show();

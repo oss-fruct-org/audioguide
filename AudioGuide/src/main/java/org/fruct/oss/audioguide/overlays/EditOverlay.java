@@ -318,7 +318,9 @@ public class EditOverlay extends Overlay implements Closeable {
 			draggingItem = null;
 			mapView.invalidate();
 			return false;
-		} else if (event.getAction() == MotionEvent.ACTION_MOVE && draggingItem != null) {
+		} else if (event.getAction() == MotionEvent.ACTION_MOVE
+				&& draggingItem != null
+				&& draggingItem.data.isPrivate()) {
 			final int dx = dragStartX - (int) event.getX();
 			final int dy = dragStartY - (int) event.getY();
 

@@ -33,6 +33,8 @@ public class Point implements Parcelable {
 	private String audioUrl;
 	private String photoUrl;
 
+	private boolean isPrivate;
+
 	private long categoryId = -1;
 
 	public void setCoordinates(int latE6, int lonE6) {
@@ -63,6 +65,7 @@ public class Point implements Parcelable {
 	public Point(Cursor cursor) {
 		this(cursor.getString(0), cursor.getString(1), cursor.getString(2),
 				cursor.getString(3), cursor.getInt(4), cursor.getInt(5));
+		setPrivate(cursor.getInt(6) != 0);
 	}
 
 	public Point(Point point) {
@@ -117,6 +120,10 @@ public class Point implements Parcelable {
 		return categoryId;
 	}
 
+	public boolean isPrivate() {
+		return isPrivate;
+	}
+
 
 	public void setName(String name) {
 		this.name = name;
@@ -138,6 +145,9 @@ public class Point implements Parcelable {
 		this.categoryId = categoryId;
 	}
 
+	public void setPrivate(boolean isPrivate) {
+		this.isPrivate = isPrivate;
+	}
 
 	public int getLatE6() {
 		cachedLocation = null; // TODO: ???
@@ -215,6 +225,8 @@ public class Point implements Parcelable {
 
 		parcel.writeString(photoUrl);
 		parcel.writeLong(categoryId);
+
+		parcel.writeInt(isPrivate ? 1 : 0);
 	}
 
 	public static final Creator<Point> CREATOR = new Creator<Point>() {
@@ -230,6 +242,7 @@ public class Point implements Parcelable {
 
 			Point point = new Point(name, desc, audioUrl, photoUrl, latE6, lonE6);
 			point.setCategoryId(parcel.readLong());
+			point.setPrivate(parcel.readInt() != 0);
 			return point;
 		}
 
