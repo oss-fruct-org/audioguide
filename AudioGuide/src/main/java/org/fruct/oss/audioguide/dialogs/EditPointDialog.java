@@ -1,4 +1,4 @@
-package org.fruct.oss.audioguide.fragments.edit;
+package org.fruct.oss.audioguide.dialogs;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -16,11 +16,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import org.fruct.oss.audioguide.CategoriesDialog;
 import org.fruct.oss.audioguide.FileChooserActivity;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.fragments.FileManagerFragment;
-import org.fruct.oss.audioguide.fragments.UploadFragment;
 import org.fruct.oss.audioguide.gets.Category;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.util.AUtils;

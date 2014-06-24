@@ -2,11 +2,9 @@ package org.fruct.oss.audioguide.fragments;
 
 import android.app.Activity;
 import android.content.SharedPreferences;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,18 +16,13 @@ import com.android.internal.util.Predicate;
 
 import org.fruct.oss.audioguide.MultiPanel;
 import org.fruct.oss.audioguide.R;
-import org.fruct.oss.audioguide.WebViewDialog;
+import org.fruct.oss.audioguide.dialogs.WebViewDialog;
 import org.fruct.oss.audioguide.gets.Gets;
 import org.fruct.oss.audioguide.gets.LoginStage1Request;
 import org.fruct.oss.audioguide.gets.LoginStage2Request;
 import org.fruct.oss.audioguide.parsers.AuthRedirectResponse;
-import org.fruct.oss.audioguide.parsers.GetsException;
 import org.fruct.oss.audioguide.parsers.GetsResponse;
-import org.fruct.oss.audioguide.parsers.TokenContent;
 import org.fruct.oss.audioguide.track.GetsStorage;
-import org.fruct.oss.audioguide.util.Utils;
-
-import java.io.IOException;
 
 public class GetsFragment extends Fragment implements WebViewDialog.Listener, SharedPreferences.OnSharedPreferenceChangeListener {
 	private MultiPanel multiPanel;

@@ -1,4 +1,4 @@
-package org.fruct.oss.audioguide.fragments.edit;
+package org.fruct.oss.audioguide.dialogs;
 
 import org.fruct.oss.audioguide.track.Point;
 

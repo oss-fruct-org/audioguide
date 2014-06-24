@@ -1,4 +1,4 @@
-package org.fruct.oss.audioguide;
+package org.fruct.oss.audioguide.dialogs;
 
 
 import android.app.AlertDialog;

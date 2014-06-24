@@ -18,7 +18,7 @@ import android.widget.ListView;
 import org.fruct.oss.audioguide.MultiPanel;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.adapters.TrackCursorAdapter;
-import org.fruct.oss.audioguide.fragments.edit.EditTrackDialog;
+import org.fruct.oss.audioguide.dialogs.EditTrackDialog;
 import org.fruct.oss.audioguide.track.Track;
 import org.fruct.oss.audioguide.track.track2.CursorHolder;
 import org.fruct.oss.audioguide.track.track2.DefaultTrackManager;
