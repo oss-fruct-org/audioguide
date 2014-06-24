@@ -31,6 +31,9 @@ public interface TrackManager {
 
 	CursorHolder loadTracks();
 
+	CursorHolder loadPrivateTracks();
+
+
 	CursorHolder loadLocalPoints();
 
 	CursorHolder loadPoints(Track track);

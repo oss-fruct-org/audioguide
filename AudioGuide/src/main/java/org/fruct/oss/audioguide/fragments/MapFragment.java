@@ -35,6 +35,7 @@ import android.widget.Toast;
 import org.fruct.oss.audioguide.MultiPanel;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.dialogs.EditPointDialog;
+import org.fruct.oss.audioguide.dialogs.SelectTrackDialog;
 import org.fruct.oss.audioguide.models.Model;
 import org.fruct.oss.audioguide.overlays.EditOverlay;
 import org.fruct.oss.audioguide.overlays.MyPositionOverlay;
@@ -434,6 +435,14 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 		}
 	}
 
+	private SelectTrackDialog.Listener addPointToTrackListener = new SelectTrackDialog.Listener() {
+		@Override
+		public void trackSelected(Track track) {
+			trackManager.insertToTrack(track, selectedPoint);
+			selectedPoint = null;
+		}
+	};
+
 	private EditPointDialog.Listener editDialogListener = new EditPointDialog.Listener() {
 		@Override
 		public void pointCreated(Point point) {
@@ -484,16 +493,30 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 		}
 
 		@Override
-		public void pointLongPressed(Point point) {
+		public void pointLongPressed(final Point point) {
 			//Toast.makeText(getActivity(), "Long press detected", Toast.LENGTH_SHORT).show();
 			/*EditPointDialog dialog = EditPointDialog.newInstance(point);
 			dialog.setListener(editDialogListener);
 			dialog.show(getFragmentManager(), "edit-track-dialog");*/
 
-
 			PopupMenu menu = new PopupMenu(getActivity(), getView().findViewById(R.id.map_anchor));
-			menu.getMenu().add("Add to track");
+			final MenuItem item = menu.getMenu().add("Add to track");
 			menu.show();
+
+			menu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+				@Override
+				public boolean onMenuItemClick(MenuItem menuItem) {
+					if (menuItem == item) {
+						SelectTrackDialog dialog = SelectTrackDialog.newInstance();
+						dialog.setListener(addPointToTrackListener);
+						selectedPoint = point;
+						dialog.show(getFragmentManager(), "select-track-dialog");
+						return true;
+					}
+
+					return false;
+				}
+			});
 		}
 	};
 

@@ -137,6 +137,14 @@ public class Database {
 		return cursor;
 	}
 
+	public Cursor loadPrivateTracks() {
+		Cursor cursor = db.rawQuery("SELECT track.name, track.description, track.url, track.local, track.categoryId, track.private, track.id AS _id " +
+				"FROM track " +
+				"WHERE track.private = 1;", null);
+		return cursor;
+
+	}
+
 	public List<Point> loadPoints(Track track) {
 		List<Point> points = new ArrayList<Point>();
 

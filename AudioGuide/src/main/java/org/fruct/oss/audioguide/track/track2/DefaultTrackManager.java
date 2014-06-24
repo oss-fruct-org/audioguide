@@ -67,6 +67,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	@Override
 	public void insertToTrack(Track track, Point point) {
 		database.insertToTrack(track, point);
+		notifyDataChanged();
 	}
 
 	@Override
@@ -188,6 +189,20 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 			@Override
 			protected Cursor doQuery() {
 				return database.loadTracksCursor();
+			}
+		};
+
+		addCursorHolder(cursorHolder);
+		cursorHolder.queryAsync();
+		return cursorHolder;
+	}
+
+	@Override
+	public CursorHolder loadPrivateTracks() {
+		CursorHolder cursorHolder = new CursorHolder() {
+			@Override
+			protected Cursor doQuery() {
+				return database.loadPrivateTracks();
 			}
 		};
 
