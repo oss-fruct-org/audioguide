@@ -17,12 +17,12 @@ import java.util.List;
 
 public class LoadTracksRequest extends GetsRequest {
 	private final Location location;
-	private final int radius;
+	private final float radius;
 
 	private List<Category> categories;
 	private List<Track> loadedTracks = new ArrayList<Track>();
 
-	public LoadTracksRequest(Gets gets, Location location, int radius) {
+	public LoadTracksRequest(Gets gets, Location location, float radius) {
 		super(gets);
 
 		this.location = location;

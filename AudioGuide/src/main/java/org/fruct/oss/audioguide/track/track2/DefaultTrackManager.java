@@ -2,7 +2,7 @@ package org.fruct.oss.audioguide.track.track2;
 
 import android.content.Context;
 import android.database.Cursor;
-import android.os.AsyncTask;
+import android.location.Location;
 
 import org.fruct.oss.audioguide.App;
 import org.fruct.oss.audioguide.gets.Category;
@@ -43,6 +43,9 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	private final List<CursorHolder> cursorHolders = new ArrayList<CursorHolder>();
 
 	private final SynchronizerThread synchronizer;
+
+	private Location location = new Location("no-provider");
+	private float radius;
 
 	public DefaultTrackManager(Context context, StorageBackend backend, CategoriesBackend catBackend) {
 		this.categoriesBackend = catBackend;
@@ -98,18 +101,13 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 					database.insertToTrack(track, point);
 				}
 				notifyDataChanged();
-
 			}
 		});
 	}
 
 	@Override
-	public void requestTracksInRadius(final float latitude, final float longitude, float radius) {
-		lastLat = latitude;
-		lastLon = longitude;
-		lastRadius = radius;
-
-		backend.loadTracksInRadius(latitude, longitude, radius, activeCategories, new Utils.Callback<List<Track>>() {
+	public void requestTracksInRadius() {
+		backend.loadTracksInRadius((float) location.getLatitude(), (float) location.getLongitude(), radius, activeCategories, new Utils.Callback<List<Track>>() {
 			@Override
 			public void call(List<Track> tracks) {
 				for (Track track : tracks) {
@@ -238,6 +236,16 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	}
 
 	@Override
+	public void updateUserLocation(Location location) {
+		this.location = location;
+	}
+
+	@Override
+	public void updateLoadRadius(float radius) {
+		this.radius = radius;
+	}
+
+	@Override
 	public Model<Track> getLocalTracksModel() {
 		return localTrackModel;
 	}
@@ -281,7 +289,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 		}
 
 		activeCategories = database.getActiveCategories();
-		requestTracksInRadius(lastLat, lastLon, lastRadius);
+		requestTracksInRadius();
 	}
 
 	private void loadRemoteCategories() {
@@ -291,7 +299,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 				DefaultTrackManager.this.categories = categories;
 				database.updateCategories(categories);
 				activeCategories = database.getActiveCategories();
-				requestTracksInRadius(lastLat, lastLon, lastRadius);
+				requestTracksInRadius();
 
 			}
 		});

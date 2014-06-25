@@ -36,6 +36,7 @@ public class CreateTrackRequest extends GetsRequest {
 				serializer.startTag(null, "hname").text(track.getHname()).endTag(null, "hname");
 			serializer.startTag(null, "description").text(track.getDescription()).endTag(null, "description")
 					.startTag(null, "url").text(track.getUrl()).endTag(null, "url")
+					.startTag(null, "category_id").text(String.valueOf(track.getCategoryId())).endTag(null, "category_id")
 					.endTag(null, "params").endTag(null, "request").endDocument();
 			serializer.flush();
 

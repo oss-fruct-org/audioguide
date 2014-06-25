@@ -1,17 +1,26 @@
 package org.fruct.oss.audioguide.track.track2;
 
+import android.location.Location;
+import android.os.Bundle;
+import android.os.Message;
+
 import org.fruct.oss.audioguide.gets.AddPointRequest;
 import org.fruct.oss.audioguide.gets.CategoriesRequest;
 import org.fruct.oss.audioguide.gets.Category;
 import org.fruct.oss.audioguide.gets.CreateTrackRequest;
 import org.fruct.oss.audioguide.gets.DeleteTrackRequest;
 import org.fruct.oss.audioguide.gets.Gets;
+import org.fruct.oss.audioguide.gets.LoadTrackRequest;
+import org.fruct.oss.audioguide.gets.LoadTracksRequest;
 import org.fruct.oss.audioguide.parsers.CategoriesContent;
 import org.fruct.oss.audioguide.parsers.GetsResponse;
+import org.fruct.oss.audioguide.parsers.Kml;
+import org.fruct.oss.audioguide.parsers.TracksContent;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.Track;
 import org.fruct.oss.audioguide.util.Utils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
@@ -91,7 +100,25 @@ public class GetsBackend implements StorageBackend, CategoriesBackend {
 	}
 
 	@Override
-	public void loadTracksInRadius(float lat, float lon, float radius, List<Category> categories, Utils.Callback<List<Track>> callback) {
+	public void loadTracksInRadius(float lat, float lon, float radius, List<Category> categories, final Utils.Callback<List<Track>> callback) {
+		Location location = new Location("no-provider");
+		location.setLatitude(lat);
+		location.setLongitude(lon);
+
+		gets.addRequest(new LoadTracksRequest(gets, location, radius) {
+			@Override
+			protected void onPostProcess(GetsResponse response) {
+				super.onPostProcess(response);
+
+				if (response.getCode() != 0) {
+					return;
+				}
+
+				TracksContent tracksContent = ((TracksContent) response.getContent());
+				List<Track> loadedTracks = new ArrayList<Track>(tracksContent.getTracks());
+				callback.call(loadedTracks);
+			}
+		});
 	}
 
 	@Override
@@ -99,7 +126,21 @@ public class GetsBackend implements StorageBackend, CategoriesBackend {
 	}
 
 	@Override
-	public void loadPointsInTrack(Track track, Utils.Callback<List<Point>> callback) {
+	public void loadPointsInTrack(Track track, final Utils.Callback<List<Point>> callback) {
+		gets.addRequest(new LoadTrackRequest(gets, track.getName()) {
+			@Override
+			protected void onPostProcess(GetsResponse response) {
+				super.onPostProcess(response);
+
+				if (response.getCode() != 0) {
+					return;
+				}
+
+				Kml kml = ((Kml) response.getContent());
+				ArrayList<Point> ret = new ArrayList<Point>(kml.getPoints());
+				callback.call(ret);
+			}
+		});
 	}
 
 

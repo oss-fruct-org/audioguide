@@ -63,7 +63,7 @@ public class TracksContent implements IContent {
 				continue;
 
 			String tagName = parser.getName();
-			if (tagName.equals("categoryId")) {
+			if (tagName.equals("category_id")) {
 				categoryId = Long.parseLong(GetsResponse.readText(parser));
 			} else if (tagName.equals("access")) {
 				access = GetsResponse.readText(parser);

@@ -1,6 +1,7 @@
 package org.fruct.oss.audioguide.track.track2;
 
 import android.database.Cursor;
+import android.location.Location;
 
 import org.fruct.oss.audioguide.gets.Category;
 import org.fruct.oss.audioguide.models.Model;
@@ -20,7 +21,7 @@ public interface TrackManager {
 
 	void storeTrackLocal(Track track);
 
-	void requestTracksInRadius(float latitude, float longitude, float radius);
+	void requestTracksInRadius();
 
 	void requestPointsInRadius(float latitude, float longitude, float radius, boolean autoStore);
 
@@ -43,6 +44,10 @@ public interface TrackManager {
 
 	CursorHolder loadRelations();
 
+
+	void updateUserLocation(Location location);
+
+	void updateLoadRadius(float radius);
 
 
 	Model<Track> getLocalTracksModel();

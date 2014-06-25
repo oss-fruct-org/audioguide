@@ -382,8 +382,8 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 		intent.putExtra(ARG_LOCATION, location);
 
 		LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
-		//TrackManager2.getInstance().updateUserLocation(location);
-		//TrackManager2.getInstance().updateLoadRadius(pref.getInt(SettingsActivity.PREF_LOAD_RADIUS, 1000));
+		DefaultTrackManager.getInstance().updateUserLocation(location);
+		DefaultTrackManager.getInstance().updateLoadRadius(pref.getInt(SettingsActivity.PREF_LOAD_RADIUS, 1000));
 	}
 
 	public void sendLastLocation() {
