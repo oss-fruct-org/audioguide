@@ -41,6 +41,25 @@ public class Database {
 		}
 	}
 
+	public void markPointUpdate(Point point) {
+		long pointId = findPointId(point);
+		ContentValues updateCv = new ContentValues(1);
+		updateCv.put("pointId", pointId);
+		db.insert("point_update", null, updateCv);
+	}
+
+	public void markTrackUpdate(Track track) {
+		long trackId = findTrackId(track);
+		ContentValues updateCv = new ContentValues(1);
+		updateCv.put("trackId", trackId);
+		db.insert("track_update", null, updateCv);
+	}
+
+	public void clearUpdates() {
+		db.execSQL("delete from track_update;");
+		db.execSQL("delete from point_update;");
+	}
+
 	public long insertPoint(Point newPoint, Point oldPoint) {
 		if (oldPoint == null && findPointId(newPoint) != -1)
 			return -1;
@@ -69,18 +88,14 @@ public class Database {
 		if (oldPoint == null) {
 			return db.insert("point", null, cv);
 		} else {
-			ContentValues updateCv = new ContentValues(1);
-			updateCv.put("pointId", oldPointId);
-
 			db.update("point", cv, "id=?", Utils.toArray(oldPointId));
-			db.insert("point_update", null, updateCv);
 
 			return oldPointId;
 		}
 	}
 
 	public long insertTrack(Track track) {
-		ContentValues cv = new ContentValues();
+		ContentValues cv = new ContentValues(8);
 		cv.put("name", track.getName());
 		cv.put("description", track.getDescription());
 		cv.put("hname", track.getHname());
@@ -163,6 +178,22 @@ public class Database {
 
 	}
 
+	public Cursor loadUpdatedTracks() {
+		Cursor cursor = db.rawQuery("SELECT track.name, track.description, track.url, track.local, track.categoryId, track.private, track.id AS _id " +
+				"FROM track INNER JOIN track_update " +
+				"ON track.id = track_update.trackId " +
+				"GROUP BY track.id", null);
+		return cursor;
+	}
+
+	public Cursor loadUpdatedPoints() {
+		Cursor cursor = db.rawQuery("SELECT point.name, point.description, point.audioUrl, point.photoUrl, point.lat, point.lon, point.private, point.id AS _id " +
+				"FROM point INNER JOIN point_update " +
+				"ON point.id = point_update.pointId " +
+				"GROUP BY point.id;", null);
+		return cursor;
+	}
+
 	public List<Point> loadPoints(Track track) {
 		List<Point> points = new ArrayList<Point>();
 
@@ -171,45 +202,6 @@ public class Database {
 				"ON tp.pointId=point.id " +
 				"WHERE tp.trackId IN (SELECT track.id FROM track WHERE track.name=?) " +
 				"ORDER BY tp.idx;", Utils.toArray(track.getName()));
-
-		while (cursor.moveToNext()) {
-			Point point = new Point(cursor.getString(0), cursor.getString(1), cursor.getString(2),
-					cursor.getString(3), cursor.getInt(4), cursor.getInt(5));
-			points.add(point);
-		}
-
-		cursor.close();
-
-		return points;
-	}
-
-	public List<Point> loadPoints(Category category) {
-		List<Point> points = new ArrayList<Point>();
-
-		Cursor cursor = db.rawQuery("SELECT point.name, point.description, point.audioUrl, point.photoUrl, point.lat, point.lon " +
-				"FROM point INNER JOIN category " +
-				"ON category.id = point.categoryId;",
-				Utils.toArray(category.getId()));
-
-
-		while (cursor.moveToNext()) {
-			Point point = new Point(cursor.getString(0), cursor.getString(1), cursor.getString(2),
-					cursor.getString(3), cursor.getInt(4), cursor.getInt(5));
-			points.add(point);
-		}
-
-		cursor.close();
-
-		return points;
-	}
-
-	public List<Point> loadPoints() {
-		List<Point> points = new ArrayList<Point>();
-
-		Cursor cursor = db.rawQuery("SELECT point.name, point.description," +
-				" point.audioUrl, point.photoUrl, point.lat, point.lon " +
-						"FROM point;", null);
-
 
 		while (cursor.moveToNext()) {
 			Point point = new Point(cursor.getString(0), cursor.getString(1), cursor.getString(2),
@@ -338,11 +330,15 @@ public class Database {
 
 	private static class Helper extends SQLiteOpenHelper {
 		public static final String DB_NAME = "tracksdb2";
-		public static final int DB_VERSION = 2; // published None
+		public static final int DB_VERSION = 5; // published None
 
 		public static final String CREATE_POINT_UPDATES_SQL = "CREATE TABLE point_update " +
 				"(pointId INTEGER," +
 				"FOREIGN KEY(pointId) REFERENCES point(id) ON DELETE CASCADE);";
+
+		public static final String CREATE_TRACK_UPDATES_SQL = "CREATE TABLE track_update " +
+				"(trackId INTEGER," +
+				"FOREIGN KEY(trackId) REFERENCES track(id) ON DELETE CASCADE);";
 
 		public static final String CREATE_TRACKS_SQL = "CREATE TABLE track " +
 				"(id INTEGER PRIMARY KEY AUTOINCREMENT," +
@@ -391,6 +387,7 @@ public class Database {
 			db.execSQL(CREATE_TRACKS_SQL);
 			db.execSQL(CREATE_TRACK_POINTS_SQL);
 			db.execSQL(CREATE_POINT_UPDATES_SQL);
+			db.execSQL(CREATE_TRACK_UPDATES_SQL);
 		}
 
 		@Override
@@ -409,6 +406,8 @@ public class Database {
 				db.execSQL("drop table track");
 				db.execSQL("drop table tp");
 				db.execSQL("drop table point");
+				db.execSQL("drop table point_update");
+				db.execSQL("drop table track_update");
 				onCreate(db);
 			}
 		}

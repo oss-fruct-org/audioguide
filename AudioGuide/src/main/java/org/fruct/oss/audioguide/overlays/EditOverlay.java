@@ -386,7 +386,6 @@ private void checkDistance(MapView mapView, android.graphics.Point p) {
 			Cursor oldCursor = currentPointsCursor;
 			currentPointsCursor = cursor;
 
-			//points.clear();
 			items.clear();
 			Point.CursorFields cf = Point.getCursorFields(cursor);
 
@@ -437,7 +436,6 @@ private void checkDistance(MapView mapView, android.graphics.Point p) {
 		Point data;
 		GeoPoint geoPoint;
 		Bitmap iconBitmap;
-
 
 		@Override
 		public boolean equals(Object o) {

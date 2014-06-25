@@ -41,37 +41,46 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	private final List<TrackListener> listeners = new ArrayList<TrackListener>();
 	private final List<CursorHolder> cursorHolders = new ArrayList<CursorHolder>();
 
+	private final SynchronizerThread synchronizer;
+
 	public DefaultTrackManager(Context context, StorageBackend backend, CategoriesBackend catBackend) {
 		this.categoriesBackend = catBackend;
 		this.backend = backend;
 		database = new Database(context);
+		synchronizer = new SynchronizerThread(database, backend);
+		synchronizer.start();
 	}
 
 	@Override
 	public void close() {
 		database.close();
+		synchronizer.interrupt();
 	}
 
 	@Override
 	public void insertPoint(Point point) {
 		database.insertPoint(point, null);
+		database.markPointUpdate(point);
 		notifyDataChanged();
 	}
 
 	@Override
 	public void updatePoint(Point newPoint, Point oldPoint) {
 		database.insertPoint(newPoint, oldPoint);
+		database.markPointUpdate(newPoint);
 	}
 
 	@Override
 	public void insertTrack(Track track) {
 		database.insertTrack(track);
+		database.markTrackUpdate(track);
 		notifyDataChanged();
 	}
 
 	@Override
 	public void insertToTrack(Track track, Point point) {
 		database.insertToTrack(track, point);
+		database.markTrackUpdate(track);
 		notifyDataChanged();
 	}
 
@@ -260,28 +269,8 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	}
 
 	@Override
-	public Model<Track> getTracksModel() {
-		return tracksModel;
-	}
-
-	@Override
 	public Model<Track> getLocalTracksModel() {
 		return localTrackModel;
-	}
-
-	@Override
-	public Model<Track> getRemoteTracksModel() {
-		return remoteTrackModel;
-	}
-
-	@Override
-	public Model<Point> getRemotePointsModel() {
-		return remotePointModel;
-	}
-
-	@Override
-	public Model<Point> getPointsModel() {
-		return localPointModel;
 	}
 
 	@Override
@@ -298,11 +287,6 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 		}
 
 		return pointModel;
-	}
-
-	@Override
-	public Model<Point> getCategoryPointsModel(Category category) {
-		return null;
 	}
 
 	@Override

@@ -44,21 +44,10 @@ public interface TrackManager {
 	CursorHolder loadRelations();
 
 
-	// Accessors
-	Model<Track> getTracksModel();
 
 	Model<Track> getLocalTracksModel();
 
-	Model<Track> getRemoteTracksModel();
-
-	Model<Point> getRemotePointsModel();
-
-
-	Model<Point> getPointsModel();
-
 	Model<Point> getTrackPointsModel(Track category);
-
-	Model<Point> getCategoryPointsModel(Category track);
 
 	List<Category> getCategories();
 
