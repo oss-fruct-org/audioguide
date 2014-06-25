@@ -3,15 +3,16 @@ package org.fruct.oss.audioguide.track.track2;
 import org.fruct.oss.audioguide.gets.Category;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.Track;
+import org.fruct.oss.audioguide.util.Utils;
 
 import java.util.List;
 
 public interface StorageBackend {
 	void updateTrack(Track track, List<Point> points);
 
-	List<Track> loadTracksInRadius(float lat, float lon, float radius, List<Category> categories);
+	void loadTracksInRadius(float lat, float lon, float radius, List<Category> categories, Utils.Callback<List<Track>> callback);
 
-	List<Point> loadPointsInRadius(float lat, float lon, float radius, List<Category> activeCategories);
+	void loadPointsInRadius(float lat, float lon, float radius, List<Category> activeCategories, Utils.Callback<List<Point>> callback);
 
-	List<Point> loadPointsInTrack(Track track);
+	void loadPointsInTrack(Track track, Utils.Callback<List<Point>> callback);
 }

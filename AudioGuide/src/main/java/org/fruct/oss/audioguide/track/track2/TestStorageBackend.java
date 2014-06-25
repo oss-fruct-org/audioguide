@@ -35,7 +35,8 @@ public class TestStorageBackend implements StorageBackend, CategoriesBackend {
 	}
 
 	@Override
-	public List<Track> loadTracksInRadius(float lat, float lon, float radius, final List<Category> activeCategories) {
+	public void loadTracksInRadius(float lat, float lon, float radius,
+										  final List<Category> activeCategories, Utils.Callback<List<Track>> callback) {
 		checkEnabled();
 
 		List<Track> tracksInRadius = new ArrayList<Track>();
@@ -55,7 +56,7 @@ public class TestStorageBackend implements StorageBackend, CategoriesBackend {
 			}
 		}
 
-		return tracksInRadius;
+		callback.call(tracksInRadius);
 	}
 
 	private boolean checkTrackCategoryIsActive(Track track, List<Category> activeCategories) {
@@ -75,7 +76,7 @@ public class TestStorageBackend implements StorageBackend, CategoriesBackend {
 	}
 
 	@Override
-	public List<Point> loadPointsInRadius(float lat, float lon, float radius, List<Category> activeCategories) {
+	public void loadPointsInRadius(float lat, float lon, float radius, List<Category> activeCategories, Utils.Callback<List<Point>> callback) {
 		checkEnabled();
 
 		List<Point> pointsInRadius = new ArrayList<Point>();
@@ -94,27 +95,27 @@ public class TestStorageBackend implements StorageBackend, CategoriesBackend {
 			}
 		}
 
-		return pointsInRadius;
+		callback.call(pointsInRadius);
 	}
 
 	@Override
-	public List<Point> loadPointsInTrack(Track track) {
+	public void loadPointsInTrack(Track track, Utils.Callback<List<Point>> callback) {
 		checkEnabled();
 		List<Point> list = storage.get(track);
 		if (list == null)
-			return null;
+			return;
 
-		return Utils.map(storage.get(track), new Utils.Function<Point, Point>() {
+		callback.call(Utils.map(storage.get(track), new Utils.Function<Point, Point>() {
 			@Override
 			public Point apply(Point point) {
 				return new Point(point);
 			}
-		});
+		}));
 	}
 
 	@Override
-	public List<Category> loadCategories() {
-		return categories;
+	public void loadCategories(Utils.Callback<List<Category>> callback) {
+		callback.call(categories);
 	}
 
 	public void disable() {

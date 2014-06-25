@@ -54,6 +54,12 @@ public class Gets implements Runnable {
 		Thread thread = new Thread(this);
 		thread.setDaemon(true);
 		thread.start();
+
+		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
+		String token = pref.getString(GetsStorage.PREF_AUTH_TOKEN, null);
+		if (token != null) {
+			setEnv("token", token);
+		}
 	}
 
 	public void addRequest(GetsRequest request) {

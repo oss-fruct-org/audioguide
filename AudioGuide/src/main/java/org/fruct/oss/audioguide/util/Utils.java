@@ -73,6 +73,10 @@ public class Utils {
 		public double apply(double x);
 	}
 
+	public static interface Callback<T> {
+		void call(T t);
+	}
+
 	public static float normalizeAngle(float degree) {
 		return (float) (StrictMath.IEEEremainder(degree, 360));
 	}

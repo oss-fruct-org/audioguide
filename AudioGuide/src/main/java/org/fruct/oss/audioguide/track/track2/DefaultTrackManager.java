@@ -10,6 +10,7 @@ import org.fruct.oss.audioguide.models.BaseModel;
 import org.fruct.oss.audioguide.models.Model;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.Track;
+import org.fruct.oss.audioguide.util.Utils;
 
 import java.io.Closeable;
 import java.lang.ref.Reference;
@@ -49,6 +50,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 		database = new Database(context);
 		synchronizer = new SynchronizerThread(database, backend);
 		synchronizer.start();
+		synchronizer.initializeHandler();
 	}
 
 	@Override
@@ -86,27 +88,19 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 
 	@Override
 	public void storeTrackLocal(final Track track) {
-		new AsyncTask<Void, Void, List<Point>>() {
+		backend.loadPointsInTrack(track, new Utils.Callback<List<Point>>() {
 			@Override
-			protected List<Point> doInBackground(Void... voids) {
-				List<Point> points = backend.loadPointsInTrack(track);
-
+			public void call(List<Point> points) {
 				track.setLocal(true);
 				database.insertTrack(track);
 
 				for (Point point : points) {
 					database.insertToTrack(track, point);
 				}
-				return points;
-			}
-
-			@Override
-			protected void onPostExecute(List<Point> points) {
 				notifyDataChanged();
-				//refreshTracksModel();
-				//refreshPointsModel();
+
 			}
-		}.execute();
+		});
 	}
 
 	@Override
@@ -114,25 +108,18 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 		lastLat = latitude;
 		lastLon = longitude;
 		lastRadius = radius;
-		new AsyncTask<Float, Void, List<Track>>() {
-			@Override
-			protected List<Track> doInBackground(Float... floats) {
-				float radius = floats[0];
-				List<Track> tracks = backend.loadTracksInRadius(latitude, longitude, radius, activeCategories);
 
+		backend.loadTracksInRadius(latitude, longitude, radius, activeCategories, new Utils.Callback<List<Track>>() {
+			@Override
+			public void call(List<Track> tracks) {
 				for (Track track : tracks) {
 					track.setLocal(false);
 					database.insertTrack(track);
 				}
 
-				return tracks;
-			}
-
-			@Override
-			protected void onPostExecute(List<Track> tracks) {
 				notifyDataChanged();
 			}
-		}.execute(radius);
+		});
 	}
 
 	@Override
@@ -140,51 +127,33 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 		lastLat = latitude;
 		lastLon = longitude;
 		lastRadius = radius;
-		new AsyncTask<Float, Void, List<Point>>() {
+		backend.loadPointsInRadius(latitude, longitude, radius, activeCategories, new Utils.Callback<List<Point>>() {
 			@Override
-			protected List<Point> doInBackground(Float... floats) {
-				float radius = floats[0];
-				List<Point> points = backend.loadPointsInRadius(latitude, longitude, radius, activeCategories);
-
+			public void call(List<Point> points) {
 				for (Point point : points) {
 					database.insertPoint(point, null);
 				}
 
-				return points;
-			}
-
-			@Override
-			protected void onPostExecute(List<Point> tracks) {
 				notifyDataChanged();
 			}
-		}.execute(radius);
+		});
 	}
 
 	@Override
-	public void requestPointsInTrack(Track track) {
-		AsyncTask<Track, Void, List<Point>> at = new AsyncTask<Track, Void, List<Point>>() {
+	public void requestPointsInTrack(final Track track) {
+		backend.loadPointsInTrack(track, new Utils.Callback<List<Point>>() {
 			@Override
-			protected List<Point> doInBackground(Track... tracks) {
-				List<Point> points = backend.loadPointsInTrack(tracks[0]);
-
+			public void call(List<Point> points) {
 				if (points == null)
-					return null;
+					return;
 
 				for (Point point : points) {
-					database.insertToTrack(tracks[0], point);
+					database.insertToTrack(track, point);
 				}
 
-				return points;
+				notifyDataChanged();
 			}
-
-			@Override
-			protected void onPostExecute(List<Point> points) {
-				if (points != null) {
-					notifyDataChanged();
-				}
-			}
-		};
-		at.execute(track);
+		});
 	}
 
 	@Override
@@ -316,20 +285,16 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	}
 
 	private void loadRemoteCategories() {
-		new AsyncTask<Void, Void, List<Category>>() {
+		categoriesBackend.loadCategories(new Utils.Callback<List<Category>>() {
 			@Override
-			protected List<Category> doInBackground(Void... voids) {
-				return categoriesBackend.loadCategories();
-			}
-
-			@Override
-			protected void onPostExecute(List<Category> loadedCategories) {
-				categories = loadedCategories;
+			public void call(List<Category> categories) {
+				DefaultTrackManager.this.categories = categories;
 				database.updateCategories(categories);
 				activeCategories = database.getActiveCategories();
 				requestTracksInRadius(lastLat, lastLon, lastRadius);
+
 			}
-		}.execute();
+		});
 	}
 
 	private void notifyDataChanged() {
@@ -363,7 +328,8 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	public synchronized static TrackManager getInstance() {
 		if (instance == null) {
 			TestStorageBackend storage = createTestBackend();
-			instance = new DefaultTrackManager(App.getContext(), storage, storage);
+			GetsBackend backend = new GetsBackend();
+			instance = new DefaultTrackManager(App.getContext(), backend, backend);
 			instance.getCategories();
 		}
 
