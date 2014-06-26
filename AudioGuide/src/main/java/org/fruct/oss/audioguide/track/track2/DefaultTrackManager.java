@@ -84,6 +84,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 
 	@Override
 	public void insertToTrack(Track track, Point point) {
+		point.setCategoryId(track.getCategoryId());
 		database.insertToTrack(track, point);
 		database.markTrackUpdate(track);
 		notifyDataChanged();
@@ -99,6 +100,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 
 				for (Point point : points) {
 					point.setPrivate(track.isPrivate());
+					point.setCategoryId(track.getCategoryId());
 					database.insertToTrack(track, point);
 				}
 				notifyDataChanged();

@@ -67,6 +67,10 @@ public class Point implements Parcelable {
 		this(cursor.getString(0), cursor.getString(1), cursor.getString(2),
 				cursor.getString(3), cursor.getInt(4), cursor.getInt(5));
 		setPrivate(cursor.getInt(6) != 0);
+
+		if (!cursor.isNull(7)) {
+			setCategoryId(cursor.getLong(7));
+		}
 	}
 
 	public Point(Point point) {

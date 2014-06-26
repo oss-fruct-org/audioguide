@@ -153,7 +153,7 @@ public class Database {
 
 	public Cursor loadPointsCursor(Track track) {
 		Cursor cursor = db.rawQuery(
-				"SELECT point.name, point.description, point.audioUrl, point.photoUrl, point.lat, point.lon, point.private, point.id AS _id " +
+				"SELECT point.name, point.description, point.audioUrl, point.photoUrl, point.lat, point.lon, point.private, point.categoryId, point.id AS _id " +
 				"FROM point INNER JOIN tp " +
 				"ON tp.pointId=point.id " +
 				"WHERE tp.trackId IN (SELECT track.id FROM track WHERE track.name=?) " +
@@ -164,8 +164,10 @@ public class Database {
 
 	public Cursor loadPointsCursor() {
 		Cursor cursor = db.rawQuery(
-				"SELECT point.name, point.description, point.audioUrl, point.photoUrl, point.lat, point.lon, point.private, point.id AS _id " +
-						"FROM point;", null);
+				"SELECT point.name, point.description, point.audioUrl, point.photoUrl, point.lat, point.lon, point.private, point.categoryId, point.id AS _id " +
+						"FROM point LEFT JOIN category " +
+						"ON category.id = point.categoryId " +
+						"WHERE category.state=1 OR category.state IS NULL;", null);
 		return cursor;
 	}
 
@@ -338,7 +340,7 @@ public class Database {
 
 	private static class Helper extends SQLiteOpenHelper {
 		public static final String DB_NAME = "tracksdb2";
-		public static final int DB_VERSION = 4; // published None
+		public static final int DB_VERSION = 9; // published None
 
 		public static final String CREATE_POINT_UPDATES_SQL = "CREATE TABLE point_update " +
 				"(pointId INTEGER," +
