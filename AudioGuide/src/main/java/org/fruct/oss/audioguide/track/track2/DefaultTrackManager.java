@@ -98,6 +98,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 				database.insertTrack(track);
 
 				for (Point point : points) {
+					point.setPrivate(track.isPrivate());
 					database.insertToTrack(track, point);
 				}
 				notifyDataChanged();
@@ -146,6 +147,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 					return;
 
 				for (Point point : points) {
+					point.setPrivate(track.isPrivate());
 					database.insertToTrack(track, point);
 				}
 

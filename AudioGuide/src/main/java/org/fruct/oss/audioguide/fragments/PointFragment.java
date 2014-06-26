@@ -135,8 +135,7 @@ public class PointFragment extends ListFragment {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case R.id.action_refresh:
-			log.debug("Action refresh selected from PointFragment");
-			//trackManager.refreshPoints(track);
+			trackManager.requestPointsInTrack(track);
 			break;
 		}
 

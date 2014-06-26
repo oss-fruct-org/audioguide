@@ -96,7 +96,7 @@ public class LoadTracksRequest extends GetsRequest {
 
 	@Override
 	protected void onPostProcess(GetsResponse response) {
-		if (response.getCode() != 0)
+		if (response.getCode() == 0)
 			((TracksContent) response.getContent()).setTracks(loadedTracks);
 	}
 
