@@ -93,7 +93,7 @@ public class AddPointRequest extends GetsRequest {
 	}
 
 	private String createDescription(Point point) {
-		if (!point.hasPhoto() && !point.hasAudio()) {
+		if (!point.hasPhoto() && !point.hasAudio() && point.getCategoryId() == -1) {
 			return point.getDescription();
 		}
 
@@ -114,5 +114,4 @@ public class AddPointRequest extends GetsRequest {
 			return point.getDescription();
 		}
 	}
-
 }
