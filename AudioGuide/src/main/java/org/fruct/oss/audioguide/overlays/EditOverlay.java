@@ -5,17 +5,16 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
-
-import org.fruct.oss.audioguide.R;
-import org.fruct.oss.audioguide.files.FileManager;
-import org.fruct.oss.audioguide.track.Point;
-
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.util.Pair;
 import android.view.MotionEvent;
 
+import org.fruct.oss.audioguide.R;
+import org.fruct.oss.audioguide.files.files2.DefaultFileManager;
+import org.fruct.oss.audioguide.files.files2.FileManager;
+import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.track2.CursorHolder;
 import org.fruct.oss.audioguide.track.track2.CursorReceiver;
 import org.fruct.oss.audioguide.util.AUtils;
@@ -55,7 +54,7 @@ public class EditOverlay extends Overlay implements Closeable {
 	private final Paint itemBackgroundDragPaint;
 	private final Paint itemBackgroundPaint;
 
-	private final FileManager fileManager;
+	private final DefaultFileManager fileManager;
 
 	private Rect markerPadding;
 	private Drawable markerDrawable;
@@ -121,7 +120,7 @@ public class EditOverlay extends Overlay implements Closeable {
 		itemBackgroundPaint.setAntiAlias(true);
 		itemBackgroundPaint.setTextAlign(Paint.Align.CENTER);
 
-		fileManager = FileManager.getInstance();
+		fileManager = DefaultFileManager.getInstance();
 	}
 
 	@Override
@@ -324,7 +323,7 @@ public class EditOverlay extends Overlay implements Closeable {
 			final int dx = dragStartX - (int) event.getX();
 			final int dy = dragStartY - (int) event.getY();
 
-			if (dragStarted || dx * dx + dy * dy > 8 * 8) {
+			if (dragStarted || dx * dx + dy * dy > 32 * 32) {
 				dragStarted = true;
 				moveItem(draggingItem, event, mapView);
 			}

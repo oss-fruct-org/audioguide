@@ -15,7 +15,8 @@ import android.widget.TextView;
 
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.files.FileListener;
-import org.fruct.oss.audioguide.files.FileManager;
+import org.fruct.oss.audioguide.files.files2.DefaultFileManager;
+import org.fruct.oss.audioguide.files.files2.FileManager;
 import org.fruct.oss.audioguide.models.Model;
 import org.fruct.oss.audioguide.models.ModelListener;
 import org.fruct.oss.audioguide.track.Point;
@@ -47,7 +48,7 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener {
 
 		this.context = context;
 
-		this.fileManager = FileManager.getInstance();
+		this.fileManager = DefaultFileManager.getInstance();
 		this.fileManager.addWeakListener(this);
 	}
 
@@ -101,14 +102,14 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener {
 				pendingAudioUrls.remove(audioUrl);
 			}
 
-			if (fileManager.isFileLocal(audioUrl)) {
+			/*if (fileManager.isFileLocal(audioUrl)) {
 				holder.progressBar.setVisibility(View.GONE);
 			} else {
 				holder.progressBar.setVisibility(View.VISIBLE);
 				holder.progressBar.setProgress(0);
 				pendingAudioUrls.put(audioUrl, holder);
 				fileManager.insertAudioUri(audioUrl);
-			}
+			}*/
 		}
 
 		if (highlightedItems.contains(point)) {

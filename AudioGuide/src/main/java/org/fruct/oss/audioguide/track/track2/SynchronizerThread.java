@@ -1,9 +1,12 @@
 package org.fruct.oss.audioguide.track.track2;
 
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.HandlerThread;
 
+import org.fruct.oss.audioguide.files.files2.DefaultFileManager;
+import org.fruct.oss.audioguide.files.files2.FileManager;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.Track;
 import org.slf4j.Logger;
@@ -41,7 +44,7 @@ public class SynchronizerThread extends HandlerThread {
 					quitSafely();
 				}
 			}
-		}, 1000); 
+		}, 1000);
 	}
 
 	private void doSynchronizationStep() throws InterruptedException {
@@ -52,7 +55,9 @@ public class SynchronizerThread extends HandlerThread {
 			Cursor cursor2 = database.loadPointsCursor(track);
 			List<Point> points = new ArrayList<Point>();
 			while (cursor2.moveToNext()) {
-				points.add(new Point(cursor2));
+				Point point = new Point(cursor2);
+				ensurePointFilesUploaded(point);
+				points.add(point);
 			}
 			cursor2.close();
 
@@ -61,5 +66,33 @@ public class SynchronizerThread extends HandlerThread {
 		cursor.close();
 		database.clearUpdates();
 		scheduleStep();
+	}
+
+	private void ensurePointFilesUploaded(Point point) {
+		Point oldPoint = new Point(point);
+
+		if (point.hasAudio()) {
+			Uri remoteAudioUri = ensurePointFileUploaded(Uri.parse(point.getAudioUrl()));
+			if (remoteAudioUri != null) {
+				point.setAudioUrl(remoteAudioUri.toString());
+				database.insertPoint(point, oldPoint);
+			}
+		}
+
+		if (point.hasPhoto()) {
+			Uri remotePhotoUri = ensurePointFileUploaded(Uri.parse(point.getPhotoUrl()));
+			if (remotePhotoUri != null) {
+				point.setPhotoUrl(remotePhotoUri.toString());
+				database.insertPoint(point, oldPoint);
+			}
+		}
+	}
+
+	private Uri ensurePointFileUploaded(Uri uri) {
+		FileManager fm = DefaultFileManager.getInstance();
+		if (!fm.isLocal(uri))
+			return null;
+
+		return fm.uploadLocalFile(uri);
 	}
 }

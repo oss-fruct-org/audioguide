@@ -50,7 +50,7 @@ public class Database {
 		Cursor cursor = db.rawQuery("SELECT tp.trackId FROM tp WHERE tp.pointId=?", Utils.toArray(pointId));
 		while (cursor.moveToNext()) {
 			ContentValues updateCv2 = new ContentValues(1);
-			updateCv.put("trackId", cursor.getLong(0));
+			updateCv2.put("trackId", cursor.getLong(0));
 			db.insert("track_update", null, updateCv2);
 		}
 		cursor.close();
@@ -225,8 +225,8 @@ public class Database {
 	}
 
 	private long findPointId(Point point) {
-		Cursor cursor = db.query("point", ID_COLUMNS, "name=? and description=? and lat=? and lon=?",
-				Utils.toArray(point.getName(), point.getDescription(), point.getLatE6(), point.getLonE6()), null, null, null);
+		Cursor cursor = db.query("point", ID_COLUMNS, "name=? and description=?",
+				Utils.toArray(point.getName(), point.getDescription()/*, point.getLatE6(), point.getLonE6()*/), null, null, null);
 
 		try {
 			if (!cursor.moveToFirst())
@@ -340,7 +340,7 @@ public class Database {
 
 	private static class Helper extends SQLiteOpenHelper {
 		public static final String DB_NAME = "tracksdb2";
-		public static final int DB_VERSION = 1; // published None
+		public static final int DB_VERSION = 7; // published None
 
 		public static final String CREATE_POINT_UPDATES_SQL = "CREATE TABLE point_update " +
 				"(pointId INTEGER," +

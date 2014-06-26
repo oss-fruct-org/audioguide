@@ -12,6 +12,7 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -416,5 +417,23 @@ public class Utils {
 			arr[c++] = obj.toString();
 		}
 		return arr;
+	}
+
+	public static void sclose(InputStream stream) {
+		try {
+			if (stream != null)
+				stream.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public static void sclose(OutputStream stream) {
+		try {
+			if (stream != null)
+				stream.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 }

@@ -4,7 +4,7 @@ import android.graphics.Bitmap;
 import android.os.Build;
 import android.support.v4.util.LruCache;
 
-class IconCache extends LruCache<String, Bitmap> {
+public class IconCache extends LruCache<String, Bitmap> {
 	public IconCache(int maxSize) {
 		super(maxSize);
 	}

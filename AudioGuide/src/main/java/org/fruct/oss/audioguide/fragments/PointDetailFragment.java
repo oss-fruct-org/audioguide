@@ -1,38 +1,26 @@
 package org.fruct.oss.audioguide.fragments;
 
 import android.app.Activity;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.content.LocalBroadcastManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
-import android.widget.Button;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import org.fruct.oss.audioguide.MainActivity;
 import org.fruct.oss.audioguide.MultiPanel;
-import org.fruct.oss.audioguide.NavigationDrawerFragment;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.files.FileListener;
-import org.fruct.oss.audioguide.files.FileManager;
-import org.fruct.oss.audioguide.track.AudioPlayer;
+import org.fruct.oss.audioguide.files.files2.DefaultFileManager;
+import org.fruct.oss.audioguide.files.files2.FileManager;
 import org.fruct.oss.audioguide.track.Point;
-import org.fruct.oss.audioguide.track.TrackingService;
 import org.fruct.oss.audioguide.util.Utils;
 
 public class PointDetailFragment extends Fragment implements FileListener {
@@ -45,7 +33,7 @@ public class PointDetailFragment extends Fragment implements FileListener {
 	private boolean isOverlay;
 
 	private MultiPanel multiPanel;
-	private FileManager fileManager;
+	private DefaultFileManager fileManager;
 
 	private String pendingUrl;
 	private ImageView imageView;
@@ -117,7 +105,7 @@ public class PointDetailFragment extends Fragment implements FileListener {
 			isOverlay = savedInstanceState.getBoolean(STATE_IS_OVERLAY);
 		}
 
-		fileManager = FileManager.getInstance();
+		fileManager = DefaultFileManager.getInstance();
 		fileManager.addWeakListener(this);
 	}
 

@@ -336,7 +336,6 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 		}
 	}
 
-
 	private static DefaultTrackManager instance;
 	public synchronized static TrackManager getInstance() {
 		if (instance == null) {

@@ -32,7 +32,7 @@ public class AudioPlayer implements MediaPlayer.OnPreparedListener, MediaPlayer.
 	AudioPlayer(Context context) {
 		this.context = context;
 
-		fileManager = FileManager.getInstance();
+		//fileManager = FileManager.getInstance();
 	}
 
 	public void startAudioTrack(Point point) {

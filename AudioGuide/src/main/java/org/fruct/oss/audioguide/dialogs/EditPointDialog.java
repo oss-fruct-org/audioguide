@@ -3,6 +3,7 @@ package org.fruct.oss.audioguide.dialogs;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -18,6 +19,8 @@ import android.widget.TextView;
 
 import org.fruct.oss.audioguide.FileChooserActivity;
 import org.fruct.oss.audioguide.R;
+import org.fruct.oss.audioguide.files.files2.DefaultFileManager;
+import org.fruct.oss.audioguide.files.files2.FileManager;
 import org.fruct.oss.audioguide.fragments.FileManagerFragment;
 import org.fruct.oss.audioguide.gets.Category;
 import org.fruct.oss.audioguide.track.Point;
@@ -172,16 +175,28 @@ public class EditPointDialog extends DialogFragment implements DialogInterface.O
 	}
 
 	private void showFileChooserDialog(String mimeType, int requestCode) {
-		Intent intent = new Intent(getActivity(), FileChooserActivity.class);
+		Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
 		intent.setType(mimeType);
-		startActivityForResult(intent, requestCode);
+		intent.addCategory(Intent.CATEGORY_OPENABLE);
+
+		startActivityForResult(Intent.createChooser(intent, "Choose file"), requestCode);
 	}
 
 	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
 
+		FileManager fm = DefaultFileManager.getInstance();
+
 		if (requestCode == REQUEST_CODE_IMAGE && resultCode == Activity.RESULT_OK) {
+			Uri uri = data.getData();
+			Uri imageUri = fm.insertLocalFile(uri.getLastPathSegment(), uri);
+			point.setPhotoUrl(imageUri.toString());
+			imageFileLabel.setText(point.getPhotoUrl());
+		}
+
+
+		/*if (requestCode == REQUEST_CODE_IMAGE && resultCode == Activity.RESULT_OK) {
 			Uri uri = data.getData();
 			assert uri != null;
 			log.info("Image file {} chosen", uri.toString());
@@ -199,7 +214,7 @@ public class EditPointDialog extends DialogFragment implements DialogInterface.O
 			point.setAudioUrl(data.getStringExtra(FileManagerFragment.RESULT_URL));
 
 			audioFileLabel.setText(title);
-		}
+		}*/
 	}
 
 	@Override
