@@ -41,6 +41,7 @@ public class Track implements Parcelable, Comparable<Track> {
 		setLocal(cursor.getInt(3) != 0);
 		setCategoryId(cursor.getLong(4));
 		setPrivate(cursor.getInt(5) != 0);
+		setHname(cursor.getString(6));
 	}
 
 	public Track(String name, String description, String url) {

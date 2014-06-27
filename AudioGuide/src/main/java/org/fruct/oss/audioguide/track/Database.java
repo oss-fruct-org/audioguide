@@ -143,7 +143,7 @@ public class Database {
 	}
 
 	public Cursor loadTracksCursor() {
-		Cursor cursor = db.rawQuery("SELECT track.name, track.description, track.url, track.local, track.categoryId, track.private, track.id AS _id " +
+		Cursor cursor = db.rawQuery("SELECT track.name, track.description, track.url, track.local, track.categoryId, track.private, track.hname, track.id AS _id " +
 				"FROM track LEFT JOIN category " +
 				"ON category.id = track.categoryId " +
 				"WHERE category.state = 1 OR category.state IS NULL;", null);
@@ -180,14 +180,14 @@ public class Database {
 	}
 
 	public Cursor loadPrivateTracks() {
-		Cursor cursor = db.rawQuery("SELECT track.name, track.description, track.url, track.local, track.categoryId, track.private, track.id AS _id " +
+		Cursor cursor = db.rawQuery("SELECT track.name, track.description, track.url, track.local, track.categoryId, track.private, track.hname, track.id AS _id " +
 				"FROM track " +
 				"WHERE track.private = 1;", null);
 		return cursor;
 	}
 
 	public Cursor loadUpdatedTracks() {
-		Cursor cursor = db.rawQuery("SELECT track.name, track.description, track.url, track.local, track.categoryId, track.private, track.id AS _id " +
+		Cursor cursor = db.rawQuery("SELECT track.name, track.description, track.url, track.local, track.categoryId, track.private, track.hname, track.id AS _id " +
 				"FROM track INNER JOIN track_update " +
 				"ON track.id = track_update.trackId " +
 				"GROUP BY track.id", null);
