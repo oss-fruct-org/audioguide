@@ -12,19 +12,26 @@ import android.support.v4.app.DialogFragment;
 import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.files.DefaultFileManager;
 import org.fruct.oss.audioguide.files.FileManager;
 import org.fruct.oss.audioguide.gets.Category;
+import org.fruct.oss.audioguide.track.DefaultTrackManager;
 import org.fruct.oss.audioguide.track.Point;
+import org.fruct.oss.audioguide.track.TrackManager;
 import org.fruct.oss.audioguide.util.AUtils;
 import org.fruct.oss.audioguide.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 public class EditPointDialog extends DialogFragment implements DialogInterface.OnClickListener, CategoriesDialog.Listener {
 	private final static Logger log = LoggerFactory.getLogger(EditPointDialog.class);
@@ -33,6 +40,7 @@ public class EditPointDialog extends DialogFragment implements DialogInterface.O
 	private static final int REQUEST_CODE_AUDIO = 0;
 
 	private Listener listener;
+	private List<Category> categories;
 
 	public interface Listener {
 		void pointCreated(Point point);
@@ -53,8 +61,7 @@ public class EditPointDialog extends DialogFragment implements DialogInterface.O
 	private TextView audioFileLabel;
 	private Button audioFileButton;
 
-	private TextView categoryLabel;
-	private Button categoryButton;
+	private Spinner categorySpinner;
 
 	public EditPointDialog() {
 	}
@@ -90,6 +97,9 @@ public class EditPointDialog extends DialogFragment implements DialogInterface.O
 			point = savedInstanceState.getParcelable("point");
 			isNewPoint = savedInstanceState.getBoolean("isNewPoint");
 		}
+
+		TrackManager trackManager = DefaultTrackManager.getInstance();
+		categories = trackManager.getCategories();
 	}
 
 	@Override
@@ -109,8 +119,9 @@ public class EditPointDialog extends DialogFragment implements DialogInterface.O
 		audioFileLabel = (TextView) view.findViewById(R.id.audio_file_title);
 		audioFileButton = (Button) view.findViewById(R.id.audio_file_button);
 
-		categoryLabel = (TextView) view.findViewById(R.id.category_title);
-		categoryButton = (Button) view.findViewById(R.id.category_button);
+
+		categorySpinner = (Spinner) view.findViewById(R.id.category_spinner);
+		setupCategorySpinner(categorySpinner);
 
 		if (point != null) {
 			if (!Utils.isNullOrEmpty(point.getName())) editName.setText(point.getName());
@@ -132,14 +143,16 @@ public class EditPointDialog extends DialogFragment implements DialogInterface.O
 			}
 		});
 
-		categoryButton.setOnClickListener(new View.OnClickListener() {
+
+
+		/*categoryField.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View view) {
 				CategoriesDialog categoriesDialog = CategoriesDialog.newChoiceInstance();
 				categoriesDialog.setListener(EditPointDialog.this);
 				categoriesDialog.show(getFragmentManager(), "categories-dialog");
 			}
-		});
+		});*/
 
 		AlertDialog.Builder builder = new AlertDialog.Builder(AUtils.getDialogContext(getActivity()));
 		builder.setView(view)
@@ -179,6 +192,33 @@ public class EditPointDialog extends DialogFragment implements DialogInterface.O
 		startActivityForResult(Intent.createChooser(intent, "Choose file"), requestCode);
 	}
 
+	private void setupCategorySpinner(Spinner spinner) {
+		List<String> categoryNames = Utils.map(categories, new Utils.Function<String, Category>() {
+			@Override
+			public String apply(Category category) {
+				return category.getDescription();
+			}
+		});
+
+		ArrayAdapter<String> categoriesAdapter = new ArrayAdapter<String>(getActivity(),
+				android.R.layout.simple_spinner_item, categoryNames);
+		categoriesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+		spinner.setAdapter(categoriesAdapter);
+		spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+			@Override
+			public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+				point.setCategoryId(categories.get(i).getId());
+			}
+
+			@Override
+			public void onNothingSelected(AdapterView<?> adapterView) {
+			}
+		});
+		
+		if (!categories.isEmpty())
+			point.setCategoryId(categories.get(0).getId());
+	}
+
 	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
@@ -202,9 +242,9 @@ public class EditPointDialog extends DialogFragment implements DialogInterface.O
 
 	@Override
 	public void categorySelected(Category category) {
-		categoryLabel.setText(category.getDescription());
+		/*categoryField.setText(category.getDescription());
 		selectedCategory = category;
-		point.setCategoryId(category.getId());
+		*/
 	}
 
 	public void setListener(Listener listener) {
