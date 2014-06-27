@@ -9,7 +9,8 @@ import android.os.Handler;
 import android.os.Looper;
 import android.support.v4.content.LocalBroadcastManager;
 
-import org.fruct.oss.audioguide.files.FileManager;
+import org.fruct.oss.audioguide.files.files2.DefaultFileManager;
+import org.fruct.oss.audioguide.files.files2.FileManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,7 +33,7 @@ public class AudioPlayer implements MediaPlayer.OnPreparedListener, MediaPlayer.
 	AudioPlayer(Context context) {
 		this.context = context;
 
-		//fileManager = FileManager.getInstance();
+		fileManager = DefaultFileManager.getInstance();
 	}
 
 	public void startAudioTrack(Point point) {
@@ -46,8 +47,13 @@ public class AudioPlayer implements MediaPlayer.OnPreparedListener, MediaPlayer.
 		player.setAudioStreamType(AudioManager.STREAM_MUSIC);
 		try {
 			// Try to use cached uri
-			Uri uriToPlay = fileManager.getAudioUri(uri);
-			player.setDataSource(context, uriToPlay);
+			String localPath = fileManager.getLocalPath(uri);
+			if (localPath == null)
+				// Fallback to remote uri
+				player.setDataSource(context, uri);
+			else
+				player.setDataSource(context, Uri.parse(localPath));
+
 		} catch (IOException e) {
 			log.warn("Cannot set data source for player with url = '{}'", uri);
 			return;

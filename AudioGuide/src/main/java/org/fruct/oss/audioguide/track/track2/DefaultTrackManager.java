@@ -3,8 +3,11 @@ package org.fruct.oss.audioguide.track.track2;
 import android.content.Context;
 import android.database.Cursor;
 import android.location.Location;
+import android.net.Uri;
 
 import org.fruct.oss.audioguide.App;
+import org.fruct.oss.audioguide.files.files2.DefaultFileManager;
+import org.fruct.oss.audioguide.files.files2.FileManager;
 import org.fruct.oss.audioguide.gets.Category;
 import org.fruct.oss.audioguide.models.BaseModel;
 import org.fruct.oss.audioguide.models.Model;
@@ -24,6 +27,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	private final StorageBackend backend;
 	private final CategoriesBackend categoriesBackend;
 	private final Database database;
+	private final FileManager fileManager;
 
 	private final BaseModel<Track> tracksModel = new BaseModel<Track>();
 
@@ -38,7 +42,6 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	private List<Category> categories;
 	private List<Category> activeCategories;
 
-	private float lastLat, lastLon, lastRadius;
 	private final List<TrackListener> listeners = new ArrayList<TrackListener>();
 	private final List<CursorHolder> cursorHolders = new ArrayList<CursorHolder>();
 
@@ -50,6 +53,9 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	public DefaultTrackManager(Context context, StorageBackend backend, CategoriesBackend catBackend) {
 		this.categoriesBackend = catBackend;
 		this.backend = backend;
+
+		fileManager = DefaultFileManager.getInstance();
+
 		database = new Database(context);
 		synchronizer = new SynchronizerThread(database, backend);
 		synchronizer.start();
@@ -102,6 +108,11 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 
 					if (point.getCategoryId() == -1)
 						point.setCategoryId(track.getCategoryId());
+
+					if (point.hasAudio()) {
+						fileManager.insertRemoteFile("no-title", Uri.parse(point.getAudioUrl()));
+					}
+
 					database.insertToTrack(track, point);
 				}
 				notifyDataChanged();
@@ -126,9 +137,6 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 
 	@Override
 	public void requestPointsInRadius(final float latitude, final float longitude, float radius, boolean autoStore) {
-		lastLat = latitude;
-		lastLon = longitude;
-		lastRadius = radius;
 		backend.loadPointsInRadius(latitude, longitude, radius, activeCategories, new Utils.Callback<List<Point>>() {
 			@Override
 			public void call(List<Point> points) {

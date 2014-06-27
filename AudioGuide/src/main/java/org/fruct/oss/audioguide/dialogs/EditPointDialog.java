@@ -195,26 +195,12 @@ public class EditPointDialog extends DialogFragment implements DialogInterface.O
 			imageFileLabel.setText(point.getPhotoUrl());
 		}
 
-
-		/*if (requestCode == REQUEST_CODE_IMAGE && resultCode == Activity.RESULT_OK) {
+		if (requestCode == REQUEST_CODE_AUDIO && resultCode == Activity.RESULT_OK) {
 			Uri uri = data.getData();
-			assert uri != null;
-			log.info("Image file {} chosen", uri.toString());
-
-			String title = data.getStringExtra(FileManagerFragment.RESULT_TITLE);
-			point.setPhotoUrl(data.getStringExtra(FileManagerFragment.RESULT_URL));
-
-			imageFileLabel.setText(title);
-		} else if (requestCode == REQUEST_CODE_AUDIO && resultCode == Activity.RESULT_OK) {
-			Uri uri = data.getData();
-			assert uri != null;
-			log.info("Audio file {} chosen", uri.toString());
-
-			String title = data.getStringExtra(FileManagerFragment.RESULT_TITLE);
-			point.setAudioUrl(data.getStringExtra(FileManagerFragment.RESULT_URL));
-
-			audioFileLabel.setText(title);
-		}*/
+			Uri imageUri = fm.insertLocalFile(uri.getLastPathSegment(), uri);
+			point.setAudioUrl(imageUri.toString());
+			audioFileLabel.setText(point.getAudioUrl());
+		}
 	}
 
 	@Override

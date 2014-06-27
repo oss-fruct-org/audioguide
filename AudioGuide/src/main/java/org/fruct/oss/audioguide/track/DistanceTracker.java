@@ -1,10 +1,13 @@
 package org.fruct.oss.audioguide.track;
 
+import android.database.Cursor;
 import android.location.Location;
 
 import org.fruct.oss.audioguide.LocationReceiver;
 import org.fruct.oss.audioguide.models.Model;
 import org.fruct.oss.audioguide.models.ModelListener;
+import org.fruct.oss.audioguide.track.track2.CursorHolder;
+import org.fruct.oss.audioguide.track.track2.CursorReceiver;
 import org.fruct.oss.audioguide.track.track2.TrackManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +18,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class DistanceTracker implements LocationReceiver.Listener, ModelListener {
+public class DistanceTracker implements LocationReceiver.Listener, CursorReceiver {
 	private final static Logger log = LoggerFactory.getLogger(DistanceTracker.class);
 
 	private Set<Point> pointsInRange = new HashSet<Point>();
@@ -25,23 +28,15 @@ public class DistanceTracker implements LocationReceiver.Listener, ModelListener
 	private List<Listener> listeners = new ArrayList<Listener>();
 	private int radius;
 
-	private final Model<Track> activeTrackModel;
-	private List<PointModelHolder> pointModels = new ArrayList<PointModelHolder>();
+	private final List<Point> points = new ArrayList<Point>();
+	private final CursorHolder pointsCursorHolder;
+	private Cursor currentCursor;
 
 	public DistanceTracker(TrackManager trackManager, LocationReceiver locationReceiver) {
 		this.trackManager = trackManager;
 		this.locationReceiver = locationReceiver;
 
-		activeTrackModel = trackManager.getLocalTracksModel();
-	}
-
-	@Override
-	public void dataSetChanged() {
-		clearPointModels();
-
-		for (Track track : activeTrackModel) {
-			pointModels.add(new PointModelHolder(trackManager.getTrackPointsModel(track)));
-		}
+		pointsCursorHolder = trackManager.loadLocalPoints();
 	}
 
 	public void addListener(Listener listener) {
@@ -55,29 +50,19 @@ public class DistanceTracker implements LocationReceiver.Listener, ModelListener
 	public void start() {
 		log.debug("DistanceTracker stop");
 
-		activeTrackModel.addListener(this);
+		pointsCursorHolder.attachToReceiver(this);
 
 		locationReceiver.addListener(this);
 		locationReceiver.start();
-
-		dataSetChanged();
 	}
 
 	public void stop() {
 		log.debug("DistanceTracker stop");
 
-		clearPointModels();
-		activeTrackModel.removeListener(this);
-
 		locationReceiver.stop();
 		locationReceiver.removeListener(this);
-	}
 
-	private void clearPointModels() {
-		for (PointModelHolder pointModelHolder : pointModels) {
-			pointModelHolder.close();
-		}
-		pointModels.clear();
+		pointsCursorHolder.close();
 	}
 
 	@Override
@@ -85,19 +70,16 @@ public class DistanceTracker implements LocationReceiver.Listener, ModelListener
 		ArrayList<Point> outRange = new ArrayList<Point>();
 		ArrayList<Point> inRange = new ArrayList<Point>();
 
-		for (PointModelHolder pointModelHolder : pointModels) {
-			for (Point point : pointModelHolder.model) {
-				boolean isPointInRange = pointsInRange.contains(point);
+		for (Point point : points) {
+			boolean isPointInRange = pointsInRange.contains(point);
 
-				Location pointLocation = point.toLocation();
-				float distanceMeters = pointLocation.distanceTo(location);
+			Location pointLocation = point.toLocation();
+			float distanceMeters = pointLocation.distanceTo(location);
 
-				// TODO: de-hardcode distance
-				if (distanceMeters < radius && !isPointInRange) {
-					inRange.add(point);
-				} else if (distanceMeters >= radius && isPointInRange) {
-					outRange.add(point);
-				}
+			if (distanceMeters < radius && !isPointInRange) {
+				inRange.add(point);
+			} else if (distanceMeters >= radius && isPointInRange) {
+				outRange.add(point);
 			}
 		}
 
@@ -120,9 +102,6 @@ public class DistanceTracker implements LocationReceiver.Listener, ModelListener
 	private void notifyPointOutRange(Point point) {
 		for (Listener listener : listeners)
 			listener.pointOutRange(point);
-
-
-
 	}
 
 	public void setRadius(int radius) {
@@ -133,25 +112,21 @@ public class DistanceTracker implements LocationReceiver.Listener, ModelListener
 		return new ArrayList<Point>(pointsInRange);
 	}
 
+	@Override
+	public Cursor swapCursor(Cursor cursor) {
+		Cursor oldCursor = currentCursor;
+
+		points.clear();
+		while (cursor.moveToNext()) {
+			Point point = new Point(cursor);
+			points.add(point);
+		}
+
+		return oldCursor;
+	}
+
 	public interface Listener {
 		void pointInRange(Point point);
 		void pointOutRange(Point point);
-	}
-
-	private class PointModelHolder implements ModelListener, Closeable {
-		Model<Point> model;
-
-		PointModelHolder(Model<Point> model) {
-			this.model = model;
-			model.addListener(this);
-		}
-
-		public void close() {
-			model.removeListener(this);
-		}
-
-		@Override
-		public void dataSetChanged() {
-		}
 	}
 }

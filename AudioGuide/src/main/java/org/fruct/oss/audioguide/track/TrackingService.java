@@ -408,7 +408,7 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 			}
 		} else if (s.equals(SettingsActivity.PREF_LOAD_RADIUS)) {
 			int newRadius = sharedPreferences.getInt(s, 1000);
-			//TrackManager2.getInstance().updateLoadRadius(pref.getInt(SettingsActivity.PREF_LOAD_RADIUS, 1000));
+			DefaultTrackManager.getInstance().updateLoadRadius(newRadius);
 		}
 	}
 
