@@ -1,6 +1,7 @@
 package org.fruct.oss.audioguide.files.files2;
 
 import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
@@ -10,6 +11,8 @@ import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.Looper;
 import android.preference.PreferenceManager;
 
 import org.fruct.oss.audioguide.App;
@@ -27,16 +30,20 @@ import org.fruct.oss.audioguide.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.Locale;
 import java.util.UUID;
 import java.util.WeakHashMap;
 import java.util.concurrent.CountDownLatch;
 
-public class DefaultFileManager implements FileManager {
+public class DefaultFileManager implements FileManager, Closeable, Runnable {
 	private static final Logger log = LoggerFactory.getLogger(DefaultFileManager.class);
 
 	private final Context context;
@@ -45,6 +52,10 @@ public class DefaultFileManager implements FileManager {
 	private final File cacheDir;
 	private final IconCache iconCache;
 	private final WeakHashMap<FileListener, Object> fileListeners = new WeakHashMap<FileListener, Object>();
+	private final Thread downloadThread;
+	private final Handler mainHandler;
+
+	private boolean isClosed;
 
 	DefaultFileManager(Context context) {
 		this.context = context;
@@ -55,10 +66,18 @@ public class DefaultFileManager implements FileManager {
 		cacheDir.mkdir();
 
 		iconCache = new IconCache(1024);
+		downloadThread = new Thread(this);
+		downloadThread.start();
+
+		mainHandler = new Handler(Looper.getMainLooper());
 	}
 
 	public void close() {
-		dbHelper.close();
+		if (!isClosed) {
+			isClosed = true;
+			dbHelper.close();
+			downloadThread.interrupt();
+		}
 	}
 
 	@Override
@@ -99,7 +118,11 @@ public class DefaultFileManager implements FileManager {
 
 	@Override
 	public void insertRemoteFile(String title, Uri remoteUri) {
-		db.execSQL("INSERT INTO file VALUES (?, NULL, NULL, ?, 0);", Utils.toArray(title, remoteUri.toString()));
+		synchronized (db) {
+			db.execSQL("INSERT INTO file VALUES (?, NULL, NULL, ?, 0);",
+					Utils.toArray(title, remoteUri.toString()));
+			db.notifyAll();
+		}
 	}
 
 	@Override
@@ -249,7 +272,7 @@ public class DefaultFileManager implements FileManager {
 
 	@Override
 	public void addWeakListener(FileListener pointCursorAdapter) {
-
+		fileListeners.put(pointCursorAdapter, "null");
 	}
 
 	private static DefaultFileManager instance;
@@ -260,4 +283,85 @@ public class DefaultFileManager implements FileManager {
 
 		return instance;
 	}
+
+	@Override
+	public void run() {
+		while (!isClosed) {
+			Cursor cursor;
+			synchronized (db) {
+				cursor = db.rawQuery("SELECT title, remoteUrl FROM file " +
+						"WHERE cacheUrl IS NULL;", null);
+
+				if (!cursor.moveToFirst()) {
+					try {
+						db.wait();
+						Thread.sleep(1000);
+					} catch (InterruptedException ignored) {
+					}
+					continue;
+				}
+			}
+
+			do {
+				final String remoteUrl = cursor.getString(1);
+				final String title = cursor.getString(0);
+				final File cacheFile = new File(cacheDir, UUID.randomUUID().toString());
+
+				try {
+					downloadUrl(remoteUrl, cacheFile);
+
+					db.execSQL("UPDATE file SET cacheUrl=? WHERE remoteUrl=?",
+							Utils.toArray(Uri.fromFile(cacheFile), remoteUrl));
+
+					mainHandler.post(new Runnable() {
+						@Override
+						public void run() {
+							for (FileListener listener : fileListeners.keySet()) {
+								listener.itemLoaded(remoteUrl);
+							}
+						}
+					});
+				} catch (IOException ex) {
+					log.error("Error downloading file: {}", remoteUrl);
+					cacheFile.delete();
+				}
+			} while (cursor.moveToNext());
+
+			cursor.close();
+		}
+	}
+
+	private void downloadUrl(String uri, File localFile) throws IOException {
+		URL url = new URL(uri);
+
+		OutputStream output = null;
+		InputStream input = null;
+		HttpURLConnection conn = null;
+		try {
+			conn = (HttpURLConnection) url.openConnection();
+			conn.setDoInput(true);
+			conn.setConnectTimeout(5000);
+			conn.setReadTimeout(15000);
+			conn.setRequestMethod("GET");
+			conn.connect();
+
+			int code = conn.getResponseCode();
+			int fileSize = Integer.parseInt(conn.getHeaderField("Content-Length"));
+			if (code == 200) {
+				output = new FileOutputStream(localFile);
+				input = conn.getInputStream();
+				Utils.copyStream(input, output);
+			}
+		} finally {
+			if (output != null)
+				output.close();
+
+			if (input != null)
+				input.close();
+
+			if (conn != null)
+				conn.disconnect();
+		}
+	}
+
 }

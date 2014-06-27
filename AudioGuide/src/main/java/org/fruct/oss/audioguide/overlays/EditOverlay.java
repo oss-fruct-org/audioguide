@@ -54,7 +54,7 @@ public class EditOverlay extends Overlay implements Closeable {
 	private final Paint itemBackgroundDragPaint;
 	private final Paint itemBackgroundPaint;
 
-	private final DefaultFileManager fileManager;
+	private final FileManager fileManager;
 
 	private Rect markerPadding;
 	private Drawable markerDrawable;
@@ -391,7 +391,16 @@ private void checkDistance(MapView mapView, android.graphics.Point p) {
 			while (cursor.moveToNext()) {
 				Point point = new Point(cursor);
 				long id = cursor.getLong(cf._id);
-				items.put(id, new EditOverlayItem(new GeoPoint(point.getLatE6(), point.getLonE6()), point));
+
+				EditOverlayItem item = new EditOverlayItem(
+						new GeoPoint(point.getLatE6(), point.getLonE6()), point);
+
+				if (item.data.hasPhoto()) {
+					item.iconBitmap = fileManager.getImageBitmap(item.data.getPhotoUrl(),
+							Utils.getDP(48), Utils.getDP(48), FileManager.ScaleMode.SCALE_CROP);
+				}
+
+				items.put(id, item);
 			}
 
 			return oldCursor;
