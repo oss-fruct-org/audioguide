@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
 
     <EditText
         android:id="@+id/text_title"
@@ -27,44 +27,59 @@
 
         android:clickable="true"/>
 
-<!--    <RelativeLayout
-        android:orientation="horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <TextView
-            android:id="@+id/category_title"
-            android:layout_centerVertical="true"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"/>
-
-        <Button
-            android:layout_alignParentRight="true"
-            android:id="@+id/category_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Select category"/>
-    </RelativeLayout>-->
-
     <RelativeLayout
-        android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <TextView
-            android:id="@+id/image_file_title"
-            android:layout_centerVertical="true"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"/>
-
-        <Button
-            android:layout_alignParentRight="true"
-            android:id="@+id/image_file_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Select photo"/>
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:orientation="horizontal">
+        <ImageButton
+            android:id="@+id/photo_button"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:background="#11ffffff"
+            android:padding="2dp"
+            android:src="@drawable/ic_action_new_picture"/>
     </RelativeLayout>
 
+    <!--    <RelativeLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/category_title"
+                android:layout_centerVertical="true"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"/>
+
+            <Button
+                android:layout_alignParentRight="true"
+                android:id="@+id/category_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Select category"/>
+        </RelativeLayout>-->
+
+    <!--
+        <RelativeLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/image_file_title"
+                android:layout_centerVertical="true"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"/>
+
+            <Button
+                android:layout_alignParentRight="true"
+                android:id="@+id/image_file_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Select photo"/>
+        </RelativeLayout>
+    -->
     <RelativeLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
@@ -84,4 +99,5 @@
             android:layout_height="wrap_content"
             android:text="Select audio"/>
     </RelativeLayout>
+
 </LinearLayout>

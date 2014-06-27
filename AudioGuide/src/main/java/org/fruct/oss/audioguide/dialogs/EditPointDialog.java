@@ -3,9 +3,12 @@ package org.fruct.oss.audioguide.dialogs;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.PictureDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
@@ -16,6 +19,8 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
 
@@ -31,6 +36,9 @@ import org.fruct.oss.audioguide.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
 public class EditPointDialog extends DialogFragment implements DialogInterface.OnClickListener, CategoriesDialog.Listener {
@@ -55,11 +63,10 @@ public class EditPointDialog extends DialogFragment implements DialogInterface.O
 	private EditText editUrl;
 	private Category selectedCategory;
 
-	private TextView imageFileLabel;
-	private Button imageFileButton;
-
 	private TextView audioFileLabel;
 	private Button audioFileButton;
+
+	private ImageButton photoButton;
 
 	private Spinner categorySpinner;
 
@@ -113,12 +120,10 @@ public class EditPointDialog extends DialogFragment implements DialogInterface.O
 		editName = (EditText) view.findViewById(R.id.text_title);
 		editDescription = (EditText) view.findViewById(R.id.text_description);
 
-		imageFileLabel = (TextView) view.findViewById(R.id.image_file_title);
-		imageFileButton = (Button) view.findViewById(R.id.image_file_button);
+		photoButton = (ImageButton) view.findViewById(R.id.photo_button);
 
 		audioFileLabel = (TextView) view.findViewById(R.id.audio_file_title);
 		audioFileButton = (Button) view.findViewById(R.id.audio_file_button);
-
 
 		categorySpinner = (Spinner) view.findViewById(R.id.category_spinner);
 		setupCategorySpinner(categorySpinner);
@@ -130,7 +135,7 @@ public class EditPointDialog extends DialogFragment implements DialogInterface.O
 			//if (!Utils.isNullOrEmpty(point.point())) editUrl.setText(point.getUrl());
 		}
 
-		imageFileButton.setOnClickListener(new View.OnClickListener() {
+		photoButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View view) {
 				showFileChooserDialog("image/*", REQUEST_CODE_IMAGE);
@@ -214,7 +219,7 @@ public class EditPointDialog extends DialogFragment implements DialogInterface.O
 			public void onNothingSelected(AdapterView<?> adapterView) {
 			}
 		});
-		
+
 		if (!categories.isEmpty())
 			point.setCategoryId(categories.get(0).getId());
 	}
@@ -224,14 +229,21 @@ public class EditPointDialog extends DialogFragment implements DialogInterface.O
 		super.onActivityResult(requestCode, resultCode, data);
 
 		FileManager fm = DefaultFileManager.getInstance();
+		ContentResolver resolver = getActivity().getContentResolver();
 
 		if (requestCode == REQUEST_CODE_IMAGE && resultCode == Activity.RESULT_OK) {
 			Uri uri = data.getData();
 			Uri imageUri = fm.insertLocalFile(uri.getLastPathSegment(), uri);
 			point.setPhotoUrl(imageUri.toString());
-			imageFileLabel.setText(point.getPhotoUrl());
-		}
 
+			try {
+				InputStream photoStream = resolver.openInputStream(uri);
+				Drawable drawable = Drawable.createFromStream(photoStream, "Photo");
+				photoStream.close();
+				photoButton.setImageDrawable(drawable);
+			} catch (IOException ignore) {
+			}
+		}
 		if (requestCode == REQUEST_CODE_AUDIO && resultCode == Activity.RESULT_OK) {
 			Uri uri = data.getData();
 			Uri imageUri = fm.insertLocalFile(uri.getLastPathSegment(), uri);
