@@ -5,8 +5,6 @@ import android.os.Handler;
 import org.fruct.oss.audioguide.parsers.GetsResponse;
 import org.fruct.oss.audioguide.parsers.IContent;
 
-import java.util.Map;
-
 public abstract class GetsRequest {
 	protected final Gets gets;
 	private Handler handler;

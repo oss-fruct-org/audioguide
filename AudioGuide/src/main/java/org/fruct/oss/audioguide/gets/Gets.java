@@ -9,7 +9,7 @@ import org.fruct.oss.audioguide.App;
 import org.fruct.oss.audioguide.parsers.GetsException;
 import org.fruct.oss.audioguide.parsers.GetsResponse;
 import org.fruct.oss.audioguide.parsers.TokenContent;
-import org.fruct.oss.audioguide.track.GetsStorage;
+import org.fruct.oss.audioguide.track.GetsBackend;
 import org.fruct.oss.audioguide.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,10 +17,8 @@ import org.xmlpull.v1.XmlSerializer;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.PriorityQueue;
 
 public class Gets implements Runnable {
 	public static final String GETS_SERVER = "http://getsi.no-ip.info/getslocal";
@@ -56,7 +54,7 @@ public class Gets implements Runnable {
 		thread.start();
 
 		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
-		String token = pref.getString(GetsStorage.PREF_AUTH_TOKEN, null);
+		String token = pref.getString(GetsBackend.PREF_AUTH_TOKEN, null);
 		if (token != null) {
 			setEnv("token", token);
 		}
@@ -199,14 +197,14 @@ public class Gets implements Runnable {
 
 	public void setToken(TokenContent tokenContent) {
 		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
-		pref.edit().putString(GetsStorage.PREF_AUTH_TOKEN, tokenContent.getAccessToken()).apply();
+		pref.edit().putString(GetsBackend.PREF_AUTH_TOKEN, tokenContent.getAccessToken()).apply();
 
 		setEnv("token", tokenContent.getAccessToken());
 	}
 
 	public String getToken() {
 		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
-		return pref.getString(GetsStorage.PREF_AUTH_TOKEN, null);
+		return pref.getString(GetsBackend.PREF_AUTH_TOKEN, null);
 	}
 
 	void writeTokenTag(XmlSerializer serializer) throws IOException {

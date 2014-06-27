@@ -7,10 +7,10 @@ import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 
 import org.fruct.oss.audioguide.adapters.TrackCursorAdapter;
+import org.fruct.oss.audioguide.track.CursorHolder;
+import org.fruct.oss.audioguide.track.DefaultTrackManager;
 import org.fruct.oss.audioguide.track.Track;
-import org.fruct.oss.audioguide.track.track2.CursorHolder;
-import org.fruct.oss.audioguide.track.track2.DefaultTrackManager;
-import org.fruct.oss.audioguide.track.track2.TrackManager;
+import org.fruct.oss.audioguide.track.TrackManager;
 
 public class SelectTrackDialog extends DialogFragment implements DialogInterface.OnClickListener {
 	private Listener listener;

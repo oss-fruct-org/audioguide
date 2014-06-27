@@ -20,13 +20,12 @@ import android.widget.ListView;
 import org.fruct.oss.audioguide.MultiPanel;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.adapters.PointCursorAdapter;
+import org.fruct.oss.audioguide.track.CursorHolder;
+import org.fruct.oss.audioguide.track.DefaultTrackManager;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.Track;
+import org.fruct.oss.audioguide.track.TrackManager;
 import org.fruct.oss.audioguide.track.TrackingService;
-import org.fruct.oss.audioguide.track.track2.CursorHolder;
-import org.fruct.oss.audioguide.track.track2.DefaultTrackManager;
-import org.fruct.oss.audioguide.track.track2.TrackListener;
-import org.fruct.oss.audioguide.track.track2.TrackManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -1,4 +1,4 @@
-package org.fruct.oss.audioguide.track.track2;
+package org.fruct.oss.audioguide.track;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -6,13 +6,11 @@ import android.location.Location;
 import android.net.Uri;
 
 import org.fruct.oss.audioguide.App;
-import org.fruct.oss.audioguide.files.files2.DefaultFileManager;
-import org.fruct.oss.audioguide.files.files2.FileManager;
+import org.fruct.oss.audioguide.files.DefaultFileManager;
+import org.fruct.oss.audioguide.files.FileManager;
 import org.fruct.oss.audioguide.gets.Category;
 import org.fruct.oss.audioguide.models.BaseModel;
 import org.fruct.oss.audioguide.models.Model;
-import org.fruct.oss.audioguide.track.Point;
-import org.fruct.oss.audioguide.track.Track;
 import org.fruct.oss.audioguide.util.Utils;
 
 import java.io.Closeable;

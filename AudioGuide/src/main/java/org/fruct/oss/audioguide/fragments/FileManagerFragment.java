@@ -12,7 +12,6 @@ import android.view.View;
 import android.widget.ListView;
 
 import org.fruct.oss.audioguide.FileChooserActivity;
-import org.fruct.oss.audioguide.files.FileManager;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.adapters.FileModelAdapter;
 import org.fruct.oss.audioguide.parsers.FileContent;
@@ -29,7 +28,7 @@ public class FileManagerFragment extends ListFragment implements UploadFragment.
 	private final static Logger log = LoggerFactory.getLogger(FileManagerFragment.class);
 
 	private FileModelAdapter adapter;
-	private FileManager fileManager;
+	//private FileManager fileManager;
 
 	private boolean pickerMode;
 
@@ -56,9 +55,9 @@ public class FileManagerFragment extends ListFragment implements UploadFragment.
 			pickerMode = getArguments().getBoolean(ARG_PICKER_MODE, false);
         }
 
-		fileManager = FileManager.getInstance();
+		//fileManager = FileManager.getInstance();
 
-		adapter = new FileModelAdapter(getActivity(), R.layout.list_file_item, fileManager.getImagesModel());
+		//adapter = new FileModelAdapter(getActivity(), R.layout.list_file_item, fileManager.getImagesModel());
 		setListAdapter(adapter);
 
 		setHasOptionsMenu(true);
@@ -127,6 +126,6 @@ public class FileManagerFragment extends ListFragment implements UploadFragment.
 
 	@Override
 	public void fileCreated(FileContent file) {
-		fileManager.addFile(file);
+		//fileManager.addFile(file);
 	}
 }

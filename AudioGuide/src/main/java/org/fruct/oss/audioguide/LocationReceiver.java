@@ -6,7 +6,6 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 
-import org.fruct.oss.audioguide.track.DistanceTracker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

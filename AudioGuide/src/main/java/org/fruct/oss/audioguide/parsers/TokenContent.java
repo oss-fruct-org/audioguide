@@ -1,6 +1,5 @@
 package org.fruct.oss.audioguide.parsers;
 
-import org.fruct.oss.audioguide.track.GetsStorage;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 

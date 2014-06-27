@@ -4,15 +4,9 @@ import android.database.Cursor;
 import android.location.Location;
 
 import org.fruct.oss.audioguide.LocationReceiver;
-import org.fruct.oss.audioguide.models.Model;
-import org.fruct.oss.audioguide.models.ModelListener;
-import org.fruct.oss.audioguide.track.track2.CursorHolder;
-import org.fruct.oss.audioguide.track.track2.CursorReceiver;
-import org.fruct.oss.audioguide.track.track2.TrackManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;

@@ -1,7 +1,6 @@
 package org.fruct.oss.audioguide.fragments;
 
 
-
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -11,9 +10,9 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import org.fruct.oss.audioguide.R;
+import org.fruct.oss.audioguide.track.DefaultTrackManager;
 import org.fruct.oss.audioguide.track.Track;
-import org.fruct.oss.audioguide.track.track2.DefaultTrackManager;
-import org.fruct.oss.audioguide.track.track2.TrackManager;
+import org.fruct.oss.audioguide.track.TrackManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -25,7 +25,7 @@ import org.fruct.oss.audioguide.parsers.FileContent;
 import org.fruct.oss.audioguide.parsers.GetsException;
 import org.fruct.oss.audioguide.parsers.GetsResponse;
 import org.fruct.oss.audioguide.parsers.PostUrlContent;
-import org.fruct.oss.audioguide.track.GetsStorage;
+import org.fruct.oss.audioguide.track.GetsBackend;
 import org.fruct.oss.audioguide.util.ProgressInputStream;
 import org.fruct.oss.audioguide.util.Utils;
 import org.slf4j.Logger;
@@ -125,10 +125,10 @@ public class UploadFragment extends DialogFragment {
 		@Override
 		public void onClick(View view) {
 			SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(App.getContext());
-			String token = pref.getString(GetsStorage.PREF_AUTH_TOKEN, null);
+			String token = pref.getString(GetsBackend.PREF_AUTH_TOKEN, null);
 
 			assert titleEdit != null;
-			String request = String.format(Locale.ROOT, GetsStorage.UPLOAD_FILE, token, titleEdit.getText().toString());
+			String request = String.format(Locale.ROOT, GetsBackend.UPLOAD_FILE, token, titleEdit.getText().toString());
 			uploadStage1(Gets.GETS_SERVER + "/files/uploadFile.php", request);
 		}
 	};

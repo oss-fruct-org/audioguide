@@ -12,12 +12,8 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.util.TypedValue;
 import android.view.ContextThemeWrapper;
 
-import junit.framework.Assert;
-
 import org.fruct.oss.audioguide.App;
-import org.fruct.oss.audioguide.BuildConfig;
 import org.fruct.oss.audioguide.fragments.CommonFragment;
-import org.fruct.oss.audioguide.models.Model;
 import org.osmdroid.api.IGeoPoint;
 import org.osmdroid.util.GeoPoint;
 

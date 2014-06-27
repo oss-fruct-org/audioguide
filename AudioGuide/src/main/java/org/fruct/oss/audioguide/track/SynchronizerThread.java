@@ -1,14 +1,12 @@
-package org.fruct.oss.audioguide.track.track2;
+package org.fruct.oss.audioguide.track;
 
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.HandlerThread;
 
-import org.fruct.oss.audioguide.files.files2.DefaultFileManager;
-import org.fruct.oss.audioguide.files.files2.FileManager;
-import org.fruct.oss.audioguide.track.Point;
-import org.fruct.oss.audioguide.track.Track;
+import org.fruct.oss.audioguide.files.DefaultFileManager;
+import org.fruct.oss.audioguide.files.FileManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

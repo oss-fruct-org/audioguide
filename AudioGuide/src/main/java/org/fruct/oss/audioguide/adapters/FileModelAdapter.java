@@ -2,10 +2,6 @@ package org.fruct.oss.audioguide.adapters;
 
 import android.app.Activity;
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
-import android.os.Handler;
-import android.os.Looper;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
@@ -13,11 +9,9 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import org.fruct.oss.audioguide.files.FileListener;
-import org.fruct.oss.audioguide.files.FileManager;
 import org.fruct.oss.audioguide.models.Model;
 import org.fruct.oss.audioguide.models.ModelListener;
 import org.fruct.oss.audioguide.parsers.FileContent;
-import org.fruct.oss.audioguide.files.Downloader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,15 +26,15 @@ public class FileModelAdapter extends BaseAdapter implements Closeable, ModelLis
 	private final Model<FileContent> model;
 
 	private final Set<String> pendingIconUris = new HashSet<String>();
-	private final FileManager fileManager;
+	//private final FileManager fileManager;
 
 	public FileModelAdapter(Context context, int resource, Model<FileContent> files) {
 		this.context = context;
 		this.resource = resource;
 		this.model = files;
 
-		fileManager = FileManager.getInstance();
-		fileManager.addWeakListener(this);
+		//fileManager = FileManager.getInstance();
+		//fileManager.addWeakListener(this);
 
 		model.addListener(this);
 	}
@@ -94,13 +88,13 @@ public class FileModelAdapter extends BaseAdapter implements Closeable, ModelLis
 				pendingIconUris.remove(imageUrl);
 			}
 
-			Bitmap iconBitmap = fileManager.getImageBitmap(imageUrl);
+			/*Bitmap iconBitmap = fileManager.getImageBitmap(imageUrl);
 			if (iconBitmap != null) {
 				holder.image.setImageDrawable(new BitmapDrawable(context.getResources(), iconBitmap));
 			} else {
 				pendingIconUris.add(imageUrl);
 				holder.image.setImageDrawable(null);
-			}
+			}*/
 		}
 
 		return view;

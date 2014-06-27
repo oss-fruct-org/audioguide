@@ -9,8 +9,8 @@ import android.os.Handler;
 import android.os.Looper;
 import android.support.v4.content.LocalBroadcastManager;
 
-import org.fruct.oss.audioguide.files.files2.DefaultFileManager;
-import org.fruct.oss.audioguide.files.files2.FileManager;
+import org.fruct.oss.audioguide.files.DefaultFileManager;
+import org.fruct.oss.audioguide.files.FileManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

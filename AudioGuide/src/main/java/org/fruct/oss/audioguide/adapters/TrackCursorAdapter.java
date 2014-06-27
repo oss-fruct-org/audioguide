@@ -10,12 +10,11 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import org.fruct.oss.audioguide.R;
+import org.fruct.oss.audioguide.track.DefaultTrackManager;
 import org.fruct.oss.audioguide.track.Track;
-import org.fruct.oss.audioguide.track.track2.DefaultTrackManager;
-import org.fruct.oss.audioguide.track.track2.TrackManager;
+import org.fruct.oss.audioguide.track.TrackManager;
 
 public class TrackCursorAdapter extends CursorAdapter implements View.OnClickListener {
 	public TrackCursorAdapter(Context context) {

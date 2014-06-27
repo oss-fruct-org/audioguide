@@ -1,4 +1,4 @@
-package org.fruct.oss.audioguide.files.files2;
+package org.fruct.oss.audioguide.files;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;

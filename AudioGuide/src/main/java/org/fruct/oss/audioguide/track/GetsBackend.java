@@ -1,8 +1,6 @@
-package org.fruct.oss.audioguide.track.track2;
+package org.fruct.oss.audioguide.track;
 
 import android.location.Location;
-import android.os.Bundle;
-import android.os.Message;
 
 import org.fruct.oss.audioguide.gets.AddPointRequest;
 import org.fruct.oss.audioguide.gets.CategoriesRequest;
@@ -16,8 +14,6 @@ import org.fruct.oss.audioguide.parsers.CategoriesContent;
 import org.fruct.oss.audioguide.parsers.GetsResponse;
 import org.fruct.oss.audioguide.parsers.Kml;
 import org.fruct.oss.audioguide.parsers.TracksContent;
-import org.fruct.oss.audioguide.track.Point;
-import org.fruct.oss.audioguide.track.Track;
 import org.fruct.oss.audioguide.util.Utils;
 
 import java.util.ArrayList;
@@ -25,6 +21,14 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 public class GetsBackend implements StorageBackend, CategoriesBackend {
+	public static final String PREF_AUTH_TOKEN = "pref-auth-token";
+	public static final String LIST_FILES = "<request><params>" +
+			"<auth_token>%s</auth_token>" +
+			"</params></request>";
+	public static final String UPLOAD_FILE = "<request><params>" +
+			"<auth_token>%s</auth_token>" +
+			"<title>%s</title>" +
+			"</params></request>";
 	private final Gets gets;
 
 	private List<Category> categories;

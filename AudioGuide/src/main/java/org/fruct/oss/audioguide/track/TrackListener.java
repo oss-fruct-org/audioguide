@@ -1,4 +1,4 @@
-package org.fruct.oss.audioguide.track.track2;
+package org.fruct.oss.audioguide.track;
 
 public interface TrackListener {
 	void onDataChanged();

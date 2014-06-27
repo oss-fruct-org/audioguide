@@ -1,12 +1,9 @@
-package org.fruct.oss.audioguide.track.track2;
+package org.fruct.oss.audioguide.track;
 
-import android.database.Cursor;
 import android.location.Location;
 
 import org.fruct.oss.audioguide.gets.Category;
 import org.fruct.oss.audioguide.models.Model;
-import org.fruct.oss.audioguide.track.Point;
-import org.fruct.oss.audioguide.track.Track;
 
 import java.util.List;
 

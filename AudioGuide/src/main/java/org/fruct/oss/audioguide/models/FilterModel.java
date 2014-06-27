@@ -1,16 +1,9 @@
 package org.fruct.oss.audioguide.models;
 
-import android.os.Handler;
-import android.os.Looper;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
 
 
 public abstract class FilterModel<T> extends BaseModel<T> implements ModelListener, Closeable {

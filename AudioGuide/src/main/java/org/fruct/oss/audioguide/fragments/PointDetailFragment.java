@@ -17,9 +17,9 @@ import android.widget.TextView;
 
 import org.fruct.oss.audioguide.MultiPanel;
 import org.fruct.oss.audioguide.R;
+import org.fruct.oss.audioguide.files.DefaultFileManager;
 import org.fruct.oss.audioguide.files.FileListener;
-import org.fruct.oss.audioguide.files.files2.DefaultFileManager;
-import org.fruct.oss.audioguide.files.files2.FileManager;
+import org.fruct.oss.audioguide.files.FileManager;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.util.Utils;
 

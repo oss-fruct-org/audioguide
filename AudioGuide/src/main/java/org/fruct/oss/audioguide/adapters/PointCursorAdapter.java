@@ -8,24 +8,19 @@ import android.graphics.drawable.BitmapDrawable;
 import android.support.v4.widget.CursorAdapter;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import org.fruct.oss.audioguide.R;
+import org.fruct.oss.audioguide.files.DefaultFileManager;
 import org.fruct.oss.audioguide.files.FileListener;
-import org.fruct.oss.audioguide.files.files2.DefaultFileManager;
-import org.fruct.oss.audioguide.files.files2.FileManager;
-import org.fruct.oss.audioguide.models.Model;
-import org.fruct.oss.audioguide.models.ModelListener;
+import org.fruct.oss.audioguide.files.FileManager;
 import org.fruct.oss.audioguide.track.Point;
-import org.fruct.oss.audioguide.track.Track;
 import org.fruct.oss.audioguide.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Closeable;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;

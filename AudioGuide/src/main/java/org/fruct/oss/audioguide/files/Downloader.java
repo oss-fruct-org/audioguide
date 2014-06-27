@@ -17,7 +17,6 @@ import java.net.URL;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.WeakHashMap;
 
 public class Downloader {
 	private final static Logger log = LoggerFactory.getLogger(Downloader.class);

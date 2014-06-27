@@ -1,6 +1,5 @@
 package org.fruct.oss.audioguide.util;
 
-import android.net.Uri;
 import android.util.Pair;
 import android.util.TypedValue;
 
@@ -12,7 +11,6 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
-import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -31,7 +29,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 @SuppressWarnings("unused")
 public class Utils {

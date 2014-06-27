@@ -1,7 +1,6 @@
-package org.fruct.oss.audioguide.files.files2;
+package org.fruct.oss.audioguide.files;
 
 import android.content.ContentResolver;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
@@ -16,16 +15,13 @@ import android.os.Looper;
 import android.preference.PreferenceManager;
 
 import org.fruct.oss.audioguide.App;
-import org.fruct.oss.audioguide.files.FileListener;
-import org.fruct.oss.audioguide.files.IconCache;
 import org.fruct.oss.audioguide.gets.Gets;
 import org.fruct.oss.audioguide.parsers.FileContent;
 import org.fruct.oss.audioguide.parsers.GetsException;
 import org.fruct.oss.audioguide.parsers.GetsResponse;
 import org.fruct.oss.audioguide.parsers.PostUrlContent;
-import org.fruct.oss.audioguide.track.GetsStorage;
+import org.fruct.oss.audioguide.track.GetsBackend;
 import org.fruct.oss.audioguide.util.AUtils;
-import org.fruct.oss.audioguide.util.ProgressInputStream;
 import org.fruct.oss.audioguide.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +37,6 @@ import java.net.URL;
 import java.util.Locale;
 import java.util.UUID;
 import java.util.WeakHashMap;
-import java.util.concurrent.CountDownLatch;
 
 public class DefaultFileManager implements FileManager, Closeable, Runnable {
 	private static final Logger log = LoggerFactory.getLogger(DefaultFileManager.class);
@@ -225,10 +220,10 @@ public class DefaultFileManager implements FileManager, Closeable, Runnable {
 
 	private String uploadStage1(String title) throws IOException, GetsException {
 		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(App.getContext());
-		String token = pref.getString(GetsStorage.PREF_AUTH_TOKEN, null);
+		String token = pref.getString(GetsBackend.PREF_AUTH_TOKEN, null);
 
 		// FIXME: escape strings in xml
-		String request = String.format(Locale.ROOT, GetsStorage.UPLOAD_FILE, token, title);
+		String request = String.format(Locale.ROOT, GetsBackend.UPLOAD_FILE, token, title);
 		String uploadUrl = Gets.GETS_SERVER + "/files/uploadFile.php";
 
 		String responseStr = Utils.downloadUrl(uploadUrl, request);

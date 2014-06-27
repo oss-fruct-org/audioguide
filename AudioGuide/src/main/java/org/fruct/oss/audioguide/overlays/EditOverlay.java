@@ -12,11 +12,11 @@ import android.util.Pair;
 import android.view.MotionEvent;
 
 import org.fruct.oss.audioguide.R;
-import org.fruct.oss.audioguide.files.files2.DefaultFileManager;
-import org.fruct.oss.audioguide.files.files2.FileManager;
+import org.fruct.oss.audioguide.files.DefaultFileManager;
+import org.fruct.oss.audioguide.files.FileManager;
+import org.fruct.oss.audioguide.track.CursorHolder;
+import org.fruct.oss.audioguide.track.CursorReceiver;
 import org.fruct.oss.audioguide.track.Point;
-import org.fruct.oss.audioguide.track.track2.CursorHolder;
-import org.fruct.oss.audioguide.track.track2.CursorReceiver;
 import org.fruct.oss.audioguide.util.AUtils;
 import org.fruct.oss.audioguide.util.Utils;
 import org.osmdroid.api.IGeoPoint;

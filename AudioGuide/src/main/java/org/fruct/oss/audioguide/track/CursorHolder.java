@@ -1,4 +1,4 @@
-package org.fruct.oss.audioguide.track.track2;
+package org.fruct.oss.audioguide.track;
 
 import android.database.Cursor;
 import android.os.AsyncTask;

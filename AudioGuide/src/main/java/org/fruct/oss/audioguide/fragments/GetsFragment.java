@@ -22,7 +22,7 @@ import org.fruct.oss.audioguide.gets.LoginStage1Request;
 import org.fruct.oss.audioguide.gets.LoginStage2Request;
 import org.fruct.oss.audioguide.parsers.AuthRedirectResponse;
 import org.fruct.oss.audioguide.parsers.GetsResponse;
-import org.fruct.oss.audioguide.track.GetsStorage;
+import org.fruct.oss.audioguide.track.GetsBackend;
 
 public class GetsFragment extends Fragment implements WebViewDialog.Listener, SharedPreferences.OnSharedPreferenceChangeListener {
 	private MultiPanel multiPanel;
@@ -44,7 +44,7 @@ public class GetsFragment extends Fragment implements WebViewDialog.Listener, Sh
 	}
 
 	private void logout() {
-		pref.edit().remove(GetsStorage.PREF_AUTH_TOKEN).apply();
+		pref.edit().remove(GetsBackend.PREF_AUTH_TOKEN).apply();
 		initializeLoginLabel();
 	}
 
@@ -162,7 +162,7 @@ public class GetsFragment extends Fragment implements WebViewDialog.Listener, Sh
 	}
 
 	private void initializeLoginLabel() {
-		String token = pref.getString(GetsStorage.PREF_AUTH_TOKEN, null);
+		String token = pref.getString(GetsBackend.PREF_AUTH_TOKEN, null);
 
 		if (token == null) {
 			loginLabel.setText("Not signed in");
@@ -170,7 +170,7 @@ public class GetsFragment extends Fragment implements WebViewDialog.Listener, Sh
 			loginLabel.setText("Signed in");
 		}
 
-		if (pref.getString(GetsStorage.PREF_AUTH_TOKEN, null) != null) {
+		if (pref.getString(GetsBackend.PREF_AUTH_TOKEN, null) != null) {
 			logoutButton.setVisibility(View.VISIBLE);
 			manageFilesButton.setVisibility(View.VISIBLE);
 		} else {
@@ -181,7 +181,7 @@ public class GetsFragment extends Fragment implements WebViewDialog.Listener, Sh
 
 	@Override
 	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-		if (key.equals(GetsStorage.PREF_AUTH_TOKEN)) {
+		if (key.equals(GetsBackend.PREF_AUTH_TOKEN)) {
 			initializeLoginLabel();
 		}
 	}

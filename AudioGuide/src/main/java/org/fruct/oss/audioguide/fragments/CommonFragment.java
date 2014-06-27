@@ -16,8 +16,8 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-import org.fruct.oss.audioguide.dialogs.CategoriesDialog;
 import org.fruct.oss.audioguide.R;
+import org.fruct.oss.audioguide.dialogs.CategoriesDialog;
 import org.fruct.oss.audioguide.track.TrackingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
