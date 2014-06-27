@@ -120,7 +120,8 @@ public class PointDetailFragment extends Fragment implements FileListener {
 
 		TextView description = (TextView) view.findViewById(android.R.id.text2);
 		String descriptionString = point.getDescription();
-		if (Utils.isNullOrEmpty(descriptionString)) {
+
+		if (!Utils.isNullOrEmpty(descriptionString)) {
 			description.setText(descriptionString);
 		} else {
 			description.setVisibility(View.GONE);
