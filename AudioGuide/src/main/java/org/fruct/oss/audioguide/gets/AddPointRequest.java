@@ -28,8 +28,6 @@ public class AddPointRequest extends GetsRequest {
 
 	@Override
 	protected String createRequestString() {
-		Date currentDate = new Date();
-		String timeStr = new SimpleDateFormat("dd MM yyyy HH:mm:ss.SSS", Locale.ROOT).format(currentDate);
 		return createAddPointRequest(
 				track.getName(),
 				point.getName(),
@@ -38,7 +36,7 @@ public class AddPointRequest extends GetsRequest {
 				point.getLatE6() / 1e6,
 				point.getLonE6() / 1e6,
 				0.0,
-				timeStr);
+				point.getTime());
 	}
 
 	@Override

@@ -11,6 +11,9 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 import java.util.StringTokenizer;
 
 public class Point implements Parcelable {
@@ -33,6 +36,7 @@ public class Point implements Parcelable {
 
 	private String audioUrl;
 	private String photoUrl;
+	private String time;
 
 	private boolean isPrivate;
 
@@ -61,6 +65,8 @@ public class Point implements Parcelable {
 	private transient Location cachedLocation;
 
 	public Point() {
+		Date currentDate = new Date();
+		this.time = new SimpleDateFormat("dd MM yyyy HH:mm:ss.SSS", Locale.ROOT).format(currentDate);
 	}
 
 	public Point(Cursor cursor) {
@@ -71,6 +77,8 @@ public class Point implements Parcelable {
 		if (!cursor.isNull(7)) {
 			setCategoryId(cursor.getLong(7));
 		}
+
+		setTime(cursor.getString(8));
 	}
 
 	public Point(Point point) {
@@ -82,9 +90,12 @@ public class Point implements Parcelable {
 		photoUrl = point.photoUrl;
 		categoryId = point.categoryId;
 		isPrivate = point.isPrivate;
+		time = point.time;
 	}
 
 	public Point(String name, String description, String audioUrl, String photoUrl, int latE6, int lonE6) {
+		this();
+
 		this.name = name;
 		this.description = description;
 		this.audioUrl = audioUrl;
@@ -104,7 +115,6 @@ public class Point implements Parcelable {
 	public Point(String name, String description, String audioUrl, String photoUrl, double lat, double lon) {
 		this(name, description, audioUrl, photoUrl, (int)(lat * 1e6), (int)(lon * 1e6));
 	}
-
 
 	public String getName() {
 		return name;
@@ -130,6 +140,9 @@ public class Point implements Parcelable {
 		return isPrivate;
 	}
 
+	public String getTime() {
+		return time;
+	}
 
 	public void setName(String name) {
 		this.name = name;
@@ -153,6 +166,10 @@ public class Point implements Parcelable {
 
 	public void setPrivate(boolean isPrivate) {
 		this.isPrivate = isPrivate;
+	}
+
+	public void setTime(String timeStr) {
+		this.time = timeStr;
 	}
 
 	public int getLatE6() {
@@ -233,6 +250,7 @@ public class Point implements Parcelable {
 		parcel.writeLong(categoryId);
 
 		parcel.writeInt(isPrivate ? 1 : 0);
+		parcel.writeString(time);
 	}
 
 	public static final Creator<Point> CREATOR = new Creator<Point>() {
@@ -249,6 +267,7 @@ public class Point implements Parcelable {
 			Point point = new Point(name, desc, audioUrl, photoUrl, latE6, lonE6);
 			point.setCategoryId(parcel.readLong());
 			point.setPrivate(parcel.readInt() != 0);
+			point.setTime(parcel.readString());
 			return point;
 		}
 
@@ -309,7 +328,9 @@ public class Point implements Parcelable {
 				parser.require(XmlPullParser.START_TAG, null, "value");
 				String value = GetsResponse.readText(parser);
 
-				if (key.equals("photo"))
+				if (key.equals("time"))
+					point.time = value;
+				else if (key.equals("photo"))
 					point.photoUrl = value;
 				else if (key.equals("audio"))
 					point.audioUrl = value;
