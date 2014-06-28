@@ -63,11 +63,8 @@ public class EditPointDialog extends DialogFragment implements DialogInterface.O
 	private EditText editUrl;
 	private Category selectedCategory;
 
-	private TextView audioFileLabel;
-	private Button audioFileButton;
-
+	private ImageButton audioButton;
 	private ImageButton photoButton;
-
 	private Spinner categorySpinner;
 
 	public EditPointDialog() {
@@ -121,9 +118,9 @@ public class EditPointDialog extends DialogFragment implements DialogInterface.O
 		editDescription = (EditText) view.findViewById(R.id.text_description);
 
 		photoButton = (ImageButton) view.findViewById(R.id.photo_button);
-
-		audioFileLabel = (TextView) view.findViewById(R.id.audio_file_title);
-		audioFileButton = (Button) view.findViewById(R.id.audio_file_button);
+		audioButton = (ImageButton) view.findViewById(R.id.audio_button);
+		//audioFileLabel = (TextView) view.findViewById(R.id.audio_file_title);
+		//audioFileButton = (Button) view.findViewById(R.id.audio_file_button);
 
 		categorySpinner = (Spinner) view.findViewById(R.id.category_spinner);
 		setupCategorySpinner(categorySpinner);
@@ -141,7 +138,7 @@ public class EditPointDialog extends DialogFragment implements DialogInterface.O
 				showFileChooserDialog("image/*", REQUEST_CODE_IMAGE);
 			}
 		});
-		audioFileButton.setOnClickListener(new View.OnClickListener() {
+		audioButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View view) {
 				showFileChooserDialog("audio/*", REQUEST_CODE_AUDIO);
@@ -246,9 +243,8 @@ public class EditPointDialog extends DialogFragment implements DialogInterface.O
 		}
 		if (requestCode == REQUEST_CODE_AUDIO && resultCode == Activity.RESULT_OK) {
 			Uri uri = data.getData();
-			Uri imageUri = fm.insertLocalFile(uri.getLastPathSegment(), uri);
-			point.setAudioUrl(imageUri.toString());
-			audioFileLabel.setText(point.getAudioUrl());
+			Uri audioUri = fm.insertLocalFile(uri.getLastPathSegment(), uri);
+			point.setAudioUrl(audioUri.toString());
 		}
 	}
 
