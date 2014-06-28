@@ -7,15 +7,21 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.ListFragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
+import android.support.v7.view.ActionMode;
 import android.support.v7.widget.PopupMenu;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AbsListView;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 import org.fruct.oss.audioguide.MultiPanel;
+import org.fruct.oss.audioguide.NavigationDrawerFragment;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.adapters.TrackCursorAdapter;
 import org.fruct.oss.audioguide.dialogs.EditTrackDialog;
@@ -26,7 +32,7 @@ import org.fruct.oss.audioguide.track.TrackManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemClickListener {
+public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemClickListener, AdapterView.OnItemLongClickListener {
 	private final static Logger log = LoggerFactory.getLogger(TrackFragment.class);
 
 	public static final String STATE_SPINNER_STATE = "spinner-state";
@@ -78,6 +84,7 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 			selectedSpinnerItem = savedInstanceState.getInt(STATE_SPINNER_STATE);
 		}
 	}
+
 
 	@Override
 	public void onResume() {
@@ -168,6 +175,7 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 	@Override
 	public void onStart() {
 		super.onStart();
+		getListView().setOnItemLongClickListener(this);
 	}
 
 	@Override
@@ -193,46 +201,25 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 		multiPanel = null;
 	}
 
+	private void showContextualActionBar(int position) {
+		selectedTrack = trackCursorAdapter.getTrack(position);
+		ActionBarActivity activity = ((ActionBarActivity) getActivity());
+		activity.startSupportActionMode(actionModeCallback);
+	}
+
+	@Override
+	public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
+		showContextualActionBar(i);
+		return true;
+	}
+
+
 	@Override
 	public void onListItemClick(ListView l, View v, int position, long id) {
 		Track track = trackCursorAdapter.getTrack(position);
 		multiPanel.replaceFragment(PointFragment.newInstance(track), this);
 		trackManager.requestPointsInTrack(track);
-
-		/*
-		PopupMenu popupMenu = new PopupMenu(getActivity(), v);
-		Menu menu = popupMenu.getMenu();
-
-
-		if (track.isLocal()) {
-			popupShowPoints = menu.add("Show points");
-
-			if (track.isActive()) {
-				popupItemDeactivate = menu.add("Deactivate");
-			} else {
-				popupItemActivate = menu.add("Activate");
-			}
-		} else {
-			popupItemDownload = menu.add("Download");
-		}
-
-		if (track.isPrivate() && track.isLocal()) {
-			SubMenu editingMenu = menu.addSubMenu("Editing");
-
-			popupItemEdit = editingMenu.add("Edit description");
-			popupItemEditPoints = editingMenu.add("Edit points");
-
-			if (pref.getString(GetsStorage.PREF_AUTH_TOKEN, null) != null) {
-				popupItemSend = editingMenu.add("Send to server");
-			}
-		}
-
-		selectedTrack = track;
-		popupMenu.setOnMenuItemClickListener(this);
-		popupMenu.show();
-*/
-		//trackClicked(track);
-	}
+}
 
 	@Override
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
@@ -312,6 +299,46 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 		public void trackUpdated(Track track) {
 			log.debug("Track updated callback");
 			//trackManager.storeLocal(track);
+		}
+	};
+
+	private ActionMode.Callback actionModeCallback = new ActionMode.Callback() {
+		@Override
+		public boolean onCreateActionMode(ActionMode actionMode, Menu menu) {
+			actionMode.getMenuInflater().inflate(R.menu.track_menu, menu);
+			return true;
+		}
+
+		@Override
+		public boolean onPrepareActionMode(ActionMode actionMode, Menu menu) {
+			return false;
+		}
+
+		@Override
+		public boolean onActionItemClicked(ActionMode actionMode, MenuItem menuItem) {
+			switch (menuItem.getItemId()) {
+			case R.id.action_start_guide:
+				startGuide();
+				actionMode.finish();
+				return true;
+
+			default:
+				return false;
+			}
+		}
+
+		@Override
+		public void onDestroyActionMode(ActionMode actionMode) {
+			selectedTrack = null;
+		}
+
+		private void startGuide() {
+			NavigationDrawerFragment frag =
+					(NavigationDrawerFragment)
+							getActivity().getSupportFragmentManager()
+									.findFragmentById(R.id.navigation_drawer);
+
+			frag.selectItem(2, null);
 		}
 	};
 }

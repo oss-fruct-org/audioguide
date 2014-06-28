@@ -156,19 +156,6 @@ public class MainActivity extends ActionBarActivity
 
 	@Override
 	public void onNavigationDrawerItemSelected(int position, Bundle fragmentParameters) {
-		/*FragmentManager fragmentManager = getSupportFragmentManager();
-		FragmentTransaction trans = fragmentManager.beginTransaction();
-		try {
-			if (fragmentManager.getFragments() != null) {
-				for (Fragment fragment : fragmentManager.getFragments()) {
-					if (fragment != null && fragment.getTag() != null && fragment.getTag().equals(TAG_PANEL_FRAGMENT))
-						trans.remove(fragment);
-				}
-			}
-		} finally {
-			trans.commit();
-		}*/
-
 		if (suppressDrawerItemSelect) {
 			suppressDrawerItemSelect = false;
 			return;

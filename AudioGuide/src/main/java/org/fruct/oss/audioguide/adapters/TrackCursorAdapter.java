@@ -89,7 +89,7 @@ public class TrackCursorAdapter extends CursorAdapter implements View.OnClickLis
 		if (holder != null) {
 			Track track = holder.track;
 			if (holder.activeImage == view) {
-				throw new UnsupportedOperationException();
+
 			} else if (holder.localImage == view && !track.isLocal()) {
 				trackManager.storeTrackLocal(holder.track);
 			}
