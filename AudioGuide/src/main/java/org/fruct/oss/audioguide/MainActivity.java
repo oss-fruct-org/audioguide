@@ -167,13 +167,15 @@ public class MainActivity extends ActionBarActivity
 		case 0:
 			fragment = TrackFragment.newInstance();
 			break;
+/*
 		case 1:
 			fragment = CategoryFragment.newInstance();
 			break;
-		case 2:
+*/
+		case 1:
 			fragment = MapFragment.newInstance();
 			break;
-		case 3:
+		case 2:
 			fragment = GetsFragment.newInstance();
 			break;
 		}

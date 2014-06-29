@@ -338,7 +338,7 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 							getActivity().getSupportFragmentManager()
 									.findFragmentById(R.id.navigation_drawer);
 			trackManager.activateTrackMode(selectedTrack);
-			frag.selectItem(2, null);
+			frag.selectItem(1, null);
 		}
 	};
 }
