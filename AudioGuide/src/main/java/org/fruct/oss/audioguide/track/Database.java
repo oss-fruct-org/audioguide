@@ -67,8 +67,7 @@ public class Database {
 	}
 
 	public long insertPoint(Point newPoint, Point oldPoint) {
-		if (oldPoint == null && findPointId(newPoint) != -1)
-			return -1;
+		long existingPointId = findPointId(newPoint);
 
 		long oldPointId = -1;
 		if (oldPoint != null) {
@@ -93,10 +92,14 @@ public class Database {
 			cv.put("categoryId", newPoint.getCategoryId());
 
 		if (oldPoint == null) {
-			return db.insert("point", null, cv);
+			if (existingPointId == -1)
+				return db.insert("point", null, cv);
+			else {
+				db.update("point", cv, "id=?", Utils.toArray(existingPointId));
+				return existingPointId;
+			}
 		} else {
 			db.update("point", cv, "id=?", Utils.toArray(oldPointId));
-
 			return oldPointId;
 		}
 	}
@@ -128,9 +131,7 @@ public class Database {
 	}
 
 	public void insertToTrack(Track track, Point point) {
-		long pointId = findPointId(point);
-		if (pointId == -1)
-			pointId = insertPoint(point, null);
+		long pointId = insertPoint(point, null);
 
 		long trackId = findTrackId(track);
 		if (trackId == -1)
@@ -354,7 +355,7 @@ public class Database {
 
 	private static class Helper extends SQLiteOpenHelper {
 		public static final String DB_NAME = "tracksdb2";
-		public static final int DB_VERSION = 3; // published None
+		public static final int DB_VERSION = 14; // published None
 
 		public static final String CREATE_POINT_UPDATES_SQL = "CREATE TABLE point_update " +
 				"(pointId INTEGER," +
