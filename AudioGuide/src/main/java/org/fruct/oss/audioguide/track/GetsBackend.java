@@ -59,7 +59,6 @@ public class GetsBackend implements StorageBackend, CategoriesBackend {
 		});
 	}
 
-
 	@Override
 	public void updateTrack(final Track track, final List<Point> points) throws InterruptedException, GetsException {
 		UpdateRequest request = new UpdateRequest(points.size());

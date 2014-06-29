@@ -147,8 +147,14 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 			startSearchingPoints();
 			break;
 		case R.id.action_stop_guide:
-			trackManager.activateTrackMode(null);
-			updatePointsOverlay();
+			if (pref.contains(TrackManager.PREF_TRACK_MODE)) {
+				trackManager.activateTrackMode(null);
+				updatePointsOverlay();
+			} else {
+				SelectTrackDialog dialog = SelectTrackDialog.newInstance();
+				dialog.setListener(activateTrackListener);
+				dialog.show(getFragmentManager(), "select-track-dialog");
+			}
 			break;
 
 		}
@@ -477,6 +483,14 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 		public void trackSelected(Track track) {
 			trackManager.insertToTrack(track, selectedPoint);
 			selectedPoint = null;
+		}
+	};
+
+	private SelectTrackDialog.Listener activateTrackListener = new SelectTrackDialog.Listener() {
+		@Override
+		public void trackSelected(Track track) {
+			trackManager.activateTrackMode(track);
+			updatePointsOverlay();
 		}
 	};
 

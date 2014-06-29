@@ -36,11 +36,11 @@ public class TrackCursorAdapter extends CursorAdapter implements View.OnClickLis
 		holder.localImage = (ImageButton) view.findViewById(R.id.localImage);
 		holder.localImage.setTag(holder);
 
-		holder.activeImage = (ImageButton) view.findViewById(R.id.activeImage);
-		holder.activeImage.setTag(holder);
+		//holder.activeImage = (ImageButton) view.findViewById(R.id.activeImage);
+		//holder.activeImage.setTag(holder);
 
 		holder.localImage.setOnClickListener(this);
-		holder.activeImage.setOnClickListener(this);
+		//holder.activeImage.setOnClickListener(this);
 
 		view.setTag(holder);
 
@@ -59,7 +59,7 @@ public class TrackCursorAdapter extends CursorAdapter implements View.OnClickLis
 
 		setupButton(holder.publicImage, !holder.track.isPrivate());
 		setupButton(holder.localImage, holder.track.isLocal());
-		setupButton(holder.activeImage, holder.track.isActive());
+		//setupButton(holder.activeImage, holder.track.isActive());
 
 		/*Integer highlightColor = highlight.get(track.getName());
 		if (highlightColor != null) {
@@ -88,9 +88,7 @@ public class TrackCursorAdapter extends CursorAdapter implements View.OnClickLis
 		TrackHolder holder = (TrackHolder) view.getTag();
 		if (holder != null) {
 			Track track = holder.track;
-			if (holder.activeImage == view) {
-
-			} else if (holder.localImage == view && !track.isLocal()) {
+			if (holder.localImage == view && !track.isLocal()) {
 				trackManager.storeTrackLocal(holder.track);
 			}
 		}
@@ -103,6 +101,6 @@ public class TrackCursorAdapter extends CursorAdapter implements View.OnClickLis
 		TextView text2;
 		ImageButton publicImage;
 		ImageButton localImage;
-		ImageButton activeImage;
+		//ImageButton activeImage;
 	}
 }

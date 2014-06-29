@@ -59,6 +59,7 @@
             android:layout_margin="8dp"
             />
 
+<!--
         <ImageButton
             android:src="@drawable/ic_action_accept"
             android:layout_width="wrap_content"
@@ -68,6 +69,7 @@
             android:background="@null"
             android:layout_margin="8dp"
             />
+-->
 
     </LinearLayout>
 </RelativeLayout>
