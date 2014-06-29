@@ -336,6 +336,22 @@ public class Database {
 		db.update("category", cv, "id=?", new String[]{String.valueOf(category.getId())});
 	}
 
+	public Track getTrackByName(String name) {
+		Cursor cursor = db.rawQuery("SELECT track.name, track.description, track.url, track.local, track.categoryId, track.private, track.hname, track.id AS _id " +
+				"FROM track" +
+				"WHERE track.name=?", Utils.toArray(name));
+
+		try {
+			if (cursor.moveToFirst()) {
+				return new Track(cursor);
+			} else {
+				return null;
+			}
+		} finally {
+			cursor.close();
+		}
+	}
+
 	private static class Helper extends SQLiteOpenHelper {
 		public static final String DB_NAME = "tracksdb2";
 		public static final int DB_VERSION = 1; // published None

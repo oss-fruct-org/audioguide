@@ -26,6 +26,7 @@ public interface TrackManager {
 
 	void requestPointsInTrack(Track track);
 
+	void activateTrackMode(Track track);
 
 	void addListener(TrackListener listener);
 
@@ -43,6 +44,7 @@ public interface TrackManager {
 
 	CursorHolder loadRelations();
 
+	Track getTrackByName(String name);
 
 	void updateUserLocation(Location location);
 

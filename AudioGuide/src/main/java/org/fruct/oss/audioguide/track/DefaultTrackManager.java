@@ -1,9 +1,11 @@
 package org.fruct.oss.audioguide.track;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.location.Location;
 import android.net.Uri;
+import android.preference.PreferenceManager;
 
 import org.fruct.oss.audioguide.App;
 import org.fruct.oss.audioguide.files.DefaultFileManager;
@@ -21,6 +23,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	private final CategoriesBackend categoriesBackend;
 	private final Database database;
 	private final FileManager fileManager;
+	private final SharedPreferences pref;
 
 	private List<Category> categories;
 	private List<Category> activeCategories;
@@ -36,6 +39,8 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	public DefaultTrackManager(Context context, StorageBackend backend, CategoriesBackend catBackend) {
 		this.categoriesBackend = catBackend;
 		this.backend = backend;
+
+		pref = PreferenceManager.getDefaultSharedPreferences(context);
 
 		fileManager = DefaultFileManager.getInstance();
 
@@ -151,6 +156,11 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	}
 
 	@Override
+	public void activateTrackMode(Track track) {
+		pref.edit().putString(PREF_TRACK_MODE, track.getName()).apply();
+	}
+
+	@Override
 	public void addListener(TrackListener listener) {
 		listeners.add(listener);
 	}
@@ -229,6 +239,11 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 		addCursorHolder(cursorHolder);
 		cursorHolder.queryAsync();
 		return cursorHolder;
+	}
+
+	@Override
+	public Track getTrackByName(String name) {
+		return database.getTrackByName(name);
 	}
 
 	@Override

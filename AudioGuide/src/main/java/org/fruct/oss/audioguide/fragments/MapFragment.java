@@ -20,6 +20,8 @@ import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v7.app.ActionBarActivity;
+import android.support.v7.view.ActionMode;
 import android.support.v7.widget.PopupMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -72,6 +74,8 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 	private TrackManager trackManager;
 	private TrackingService trackingService;
 	private TrackingServiceConnection serviceConnection = new TrackingServiceConnection();
+	private SharedPreferences pref;
+
 
 	private MyPositionOverlay myPositionOverlay;
 	private BroadcastReceiver locationReceiver;
@@ -105,7 +109,7 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 		trackManager = DefaultTrackManager.getInstance();
 		setHasOptionsMenu(true);
 
-		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getActivity());
+		pref = PreferenceManager.getDefaultSharedPreferences(getActivity());
 		pref.registerOnSharedPreferenceChangeListener(this);
 	}
 
@@ -476,24 +480,8 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 
 		@Override
 		public void pointLongPressed(final Point point) {
-			PopupMenu menu = new PopupMenu(getActivity(), getView().findViewById(R.id.map_anchor));
-			final MenuItem item = menu.getMenu().add("Add to track");
-			menu.show();
-
-			menu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-				@Override
-				public boolean onMenuItemClick(MenuItem menuItem) {
-					if (menuItem == item) {
-						SelectTrackDialog dialog = SelectTrackDialog.newInstance();
-						dialog.setListener(addPointToTrackListener);
-						selectedPoint = point;
-						dialog.show(getFragmentManager(), "select-track-dialog");
-						return true;
-					}
-
-					return false;
-				}
-			});
+			ActionBarActivity activity = (ActionBarActivity) getActivity();
+			activity.startSupportActionMode(pointActionMode);
 		}
 	};
 
@@ -516,6 +504,39 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 
 		@Override
 		public void pointLongPressed(Point p) {
+		}
+	};
+
+	private ActionMode.Callback pointActionMode = new ActionMode.Callback() {
+		@Override
+		public boolean onCreateActionMode(ActionMode actionMode, Menu menu) {
+			actionMode.getMenuInflater().inflate(R.menu.point_menu, menu);
+			return true;
+		}
+
+		@Override
+		public boolean onPrepareActionMode(ActionMode actionMode, Menu menu) {
+			return false;
+		}
+
+		@Override
+		public boolean onActionItemClicked(ActionMode actionMode, MenuItem menuItem) {
+			switch (menuItem.getItemId()) {
+			case R.id.action_add_to_track:
+				SelectTrackDialog dialog = SelectTrackDialog.newInstance();
+				dialog.setListener(addPointToTrackListener);
+				dialog.show(getFragmentManager(), "select-track-dialog");
+				actionMode.finish();
+				return true;
+
+			default:
+				return false;
+			}
+
+		}
+
+		@Override
+		public void onDestroyActionMode(ActionMode actionMode) {
 		}
 	};
 }
