@@ -12,6 +12,7 @@ import org.fruct.oss.audioguide.gets.LoadPointsRequest;
 import org.fruct.oss.audioguide.gets.LoadTrackRequest;
 import org.fruct.oss.audioguide.gets.LoadTracksRequest;
 import org.fruct.oss.audioguide.parsers.CategoriesContent;
+import org.fruct.oss.audioguide.parsers.GetsException;
 import org.fruct.oss.audioguide.parsers.GetsResponse;
 import org.fruct.oss.audioguide.parsers.Kml;
 import org.fruct.oss.audioguide.parsers.TracksContent;
@@ -60,7 +61,16 @@ public class GetsBackend implements StorageBackend, CategoriesBackend {
 
 
 	@Override
-	public void updateTrack(final Track track, final List<Point> points) {
+	public void updateTrack(final Track track, final List<Point> points) throws InterruptedException, GetsException {
+		UpdateRequest request = new UpdateRequest(points.size());
+		doUpdateTrack(track, points, request);
+		request.latch.await();
+
+		if (!request.isSuccess)
+			throw new GetsException("Can't update track in GeTS");
+	}
+
+	private void doUpdateTrack(final Track track, final List<Point> points, final UpdateRequest request) {
 		final Gets gets = Gets.getInstance();
 		gets.addRequest(new CreateTrackRequest(gets, track) {
 			@Override
@@ -68,20 +78,44 @@ public class GetsBackend implements StorageBackend, CategoriesBackend {
 				super.onPostProcess(response);
 
 				if (response.getCode() != 0 && response.getCode() != 2) {
+					// Error creating track
+					request.fail();
 					return;
 				}
 
-				processCreateTrackResponse(response, track, points);
+				processCreateTrackResponse(response, track, points, request);
+			}
+
+			@Override
+			protected void onError() {
+				request.fail();
 			}
 		});
 	}
 
-	private void sendPoint(Track track, Point point) {
+	private void sendPoint(Track track, Point point, final UpdateRequest request) {
 		Gets gets = Gets.getInstance();
-		gets.addRequest(new AddPointRequest(gets, track, point));
+		gets.addRequest(new AddPointRequest(gets, track, point) {
+			@Override
+			protected void onPostProcess(GetsResponse response) {
+				super.onPostProcess(response);
+
+				if (response.getCode() != 0) {
+					request.fail();
+				} else {
+					request.countPoint();
+				}
+			}
+
+			@Override
+			protected void onError() {
+				super.onError();
+				request.fail();
+			}
+		});
 	}
 
-	private void processCreateTrackResponse(GetsResponse response, final Track track, final List<Point> points) {
+	private void processCreateTrackResponse(GetsResponse response, final Track track, final List<Point> points, final UpdateRequest request) {
 		// Track already exists
 		if (response.getCode() == 2) {
 			final Gets gets = Gets.getInstance();
@@ -93,13 +127,21 @@ public class GetsBackend implements StorageBackend, CategoriesBackend {
 					if (response.getCode() == 0) {
 						// FIXME: Dangerous. Can cause infinite recursion
 						// FIXME: if GeTS return 'success' but track not deleted
-						updateTrack(track, points);
+						doUpdateTrack(track, points, request);
+					} else {
+						request.fail();
 					}
+				}
+
+				@Override
+				protected void onError() {
+					super.onError();
+					request.fail();
 				}
 			});
 		} else {
 			for (Point point : points) {
-				sendPoint(track, point);
+				sendPoint(track, point, request);
 			}
 		}
 	}
@@ -167,4 +209,27 @@ public class GetsBackend implements StorageBackend, CategoriesBackend {
 	}
 
 
+	private static class UpdateRequest {
+		boolean isSuccess = true;
+		int pointsRemaining;
+		final CountDownLatch latch;
+
+		UpdateRequest(int pointsCount) {
+			pointsRemaining = pointsCount;
+			latch = new CountDownLatch(1);
+		}
+
+		void fail() {
+			if (isSuccess) {
+				isSuccess = false;
+				latch.countDown();
+			}
+		}
+
+		synchronized void countPoint() {
+			pointsRemaining--;
+			if (pointsRemaining == 0)
+				latch.countDown();
+		}
+	}
 }

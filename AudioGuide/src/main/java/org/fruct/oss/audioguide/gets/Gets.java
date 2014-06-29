@@ -3,6 +3,7 @@ package org.fruct.oss.audioguide.gets;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Handler;
+import android.os.Looper;
 import android.preference.PreferenceManager;
 
 import org.fruct.oss.audioguide.App;
@@ -62,7 +63,7 @@ public class Gets implements Runnable {
 
 	public void addRequest(GetsRequest request) {
 		synchronized (requestQueue) {
-			request.setHandler(new Handler());
+			request.setHandler(new Handler(Looper.getMainLooper()));
 			request.setIndex(index++);
 
 			requestQueue.add(request);

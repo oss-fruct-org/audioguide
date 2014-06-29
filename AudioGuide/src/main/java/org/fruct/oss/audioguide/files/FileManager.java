@@ -3,6 +3,10 @@ package org.fruct.oss.audioguide.files;
 import android.graphics.Bitmap;
 import android.net.Uri;
 
+import org.fruct.oss.audioguide.parsers.GetsException;
+
+import java.io.IOException;
+
 public interface FileManager {
 
 	public enum ScaleMode {
@@ -13,7 +17,7 @@ public interface FileManager {
 	void insertRemoteFile(String title, Uri remoteUri);
 
 	String getLocalPath(Uri remoteUri);
-	Uri uploadLocalFile(Uri localUri);
+	Uri uploadLocalFile(Uri localUri) throws IOException, GetsException;
 
 	Bitmap getImageBitmap(String remoteUrl, int width, int height, ScaleMode mode);
 

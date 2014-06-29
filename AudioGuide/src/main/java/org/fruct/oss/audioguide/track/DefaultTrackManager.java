@@ -327,7 +327,6 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	private static DefaultTrackManager instance;
 	public synchronized static TrackManager getInstance() {
 		if (instance == null) {
-			TestStorageBackend storage = createTestBackend();
 			GetsBackend backend = new GetsBackend();
 			instance = new DefaultTrackManager(App.getContext(), backend, backend);
 			instance.getCategories();
@@ -335,30 +334,4 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 
 		return instance;
 	}
-
-	private static TestStorageBackend createTestBackend() {
-		TestStorageBackend backend = new TestStorageBackend();
-
-		Track track = new Track("AAA", "BBB", "CCC");
-		track.setCategoryId(1);
-		ArrayList<Point> points = new ArrayList<Point>() {{
-			add(new Point("MMM1", "NNN1", "", 0f, 0f));
-			add(new Point("MMM2", "NNN2", "", 10f, 10f));
-			add(new Point("MMM3", "NNN3", "", -5f, -1f));
-			add(new Point("MMM4", "NNN4", "", 0f, 1f));
-			add(new Point("PTZ", "Petrozavodsk", "", 61.783f, 34.35f));
-		}};
-
-		Track category = new Track("ca_audio.shops", "Other", "CCC");
-		category.setCategoryId(2);
-		ArrayList<Point> points2 = new ArrayList<Point>() {{
-			add(new Point("Free", "Free", "", 61.785f, 34.356f));
-		}};
-
-		backend.updateTrack(track, points);
-		backend.updateTrack(category, points2);
-
-		return backend;
-	}
-
 }

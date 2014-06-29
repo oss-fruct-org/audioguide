@@ -7,9 +7,11 @@ import android.os.HandlerThread;
 
 import org.fruct.oss.audioguide.files.DefaultFileManager;
 import org.fruct.oss.audioguide.files.FileManager;
+import org.fruct.oss.audioguide.parsers.GetsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,14 +40,19 @@ public class SynchronizerThread extends HandlerThread {
 			public void run() {
 				try {
 					doSynchronizationStep();
+					scheduleStep();
 				} catch (InterruptedException e) {
 					quitSafely();
+				} catch (Exception ex) {
+					log.error("Synchronization error: ", ex);
+					scheduleStep();
 				}
 			}
-		}, 1000);
+		}, 5000);
 	}
 
-	private void doSynchronizationStep() throws InterruptedException {
+	private void doSynchronizationStep() throws InterruptedException, IOException, GetsException {
+		// TODO: cursors non exception-safe
 		Cursor cursor = database.loadUpdatedTracks();
 		while (cursor.moveToNext()) {
 			Track track = new Track(cursor);
@@ -63,10 +70,9 @@ public class SynchronizerThread extends HandlerThread {
 		}
 		cursor.close();
 		database.clearUpdates();
-		scheduleStep();
 	}
 
-	private void ensurePointFilesUploaded(Point point) {
+	private void ensurePointFilesUploaded(Point point) throws IOException, GetsException {
 		Point oldPoint = new Point(point);
 
 		if (point.hasAudio()) {
@@ -86,7 +92,7 @@ public class SynchronizerThread extends HandlerThread {
 		}
 	}
 
-	private Uri ensurePointFileUploaded(Uri uri) {
+	private Uri ensurePointFileUploaded(Uri uri) throws IOException, GetsException {
 		FileManager fm = DefaultFileManager.getInstance();
 		if (!fm.isLocal(uri))
 			return null;

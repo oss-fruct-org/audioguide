@@ -1,12 +1,13 @@
 package org.fruct.oss.audioguide.track;
 
 import org.fruct.oss.audioguide.gets.Category;
+import org.fruct.oss.audioguide.parsers.GetsException;
 import org.fruct.oss.audioguide.util.Utils;
 
 import java.util.List;
 
 public interface StorageBackend {
-	void updateTrack(Track track, List<Point> points);
+	void updateTrack(Track track, List<Point> points) throws InterruptedException, GetsException;
 
 	void loadTracksInRadius(float lat, float lon, float radius, List<Category> categories, Utils.Callback<List<Track>> callback);
 

@@ -146,7 +146,7 @@ public class DefaultFileManager implements FileManager, Closeable, Runnable {
 	}
 
 	@Override
-	public Uri uploadLocalFile(Uri cachedUri) {
+	public Uri uploadLocalFile(Uri cachedUri) throws IOException, GetsException {
 		Cursor cursor = db.rawQuery("SELECT title, remoteUrl FROM file WHERE cacheUrl=?;",
 				Utils.toArray(cachedUri.toString()));
 
@@ -158,6 +158,7 @@ public class DefaultFileManager implements FileManager, Closeable, Runnable {
 		}
 
 		Uri remoteUri = uploadFile(cursor.getString(0), cachedUri);
+
 		db.execSQL("UPDATE file SET remoteUrl=? WHERE cacheUrl=?",
 				Utils.toArray(remoteUri.toString(), cachedUri.toString()));
 
@@ -203,20 +204,10 @@ public class DefaultFileManager implements FileManager, Closeable, Runnable {
 		}
 	}
 
-	private Uri uploadFile(String title, Uri cachedUri) {
-		try {
-			String postUrl = uploadStage1(title);
-			FileContent fileContent = uploadStage2(cachedUri, postUrl);
-			return Uri.parse(fileContent.getUrl());
-		} catch (IOException e) {
-			log.error("GeTS error: ", e);
-			//showError("Error uploading file");
-		} catch (GetsException e) {
-			log.error("Response error: ", e);
-			//showError("Error uploading file: incorrect answer from server");
-		}
-
-		return null;
+	private Uri uploadFile(String title, Uri cachedUri) throws IOException, GetsException {
+		String postUrl = uploadStage1(title);
+		FileContent fileContent = uploadStage2(cachedUri, postUrl);
+		return Uri.parse(fileContent.getUrl());
 	}
 
 	private String uploadStage1(String title) throws IOException, GetsException {
