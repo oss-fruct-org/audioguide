@@ -70,4 +70,8 @@ public class Kml implements IContent {
 		kml.points = points;
 		return kml;
 	}
+
+	public void setTracks(List<Point> loadedPoints) {
+		points = loadedPoints;
+	}
 }

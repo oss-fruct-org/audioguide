@@ -159,7 +159,7 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 		Toast.makeText(getActivity(), "Searching near points...", Toast.LENGTH_LONG).show();
 
 		trackManager.requestPointsInRadius((float) myPositionOverlay.getLocation().getLatitude(),
-				(float) myPositionOverlay.getLocation().getLatitude(),
+				(float) myPositionOverlay.getLocation().getLongitude(),
 				1000, true);
 	}
 
@@ -371,11 +371,13 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 
 		String activeTrackName = pref.getString(TrackManager.PREF_TRACK_MODE, null);
 		if (activeTrackName != null) {
+			Toast.makeText(getActivity(), "Track mode", Toast.LENGTH_LONG).show();
 			Track activeTrack = trackManager.getTrackByName(activeTrackName);
 			activePoints = trackManager.loadPoints(activeTrack);
 			relations = trackManager.loadRelations();
 			// TODO: there are no need to use relations
 		} else {
+			Toast.makeText(getActivity(), "Points mode", Toast.LENGTH_LONG).show();
 			activePoints = trackManager.loadLocalPoints();
 			relations = null;
 		}

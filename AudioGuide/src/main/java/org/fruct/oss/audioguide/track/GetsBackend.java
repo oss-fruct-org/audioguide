@@ -8,6 +8,7 @@ import org.fruct.oss.audioguide.gets.Category;
 import org.fruct.oss.audioguide.gets.CreateTrackRequest;
 import org.fruct.oss.audioguide.gets.DeleteTrackRequest;
 import org.fruct.oss.audioguide.gets.Gets;
+import org.fruct.oss.audioguide.gets.LoadPointsRequest;
 import org.fruct.oss.audioguide.gets.LoadTrackRequest;
 import org.fruct.oss.audioguide.gets.LoadTracksRequest;
 import org.fruct.oss.audioguide.parsers.CategoriesContent;
@@ -126,7 +127,25 @@ public class GetsBackend implements StorageBackend, CategoriesBackend {
 	}
 
 	@Override
-	public void loadPointsInRadius(float lat, float lon, float radius, List<Category> activeCategories, Utils.Callback<List<Point>> callback) {
+	public void loadPointsInRadius(float lat, float lon, float radius, List<Category> activeCategories, final Utils.Callback<List<Point>> callback) {
+		Location location = new Location("no-provider");
+		location.setLatitude(lat);
+		location.setLongitude(lon);
+
+		gets.addRequest(new LoadPointsRequest(gets, location, radius) {
+			@Override
+			protected void onPostProcess(GetsResponse response) {
+				super.onPostProcess(response);
+
+				if (response.getCode() != 0) {
+					return;
+				}
+
+				Kml tracksContent = ((Kml) response.getContent());
+				List<Point> loadedPoints = new ArrayList<Point>(tracksContent.getPoints());
+				callback.call(loadedPoints);
+			}
+		});
 	}
 
 	@Override
