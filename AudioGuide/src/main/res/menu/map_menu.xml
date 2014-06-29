@@ -21,4 +21,9 @@
           android:icon="@drawable/ic_action_location_found"
           android:title="Find me"
           app:showAsAction="always" />
+
+    <item android:id="@+id/action_stop_guide"
+          android:icon="@android:drawable/ic_menu_mapmode"
+          android:title="Stop track mode"
+          app:showAsAction="always" />
 </menu>

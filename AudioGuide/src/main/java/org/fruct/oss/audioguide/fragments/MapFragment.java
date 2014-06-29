@@ -22,7 +22,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.view.ActionMode;
-import android.support.v7.widget.PopupMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -30,6 +29,7 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Toast;
@@ -41,6 +41,7 @@ import org.fruct.oss.audioguide.dialogs.SelectTrackDialog;
 import org.fruct.oss.audioguide.overlays.EditOverlay;
 import org.fruct.oss.audioguide.overlays.MyPositionOverlay;
 import org.fruct.oss.audioguide.preferences.SettingsActivity;
+import org.fruct.oss.audioguide.track.CursorHolder;
 import org.fruct.oss.audioguide.track.DefaultTrackManager;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.Track;
@@ -69,6 +70,10 @@ import static android.view.ViewGroup.LayoutParams;
  */
 public class MapFragment extends Fragment implements SharedPreferences.OnSharedPreferenceChangeListener {
 	private final static Logger log = LoggerFactory.getLogger(MapFragment.class);
+
+	private final static String PREF_LATITUDE = "pref-latitude";
+	private final static String PREF_LONGITUDE = "pref-longitude";
+	private final static String PREF_ZOOM = "pref-zoom";
 
 	private MapView mapView;
 	private TrackManager trackManager;
@@ -141,6 +146,11 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 		case R.id.action_search:
 			startSearchingPoints();
 			break;
+		case R.id.action_stop_guide:
+			trackManager.activateTrackMode(null);
+			updatePointsOverlay();
+			break;
+
 		}
 		return super.onOptionsItemSelected(item);
 	}
@@ -154,11 +164,9 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 	}
 
 	private void startAddingPoint() {
-		//if (editTrack != null) {
-			EditPointDialog dialog = EditPointDialog.newInstance(null);
-			dialog.setListener(editDialogListener);
-			dialog.show(getFragmentManager(), "edit-track-dialog");
-		//}
+		EditPointDialog dialog = EditPointDialog.newInstance(null);
+		dialog.setListener(editDialogListener);
+		dialog.show(getFragmentManager(), "edit-track-dialog");
 	}
 
 	private void mockLocation() {
@@ -174,7 +182,7 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 		log.debug("MapFragment.onCreateView");
 
 		// Inflate the layout for this fragment
-		View view = inflater.inflate(R.layout.fragment_map, container, false);
+		final View view = inflater.inflate(R.layout.fragment_map, container, false);
 		assert view != null;
 
 		createMapView(view);
@@ -185,21 +193,28 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 		updatePointsOverlay();
 		createMyPositionOverlay();
 
+		final GeoPoint initialMapCenter;
+		final int initialZoomLevel;
+
 		if (savedInstanceState != null) {
-			GeoPoint mapCenter = new GeoPoint(savedInstanceState.getInt("map-center-lat"),
+			initialMapCenter = new GeoPoint(savedInstanceState.getInt("map-center-lat"),
 					savedInstanceState.getInt("map-center-lon"));
-			int zoom = savedInstanceState.getInt("zoom");
-
-			mapView.getController().setZoom(zoom);
-			mapView.getController().setCenter(mapCenter);
+			initialZoomLevel = savedInstanceState.getInt("zoom");
 		} else {
-			mapView.getController().setZoom(15);
-			mapView.getController().setCenter(new GeoPoint(61.783333, 34.35));
+			initialZoomLevel = pref.getInt(PREF_ZOOM, 15);
+			initialMapCenter = new GeoPoint(pref.getFloat(PREF_LATITUDE, 61.7833f),
+					pref.getFloat(PREF_LONGITUDE, 34.35f));
 		}
 
-		for (Overlay overlay : mapView.getOverlays()) {
-			log.debug("OVERLAY: {}", overlay.getClass().getName());
-		}
+		final ViewTreeObserver vto = view.getViewTreeObserver();
+		vto.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+			@Override
+			public void onGlobalLayout() {
+				view.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+				mapView.getController().setZoom(initialZoomLevel);
+				mapView.getController().setCenter(initialMapCenter);
+			}
+		});
 
 		return view;
 	}
@@ -227,21 +242,26 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 	@Override
 	public void onResume() {
 		super.onResume();
-		log.trace("MapFragment onResume");
 
 		if (getArguments() != null) {
 			Point point = getArguments().getParcelable("point");
 			centerOn(new GeoPoint(point.getLatE6(), point.getLonE6()), 17);
 		}
+
+
 	}
 
 	@Override
 	public void onStop() {
-		log.trace("MapFragment onStop");
-		super.onStop();
+		pref.edit()
+				.putInt(PREF_ZOOM, mapView.getZoomLevel())
+				.putFloat(PREF_LATITUDE, (float) mapView.getMapCenter().getLatitude())
+				.putFloat(PREF_LONGITUDE, (float) mapView.getMapCenter().getLongitude()).apply();
 
 		LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(locationReceiver);
 		getActivity().unbindService(serviceConnection);
+
+		super.onStop();
 	}
 
 	@Override
@@ -346,9 +366,22 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 
 		trackOverlays.clear();
 
-		// Free points
+		CursorHolder activePoints;
+		CursorHolder relations;
+
+		String activeTrackName = pref.getString(TrackManager.PREF_TRACK_MODE, null);
+		if (activeTrackName != null) {
+			Track activeTrack = trackManager.getTrackByName(activeTrackName);
+			activePoints = trackManager.loadPoints(activeTrack);
+			relations = trackManager.loadRelations();
+			// TODO: there are no need to use relations
+		} else {
+			activePoints = trackManager.loadLocalPoints();
+			relations = null;
+		}
+
 		EditOverlay freePointsOverlay = new EditOverlay(getActivity(),
-				trackManager.loadLocalPoints(), trackManager.loadRelations(),
+				activePoints, relations,
 				1);
 
 		freePointsOverlay.setListener(trackOverlayListener);
@@ -479,31 +512,10 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 		}
 
 		@Override
-		public void pointLongPressed(final Point point) {
+		public void pointLongPressed(Point point) {
+			selectedPoint = point;
 			ActionBarActivity activity = (ActionBarActivity) getActivity();
 			activity.startSupportActionMode(pointActionMode);
-		}
-	};
-
-	private EditOverlay.Listener editOverlayListener = new EditOverlay.Listener() {
-		@Override
-		public void pointMoved(Point point, IGeoPoint geoPoint) {
-			point.setCoordinates(geoPoint.getLatitudeE6(), geoPoint.getLongitudeE6());
-			//trackManager.storePoint(editTrack, point);
-			throw new UnsupportedOperationException();
-		}
-
-		@Override
-		public void pointPressed(Point point) {
-			log.debug("Editable point pressed");
-
-			EditPointDialog dialog = EditPointDialog.newInstance(point);
-			dialog.setListener(editDialogListener);
-			dialog.show(getFragmentManager(), "edit-track-dialog");
-		}
-
-		@Override
-		public void pointLongPressed(Point p) {
 		}
 	};
 

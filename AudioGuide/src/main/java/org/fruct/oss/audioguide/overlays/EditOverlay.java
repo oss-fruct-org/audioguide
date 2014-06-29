@@ -99,7 +99,8 @@ public class EditOverlay extends Overlay implements Closeable {
 		this.relationsCursorHolder = relationsCursorHolder;
 
 		pointsCursorHolder.attachToReceiver(pointsCursorReceiver);
-		relationsCursorHolder.attachToReceiver(relationsCursorReceiver);
+		if (relationsCursorHolder != null)
+			relationsCursorHolder.attachToReceiver(relationsCursorReceiver);
 
 		itemSize = Utils.getDP(24);
 
@@ -126,7 +127,8 @@ public class EditOverlay extends Overlay implements Closeable {
 	@Override
 	public void close() {
 		pointsCursorHolder.close();
-		relationsCursorHolder.close();
+		if (relationsCursorHolder != null)
+			relationsCursorHolder.close();
 	}
 
 	private int getMeanColor(Drawable drawable) {

@@ -253,6 +253,7 @@ public class DefaultFileManager implements FileManager, Closeable, Runnable {
 		GetsResponse response = GetsResponse.parse(responseStr, FileContent.class);
 
 		if (response.getCode() != 0) {
+			// TODO: "Error request to google drive" can cause crash
 			log.error("Gets did return error code " + response.getCode());
 			throw new GetsException("Gets return error " + response.getCode());
 		}

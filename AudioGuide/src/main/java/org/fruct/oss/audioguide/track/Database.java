@@ -338,8 +338,8 @@ public class Database {
 
 	public Track getTrackByName(String name) {
 		Cursor cursor = db.rawQuery("SELECT track.name, track.description, track.url, track.local, track.categoryId, track.private, track.hname, track.id AS _id " +
-				"FROM track" +
-				"WHERE track.name=?", Utils.toArray(name));
+				"FROM track " +
+				"WHERE track.name=?;", Utils.toArray(name));
 
 		try {
 			if (cursor.moveToFirst()) {

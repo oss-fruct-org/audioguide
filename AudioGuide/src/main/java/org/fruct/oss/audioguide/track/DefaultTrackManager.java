@@ -157,7 +157,10 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 
 	@Override
 	public void activateTrackMode(Track track) {
-		pref.edit().putString(PREF_TRACK_MODE, track.getName()).apply();
+		if (track == null)
+			pref.edit().remove(PREF_TRACK_MODE).apply();
+		else
+			pref.edit().putString(PREF_TRACK_MODE, track.getName()).apply();
 	}
 
 	@Override
