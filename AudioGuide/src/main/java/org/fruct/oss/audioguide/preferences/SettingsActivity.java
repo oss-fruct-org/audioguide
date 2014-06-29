@@ -10,6 +10,8 @@ public class SettingsActivity extends PreferenceActivity implements SharedPrefer
 	public static final String PREF_RANGE = "pref_range";
 	public static final String PREF_WAKE = "pref_wake";
 	public static final String PREF_LOAD_RADIUS = "pref_load_radius";
+
+
 	private SliderPreference rangePreference;
 	private SliderPreference loadRadiusPreference;
 	private SharedPreferences pref;

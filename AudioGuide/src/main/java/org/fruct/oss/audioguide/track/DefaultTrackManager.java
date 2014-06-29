@@ -9,15 +9,10 @@ import org.fruct.oss.audioguide.App;
 import org.fruct.oss.audioguide.files.DefaultFileManager;
 import org.fruct.oss.audioguide.files.FileManager;
 import org.fruct.oss.audioguide.gets.Category;
-import org.fruct.oss.audioguide.models.BaseModel;
-import org.fruct.oss.audioguide.models.Model;
 import org.fruct.oss.audioguide.util.Utils;
 
 import java.io.Closeable;
-import java.lang.ref.Reference;
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -26,16 +21,6 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	private final CategoriesBackend categoriesBackend;
 	private final Database database;
 	private final FileManager fileManager;
-
-	private final BaseModel<Track> tracksModel = new BaseModel<Track>();
-
-	private final BaseModel<Track> localTrackModel = new BaseModel<Track>();
-
-	private final BaseModel<Track> remoteTrackModel = new BaseModel<Track>();
-	private final BaseModel<Point> remotePointModel = new BaseModel<Point>();
-
-	private final BaseModel<Point> localPointModel = new BaseModel<Point>();
-	private final HashMap<Track, Reference<Model<Point>>> pointModels = new HashMap<Track, Reference<Model<Point>>>();
 
 	private List<Category> categories;
 	private List<Category> activeCategories;
@@ -254,27 +239,6 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	@Override
 	public void updateLoadRadius(float radius) {
 		this.radius = radius;
-	}
-
-	@Override
-	public Model<Track> getLocalTracksModel() {
-		return localTrackModel;
-	}
-
-	@Override
-	public Model<Point> getTrackPointsModel(Track track) {
-		Reference<Model<Point>> modelRef = pointModels.get(track);
-		Model<Point> pointModel;
-		if (modelRef == null || modelRef.get() == null) {
-			BaseModel<Point> newPointModel = new BaseModel<Point>();
-			newPointModel.setData(database.loadPoints(track));
-			pointModels.put(track, new WeakReference<Model<Point>>(newPointModel));
-			pointModel = newPointModel;
-		} else {
-			pointModel = modelRef.get();
-		}
-
-		return pointModel;
 	}
 
 	@Override

@@ -8,6 +8,8 @@ import org.fruct.oss.audioguide.models.Model;
 import java.util.List;
 
 public interface TrackManager {
+	public static final String PREF_TRACK_MODE = "pref_track_mode";
+
 	void insertPoint(Point point);
 
 	void updatePoint(Point newPoint, Point oldPoint);
@@ -46,10 +48,6 @@ public interface TrackManager {
 
 	void updateLoadRadius(float radius);
 
-
-	Model<Track> getLocalTracksModel();
-
-	Model<Point> getTrackPointsModel(Track category);
 
 	List<Category> getCategories();
 

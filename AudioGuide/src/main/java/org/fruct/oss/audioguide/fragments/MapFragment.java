@@ -205,7 +205,6 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 		super.onStart();
 		log.trace("MapFragment onStart");
 
-
 		getActivity().bindService(new Intent(getActivity(), TrackingService.class),
 				serviceConnection, Context.BIND_AUTO_CREATE);
 
