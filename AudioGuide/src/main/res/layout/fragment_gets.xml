@@ -18,10 +18,12 @@
         style="@style/Button"
         android:text="Sign in"/>
 
+<!--
     <Button
         android:id="@+id/manage_files_button"
         style="@style/Button"
         android:text="Manage files"/>
+-->
 
     <Button
         android:id="@+id/logout_button"

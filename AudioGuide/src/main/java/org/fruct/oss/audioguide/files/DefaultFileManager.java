@@ -69,6 +69,7 @@ public class DefaultFileManager implements FileManager, Closeable, Runnable {
 
 	public void close() {
 		if (!isClosed) {
+			log.debug("DefaultFileManager.close");
 			isClosed = true;
 			dbHelper.close();
 			downloadThread.interrupt();
