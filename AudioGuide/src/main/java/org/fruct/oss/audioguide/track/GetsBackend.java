@@ -142,6 +142,10 @@ public class GetsBackend implements StorageBackend, CategoriesBackend {
 			for (Point point : points) {
 				sendPoint(track, point, request);
 			}
+
+			if (points.isEmpty()) {
+				request.latch.countDown();
+			}
 		}
 	}
 
