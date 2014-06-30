@@ -3,16 +3,16 @@
               android:layout_width="match_parent"
               android:layout_height="wrap_content"
               android:orientation="vertical"
-              android:layout_gravity="center"
+              android:background="#ffeeeeee"
               tools:context="org.fruct.oss.audioguide.fragments.PointDetailFragment">
 
     <TextView
         android:id="@android:id/text1"
-        android:textSize="24sp"
+        android:textSize="32sp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
-        android:textColor="#ff000000" />
+        android:textColor="#ff222222" />
 
     <ScrollView
         android:layout_width="match_parent"
@@ -22,77 +22,28 @@
             android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
+
             <ImageView
                 android:id="@android:id/icon"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:scaleType="fitCenter"
-                android:padding="4dp" />
+                android:padding="16dp" />
 
-            <!--<View
+            <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
                 android:layout_marginBottom="8dp"
-                android:background="@android:color/darker_gray"/>-->
+                android:background="#ff777777"/>
 
             <TextView
                 android:id="@android:id/text2"
                 android:textSize="16sp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="#ff000000"/>
+                android:padding="16dp"
+                android:textColor="#ff222222"/>
         </LinearLayout>
     </ScrollView>
-
-    <!--<View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_marginBottom="16dp"
-        android:background="@android:color/darker_gray"/>-->
-
-    <!--<LinearLayout
-        android:orientation="vertical"
-        android:layout_gravity="bottom"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingLeft="16dp"
-        >
-
-        <Button
-            android:id="@+id/button_play"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@null"
-            android:textColor="@color/button_selector"
-            android:textSize="24sp"
-            android:text="Listen"
-            android:drawableLeft="@drawable/ic_action_play"
-            android:paddingBottom="16dp"/>
-
-        <Button
-            android:id="@+id/button_stop"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@null"
-            android:textColor="@color/button_selector"
-            android:textSize="24sp"
-            android:text="Stop"
-            android:drawableLeft="@drawable/ic_action_stop"
-            android:paddingBottom="16dp"
-            android:visibility="gone"/>
-
-        <Button
-            android:id="@+id/button_map"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@null"
-            android:textColor="@color/button_selector"
-            android:textSize="24sp"
-            android:text="Show on map"
-            android:drawableLeft="@drawable/ic_action_place"
-            android:paddingBottom="16dp"/>
-    </LinearLayout>-->
-
-
 </LinearLayout>

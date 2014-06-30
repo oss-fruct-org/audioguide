@@ -136,32 +136,21 @@ public class PointDetailFragment extends Fragment implements FileListener {
 				imageSize = view.getMeasuredWidth();
 				tryUpdateImage(imageSize, imageSize);
 
-				/*if (isOverlay) {
-					int width = view.getMeasuredWidth();
-					int height = view.getMeasuredHeight();
-
-					width -= Utils.getDP(48);
-					height -= Utils.getDP(48);
-
-					view.setLayoutParams(new FrameLayout.LayoutParams(width, height));
-				}*/
 			}
 		});
 
 		setupOverlayMode(view);
 
-		//setupAudioButton(view);
-		//setupCenterButton(view);
-
-		view.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View view) {
-				getActivity().getSupportFragmentManager().beginTransaction()
-						.remove(PointDetailFragment.this)
-						.commit();
-			}
-		});
-
+		if (isOverlay) {
+			view.setOnClickListener(new View.OnClickListener() {
+				@Override
+				public void onClick(View view) {
+					getActivity().getSupportFragmentManager().beginTransaction()
+							.remove(PointDetailFragment.this)
+							.commit();
+				}
+			});
+		}
 		return view;
 	}
 
@@ -169,7 +158,7 @@ public class PointDetailFragment extends Fragment implements FileListener {
 		if (!isOverlay)
 			return;
 
-		Drawable background = getResources().getDrawable(R.drawable.marker_1);
+		Drawable background = getResources().getDrawable(R.drawable.marker_4);
 		background.setColorFilter(0xccffffff, PorterDuff.Mode.MULTIPLY);
 
 		view.setBackgroundDrawable(background);
