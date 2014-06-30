@@ -23,6 +23,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import org.fruct.oss.audioguide.fragments.AboutFragment;
 import org.fruct.oss.audioguide.fragments.CategoryFragment;
 import org.fruct.oss.audioguide.fragments.CommonFragment;
 import org.fruct.oss.audioguide.fragments.GetsFragment;
@@ -161,22 +162,19 @@ public class MainActivity extends ActionBarActivity
 			return;
 		}
 
-
 		Fragment fragment = null;
 		switch (position) {
 		case 0:
 			fragment = TrackFragment.newInstance();
 			break;
-/*
-		case 1:
-			fragment = CategoryFragment.newInstance();
-			break;
-*/
 		case 1:
 			fragment = MapFragment.newInstance();
 			break;
 		case 2:
 			fragment = GetsFragment.newInstance();
+			break;
+		case 3:
+			fragment = AboutFragment.newInstance();
 			break;
 		}
 
@@ -211,13 +209,13 @@ public class MainActivity extends ActionBarActivity
 			mTitle = getString(R.string.title_section1);
 			break;
 		case 2:
-			mTitle = "Points";
-			break;
-		case 3:
 			mTitle = getString(R.string.title_section2);
 			break;
-		case 4:
+		case 3:
 			mTitle = getString(R.string.title_section3);
+			break;
+		case 4:
+			mTitle = getString(R.string.title_section4);
 			break;
 		}
 	}
