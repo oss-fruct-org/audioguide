@@ -70,6 +70,7 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 	private PowerManager powerManager;
 	private PowerManager.WakeLock wakeLock;
 	private AudioPlayer audioPlayer;
+	private TrackManager trackManager;
 
 	public TrackingService() {
 	}
@@ -169,18 +170,27 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 		audioPlayer = new AudioPlayer(this);
 
 		locationReceiver = new LocationReceiver(this);
-		TrackManager trackManager = DefaultTrackManager.getInstance();
+		trackManager = DefaultTrackManager.getInstance();
+
+		updateDistanceTracker();
+
+		locationReceiver.addListener(this);
+
+		pref.registerOnSharedPreferenceChangeListener(this);
+		//startLocationTrack();
+	}
+
+	private void updateDistanceTracker() {
+		if (distanceTracker != null) {
+			distanceTracker.removeListener(this);
+			distanceTracker.stop();
+		}
 
 		distanceTracker = new DistanceTracker(trackManager, locationReceiver);
 
 		distanceTracker.setRadius(pref.getInt(SettingsActivity.PREF_RANGE, 50));
 		distanceTracker.addListener(this);
 		distanceTracker.start();
-
-		locationReceiver.addListener(this);
-
-		pref.registerOnSharedPreferenceChangeListener(this);
-		//startLocationTrack();
 	}
 
 	private void startTracking() {
@@ -262,6 +272,7 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 
 		distanceTracker.stop();
 		distanceTracker.removeListener(this);
+
 		audioPlayer.stopAudioTrack();
 
 		log.info("TrackingService onDestroy");
@@ -407,6 +418,8 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 		} else if (s.equals(SettingsActivity.PREF_LOAD_RADIUS)) {
 			int newRadius = sharedPreferences.getInt(s, 1000);
 			DefaultTrackManager.getInstance().updateLoadRadius(newRadius);
+		} else if (s.equals(TrackManager.PREF_TRACK_MODE)) {
+			updateDistanceTracker();
 		}
 	}
 

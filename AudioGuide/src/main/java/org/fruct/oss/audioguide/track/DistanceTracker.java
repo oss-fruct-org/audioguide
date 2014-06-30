@@ -1,8 +1,11 @@
 package org.fruct.oss.audioguide.track;
 
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.location.Location;
+import android.preference.PreferenceManager;
 
+import org.fruct.oss.audioguide.App;
 import org.fruct.oss.audioguide.LocationReceiver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +33,15 @@ public class DistanceTracker implements LocationReceiver.Listener, CursorReceive
 		this.trackManager = trackManager;
 		this.locationReceiver = locationReceiver;
 
-		pointsCursorHolder = trackManager.loadLocalPoints();
+		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(App.getContext());
+		String activeTrackName = pref.getString(TrackManager.PREF_TRACK_MODE, null);
+		Track track = trackManager.getTrackByName(activeTrackName);
+
+		if (track != null) {
+			pointsCursorHolder = trackManager.loadPoints(track);
+		} else {
+			pointsCursorHolder = trackManager.loadLocalPoints();
+		}
 	}
 
 	public void addListener(Listener listener) {

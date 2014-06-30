@@ -355,7 +355,7 @@ public class Database {
 
 	private static class Helper extends SQLiteOpenHelper {
 		public static final String DB_NAME = "tracksdb2";
-		public static final int DB_VERSION = 15; // published None
+		public static final int DB_VERSION = 16; // published None
 
 		public static final String CREATE_POINT_UPDATES_SQL = "CREATE TABLE point_update " +
 				"(pointId INTEGER," +

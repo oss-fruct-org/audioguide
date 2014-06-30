@@ -246,6 +246,8 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 
 	@Override
 	public Track getTrackByName(String name) {
+		if (name == null)
+			return null;
 		return database.getTrackByName(name);
 	}
 
