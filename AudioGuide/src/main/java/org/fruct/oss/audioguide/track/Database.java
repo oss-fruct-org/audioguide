@@ -79,13 +79,14 @@ public class Database {
 				return -1;
 		}
 
-		ContentValues cv = new ContentValues(9);
+		ContentValues cv = new ContentValues(10);
 		cv.put("name", newPoint.getName());
 		cv.put("description", newPoint.getDescription());
 		cv.put("lat", newPoint.getLatE6());
 		cv.put("lon", newPoint.getLonE6());
 		cv.put("private", newPoint.isPrivate());
 		cv.put("time", newPoint.getTime());
+		cv.put("uuid", newPoint.getUuid());
 
 		if (newPoint.hasAudio())
 			cv.put("audioUrl", newPoint.getAudioUrl());
@@ -156,7 +157,7 @@ public class Database {
 
 	public Cursor loadPointsCursor(Track track) {
 		Cursor cursor = db.rawQuery(
-				"SELECT point.name, point.description, point.audioUrl, point.photoUrl, point.lat, point.lon, point.private, point.categoryId, point.time, point.id AS _id " +
+				"SELECT point.name, point.description, point.audioUrl, point.photoUrl, point.lat, point.lon, point.private, point.categoryId, point.time, point.uuid, point.id AS _id " +
 				"FROM point INNER JOIN tp " +
 				"ON tp.pointId=point.id " +
 				"WHERE tp.trackId IN (SELECT track.id FROM track WHERE track.name=?) " +
@@ -167,7 +168,7 @@ public class Database {
 
 	public Cursor loadPointsCursor() {
 		Cursor cursor = db.rawQuery(
-				"SELECT point.name, point.description, point.audioUrl, point.photoUrl, point.lat, point.lon, point.private, point.categoryId, point.time, point.id AS _id " +
+				"SELECT point.name, point.description, point.audioUrl, point.photoUrl, point.lat, point.lon, point.private, point.categoryId, point.time, point.uuid, point.id AS _id " +
 						"FROM point LEFT JOIN category " +
 						"ON category.id = point.categoryId " +
 						"WHERE category.state=1 OR category.state IS NULL;", null);
@@ -199,7 +200,7 @@ public class Database {
 	}
 
 	public Cursor loadUpdatedPoints() {
-		Cursor cursor = db.rawQuery("SELECT point.name, point.description, point.audioUrl, point.photoUrl, point.lat, point.lon, point.private, point.categoryId, point.time, point.id AS _id " +
+		Cursor cursor = db.rawQuery("SELECT point.name, point.description, point.audioUrl, point.photoUrl, point.lat, point.lon, point.private, point.categoryId, point.time, point.uuid, point.id AS _id " +
 				"FROM point INNER JOIN point_update " +
 				"ON point.id = point_update.pointId " +
 				"GROUP BY point.id;", null);
@@ -358,7 +359,7 @@ public class Database {
 
 	private static class Helper extends SQLiteOpenHelper {
 		public static final String DB_NAME = "tracksdb2";
-		public static final int DB_VERSION = 22; // published None
+		public static final int DB_VERSION = 23; // published None
 
 		public static final String CREATE_POINT_UPDATES_SQL = "CREATE TABLE point_update " +
 				"(pointId INTEGER," +
@@ -390,6 +391,7 @@ public class Database {
 				"categoryId INTEGER," +
 				"private INTEGER, " +
 				"time TEXT, " +
+				"uuid TEXT, " +
 
 				"FOREIGN KEY(categoryId) REFERENCES category(id));";
 

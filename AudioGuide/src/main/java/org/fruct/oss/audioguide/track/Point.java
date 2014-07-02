@@ -15,6 +15,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.StringTokenizer;
+import java.util.UUID;
 
 public class Point implements Parcelable {
 	public static class CursorFields {
@@ -26,6 +27,7 @@ public class Point implements Parcelable {
 		public int audioUrl;
 		public int photoUrl;
 		public int isPrivate;
+		public int uuid;
 	}
 
 	private String name;
@@ -37,10 +39,9 @@ public class Point implements Parcelable {
 	private String audioUrl;
 	private String photoUrl;
 	private String time;
-
 	private boolean isPrivate;
-
 	private long categoryId = -1;
+	private String uuid;
 
 	public void setCoordinates(int latE6, int lonE6) {
 		this.latE6 = latE6;
@@ -65,8 +66,8 @@ public class Point implements Parcelable {
 	private transient Location cachedLocation;
 
 	public Point() {
-		Date currentDate = new Date();
-		this.time = new SimpleDateFormat("dd MM yyyy HH:mm:ss.SSS", Locale.ROOT).format(currentDate);
+		time = new SimpleDateFormat("dd MM yyyy HH:mm:ss.SSS", Locale.ROOT).format(new Date());
+		uuid = UUID.randomUUID().toString();
 	}
 
 	public Point(Cursor cursor) {
@@ -79,6 +80,7 @@ public class Point implements Parcelable {
 		}
 
 		setTime(cursor.getString(8));
+		uuid = cursor.getString(9);
 	}
 
 	public Point(Point point) {
@@ -91,6 +93,7 @@ public class Point implements Parcelable {
 		categoryId = point.categoryId;
 		isPrivate = point.isPrivate;
 		time = point.time;
+		uuid = point.uuid;
 	}
 
 	public Point(String name, String description, String audioUrl, String photoUrl, int latE6, int lonE6) {
@@ -142,6 +145,10 @@ public class Point implements Parcelable {
 
 	public String getTime() {
 		return time;
+	}
+
+	public String getUuid() {
+		return uuid;
 	}
 
 	public void setName(String name) {
@@ -251,6 +258,7 @@ public class Point implements Parcelable {
 
 		parcel.writeInt(isPrivate ? 1 : 0);
 		parcel.writeString(time);
+		parcel.writeString(uuid);
 	}
 
 	public static final Creator<Point> CREATOR = new Creator<Point>() {
@@ -268,6 +276,8 @@ public class Point implements Parcelable {
 			point.setCategoryId(parcel.readLong());
 			point.setPrivate(parcel.readInt() != 0);
 			point.setTime(parcel.readString());
+			point.uuid = parcel.readString();
+
 			return point;
 		}
 
@@ -328,7 +338,9 @@ public class Point implements Parcelable {
 				parser.require(XmlPullParser.START_TAG, null, "value");
 				String value = GetsResponse.readText(parser);
 
-				if (key.equals("time"))
+				if (key.equals("uuid"))
+					point.uuid = value;
+				else if (key.equals("time"))
 					point.time = value;
 				else if (key.equals("photo"))
 					point.photoUrl = value;
@@ -353,6 +365,7 @@ public class Point implements Parcelable {
 		cf.audioUrl = cursor.getColumnIndex("audioUrl");
 		cf.photoUrl = cursor.getColumnIndex("photoUrl");
 		cf.isPrivate = cursor.getColumnIndex("private");
+		cf.uuid = cursor.getColumnIndex("uuid");
 		return cf;
 	}
 }

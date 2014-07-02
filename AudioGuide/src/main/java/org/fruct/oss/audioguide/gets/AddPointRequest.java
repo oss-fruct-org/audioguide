@@ -116,6 +116,8 @@ public class AddPointRequest extends GetsRequest {
 		try {
 			JSONStringer stringer = new JSONStringer();
 			stringer.object().key("description").value(point.getDescription());
+			stringer.key("uuid").value(point.getUuid());
+
 			if (point.hasAudio())
 				stringer.key("audio").value(point.getAudioUrl());
 
