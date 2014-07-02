@@ -69,6 +69,16 @@ public class GetsBackend implements StorageBackend, CategoriesBackend {
 			throw new GetsException("Can't update track in GeTS");
 	}
 
+	@Override
+	public void updatePoint(long categoryId, Point point) throws InterruptedException, GetsException {
+		UpdateRequest request = new UpdateRequest(1);
+		sendPoint(categoryId, point, request);
+		request.latch.await();
+
+		if (!request.isSuccess)
+			throw new GetsException("Can't update point in GeTS");
+	}
+
 	private void doUpdateTrack(final Track track, final List<Point> points, final UpdateRequest request) {
 		final Gets gets = Gets.getInstance();
 		gets.addRequest(new CreateTrackRequest(gets, track) {
@@ -87,6 +97,28 @@ public class GetsBackend implements StorageBackend, CategoriesBackend {
 
 			@Override
 			protected void onError() {
+				request.fail();
+			}
+		});
+	}
+
+	private void sendPoint(long categoryId, Point point, final UpdateRequest request) {
+		Gets gets = Gets.getInstance();
+		gets.addRequest(new AddPointRequest(gets, categoryId, point) {
+			@Override
+			protected void onPostProcess(GetsResponse response) {
+				super.onPostProcess(response);
+
+				if (response.getCode() != 0) {
+					request.fail();
+				} else {
+					request.latch.countDown();
+				}
+			}
+
+			@Override
+			protected void onError() {
+				super.onError();
 				request.fail();
 			}
 		});

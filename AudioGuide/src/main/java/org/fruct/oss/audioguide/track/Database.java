@@ -61,8 +61,11 @@ public class Database {
 		db.insert("track_update", null, updateCv);
 	}
 
-	public void clearUpdates() {
+	public void clearTrackUpdates() {
 		db.execSQL("delete from track_update;");
+	}
+
+	public void clearPointUpdates() {
 		db.execSQL("delete from point_update;");
 	}
 
@@ -196,7 +199,7 @@ public class Database {
 	}
 
 	public Cursor loadUpdatedPoints() {
-		Cursor cursor = db.rawQuery("SELECT point.name, point.description, point.audioUrl, point.photoUrl, point.lat, point.lon, point.private, point.time, point.id AS _id " +
+		Cursor cursor = db.rawQuery("SELECT point.name, point.description, point.audioUrl, point.photoUrl, point.lat, point.lon, point.private, point.categoryId, point.time, point.id AS _id " +
 				"FROM point INNER JOIN point_update " +
 				"ON point.id = point_update.pointId " +
 				"GROUP BY point.id;", null);
@@ -355,7 +358,7 @@ public class Database {
 
 	private static class Helper extends SQLiteOpenHelper {
 		public static final String DB_NAME = "tracksdb2";
-		public static final int DB_VERSION = 17; // published None
+		public static final int DB_VERSION = 22; // published None
 
 		public static final String CREATE_POINT_UPDATES_SQL = "CREATE TABLE point_update " +
 				"(pointId INTEGER," +

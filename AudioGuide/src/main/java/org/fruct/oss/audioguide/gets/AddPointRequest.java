@@ -15,18 +15,29 @@ import java.io.StringWriter;
 
 public class AddPointRequest extends GetsRequest {
 	private final Track track;
+	private final long categoryId;
+
 	private final Point point;
 
 	public AddPointRequest(Gets gets, Track track, Point point) {
 		super(gets);
 		this.track = track;
 		this.point = point;
+		this.categoryId = -1;
+	}
+
+	public AddPointRequest(Gets gets, long categoryId, Point point) {
+		super(gets);
+		this.categoryId = categoryId;
+		this.track = null;
+		this.point = point;
 	}
 
 	@Override
 	protected String createRequestString() {
 		return createAddPointRequest(
-				track.getName(),
+				track != null ? track.getName() : null,
+				categoryId,
 				point.getName(),
 				createDescription(point),
 				"http://example.com",
@@ -59,7 +70,7 @@ public class AddPointRequest extends GetsRequest {
 	protected void onError() {
 	}
 
-	private String createAddPointRequest(String trackName, String pointName, String description,
+	private String createAddPointRequest(String trackName, long categoryId, String pointName, String description,
 										 String url, double lat, double lon, double alt, String timeStr) {
 		try {
 			XmlSerializer serializer = Xml.newSerializer();
@@ -70,7 +81,17 @@ public class AddPointRequest extends GetsRequest {
 			serializer.startTag(null, "request").startTag(null, "params");
 			gets.writeTokenTag(serializer);
 
-			serializer.startTag(null, "channel").text(trackName).endTag(null, "channel")
+			if (trackName != null) {
+				serializer.startTag(null, "channel").text(trackName).endTag(null, "channel");
+			}
+
+			if (categoryId != -1) {
+				serializer.startTag(null, "category_id")
+						.text(String.valueOf(categoryId))
+						.endTag(null, "category_id");
+			}
+
+			serializer
 					.startTag(null, "title").text(pointName).endTag(null, "title")
 					.startTag(null, "description").text(description).endTag(null, "description")
 					.startTag(null, "link").text(url).endTag(null, "link")

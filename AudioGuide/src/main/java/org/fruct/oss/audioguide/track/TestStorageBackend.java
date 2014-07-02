@@ -1,6 +1,7 @@
 package org.fruct.oss.audioguide.track;
 
 import org.fruct.oss.audioguide.gets.Category;
+import org.fruct.oss.audioguide.parsers.GetsException;
 import org.fruct.oss.audioguide.util.Utils;
 
 import java.util.ArrayList;
@@ -30,6 +31,11 @@ public class TestStorageBackend implements StorageBackend, CategoriesBackend {
 			}
 		});
 		storage.put(track2, points2);
+	}
+
+	@Override
+	public void updatePoint(long categoryId, Point point) throws InterruptedException, GetsException {
+
 	}
 
 	@Override
