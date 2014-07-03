@@ -83,22 +83,30 @@ public class SynchronizerThread extends HandlerThread {
 			while (cursor.moveToNext()) {
 				Point point = new Point(cursor);
 				ensurePointFilesUploaded(point);
-				storageBackend.updatePoint(point.getCategoryId(), point);
+
+				if (point.getTime() == null) {
+					// Insert new point
+					point.setTime();
+					storageBackend.insertPoint(point.getCategoryId(), point);
+				} else {
+					storageBackend.updatePoint(point);
+				}
+
+				database.insertPoint(point);
 			}
 		} finally  {
 			cursor.close();
 		}
+
 		database.clearPointUpdates();
 	}
 
 	private void ensurePointFilesUploaded(Point point) throws IOException, GetsException {
-		Point oldPoint = new Point(point);
-
 		if (point.hasAudio()) {
 			Uri remoteAudioUri = ensurePointFileUploaded(Uri.parse(point.getAudioUrl()));
 			if (remoteAudioUri != null) {
 				point.setAudioUrl(remoteAudioUri.toString());
-				database.insertPoint(point, oldPoint);
+				database.insertPoint(point);
 			}
 		}
 
@@ -106,7 +114,7 @@ public class SynchronizerThread extends HandlerThread {
 			Uri remotePhotoUri = ensurePointFileUploaded(Uri.parse(point.getPhotoUrl()));
 			if (remotePhotoUri != null) {
 				point.setPhotoUrl(remotePhotoUri.toString());
-				database.insertPoint(point, oldPoint);
+				database.insertPoint(point);
 			}
 		}
 	}

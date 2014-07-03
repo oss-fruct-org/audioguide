@@ -516,10 +516,8 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 	private EditOverlay.Listener trackOverlayListener = new EditOverlay.Listener() {
 		@Override
 		public void pointMoved(Point point, IGeoPoint geoPoint) {
-			Point newPoint = new Point(point);
-			newPoint.setCoordinates(geoPoint.getLatitudeE6(), geoPoint.getLongitudeE6());
-			trackManager.updatePoint(newPoint, point);
 			point.setCoordinates(geoPoint.getLatitudeE6(), geoPoint.getLongitudeE6());
+			trackManager.insertPoint(point);
 		}
 
 		@Override

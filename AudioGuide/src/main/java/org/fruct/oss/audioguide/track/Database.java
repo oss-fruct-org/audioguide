@@ -69,15 +69,8 @@ public class Database {
 		db.execSQL("delete from point_update;");
 	}
 
-	public long insertPoint(Point newPoint, Point oldPoint) {
+	public long insertPoint(Point newPoint) {
 		long existingPointId = findPointId(newPoint);
-
-		long oldPointId = -1;
-		if (oldPoint != null) {
-			oldPointId = findPointId(oldPoint);
-			if (oldPointId == -1)
-				return -1;
-		}
 
 		ContentValues cv = new ContentValues(10);
 		cv.put("name", newPoint.getName());
@@ -85,7 +78,6 @@ public class Database {
 		cv.put("lat", newPoint.getLatE6());
 		cv.put("lon", newPoint.getLonE6());
 		cv.put("private", newPoint.isPrivate());
-		cv.put("time", newPoint.getTime());
 		cv.put("uuid", newPoint.getUuid());
 
 		if (newPoint.hasAudio())
@@ -94,17 +86,14 @@ public class Database {
 			cv.put("photoUrl", newPoint.getPhotoUrl());
 		if (newPoint.getCategoryId() != -1)
 			cv.put("categoryId", newPoint.getCategoryId());
+		if (newPoint.getTime() != null)
+			cv.put("time", newPoint.getTime());
 
-		if (oldPoint == null) {
-			if (existingPointId == -1)
-				return db.insert("point", null, cv);
-			else {
-				db.update("point", cv, "id=?", Utils.toArray(existingPointId));
-				return existingPointId;
-			}
-		} else {
-			db.update("point", cv, "id=?", Utils.toArray(oldPointId));
-			return oldPointId;
+		if (existingPointId == -1)
+			return db.insert("point", null, cv);
+		else {
+			db.update("point", cv, "id=?", Utils.toArray(existingPointId));
+			return existingPointId;
 		}
 	}
 
@@ -135,7 +124,7 @@ public class Database {
 	}
 
 	public void insertToTrack(Track track, Point point) {
-		long pointId = insertPoint(point, null);
+		long pointId = insertPoint(point);
 
 		long trackId = findTrackId(track);
 		if (trackId == -1)
@@ -207,29 +196,9 @@ public class Database {
 		return cursor;
 	}
 
-	public List<Point> loadPoints(Track track) {
-		List<Point> points = new ArrayList<Point>();
-
-		Cursor cursor = db.rawQuery("SELECT point.name, point.description, point.audioUrl, point.photoUrl, point.lat, point.lon " +
-				"FROM point INNER JOIN tp " +
-				"ON tp.pointId=point.id " +
-				"WHERE tp.trackId IN (SELECT track.id FROM track WHERE track.name=?) " +
-				"ORDER BY tp.idx;", Utils.toArray(track.getName()));
-
-		while (cursor.moveToNext()) {
-			Point point = new Point(cursor.getString(0), cursor.getString(1), cursor.getString(2),
-					cursor.getString(3), cursor.getInt(4), cursor.getInt(5));
-			points.add(point);
-		}
-
-		cursor.close();
-
-		return points;
-	}
-
 	private long findPointId(Point point) {
-		Cursor cursor = db.query("point", ID_COLUMNS, "name=? and description=? and time=?",
-				Utils.toArray(point.getName(), point.getDescription(), point.getTime()/*, point.getLatE6(), point.getLonE6()*/), null, null, null);
+		Cursor cursor = db.query("point", ID_COLUMNS, "name=? and description=? and uuid=?",
+				Utils.toArray(point.getName(), point.getDescription(), point.getUuid()/*, point.getLatE6(), point.getLonE6()*/), null, null, null);
 
 		try {
 			if (!cursor.moveToFirst())
@@ -359,7 +328,7 @@ public class Database {
 
 	private static class Helper extends SQLiteOpenHelper {
 		public static final String DB_NAME = "tracksdb2";
-		public static final int DB_VERSION = 23; // published None
+		public static final int DB_VERSION = 28; // published None
 
 		public static final String CREATE_POINT_UPDATES_SQL = "CREATE TABLE point_update " +
 				"(pointId INTEGER," +

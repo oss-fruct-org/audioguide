@@ -11,6 +11,7 @@ import org.fruct.oss.audioguide.gets.Gets;
 import org.fruct.oss.audioguide.gets.LoadPointsRequest;
 import org.fruct.oss.audioguide.gets.LoadTrackRequest;
 import org.fruct.oss.audioguide.gets.LoadTracksRequest;
+import org.fruct.oss.audioguide.gets.UpdatePointRequest;
 import org.fruct.oss.audioguide.parsers.CategoriesContent;
 import org.fruct.oss.audioguide.parsers.GetsException;
 import org.fruct.oss.audioguide.parsers.GetsResponse;
@@ -70,13 +71,23 @@ public class GetsBackend implements StorageBackend, CategoriesBackend {
 	}
 
 	@Override
-	public void updatePoint(long categoryId, Point point) throws InterruptedException, GetsException {
+	public void updatePoint(Point point) throws InterruptedException, GetsException {
+		UpdateRequest request = new UpdateRequest(1);
+		sendPointUpdate(point, request);
+		request.latch.await();
+
+		if (!request.isSuccess)
+			throw new GetsException("Can't update point in GeTS");
+	}
+
+	@Override
+	public void insertPoint(long categoryId, Point point) throws InterruptedException, GetsException {
 		UpdateRequest request = new UpdateRequest(1);
 		sendPoint(categoryId, point, request);
 		request.latch.await();
 
 		if (!request.isSuccess)
-			throw new GetsException("Can't update point in GeTS");
+			throw new GetsException("Can't insert point in GeTS");
 	}
 
 	private void doUpdateTrack(final Track track, final List<Point> points, final UpdateRequest request) {
@@ -100,6 +111,29 @@ public class GetsBackend implements StorageBackend, CategoriesBackend {
 				request.fail();
 			}
 		});
+	}
+
+	private void sendPointUpdate(Point point, final UpdateRequest request) {
+		Gets gets = Gets.getInstance();
+		gets.addRequest(new UpdatePointRequest(gets, point) {
+			@Override
+			protected void onPostProcess(GetsResponse response) {
+				super.onPostProcess(response);
+
+				if (response.getCode() != 0) {
+					request.fail();
+				} else {
+					request.latch.countDown();
+				}
+			}
+
+			@Override
+			protected void onError() {
+				super.onError();
+				request.fail();
+			}
+		});
+
 	}
 
 	private void sendPoint(long categoryId, Point point, final UpdateRequest request) {

@@ -66,7 +66,6 @@ public class Point implements Parcelable {
 	private transient Location cachedLocation;
 
 	public Point() {
-		time = new SimpleDateFormat("dd MM yyyy HH:mm:ss.SSS", Locale.ROOT).format(new Date());
 		uuid = UUID.randomUUID().toString();
 	}
 
@@ -177,6 +176,10 @@ public class Point implements Parcelable {
 
 	public void setTime(String timeStr) {
 		this.time = timeStr;
+	}
+
+	public void setTime() {
+		this.time = new SimpleDateFormat("dd MM yyyy HH:mm:ss.SSS", Locale.ROOT).format(new Date());
 	}
 
 	public int getLatE6() {

@@ -58,15 +58,9 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 
 	@Override
 	public void insertPoint(Point point) {
-		database.insertPoint(point, null);
+		database.insertPoint(point);
 		database.markPointUpdate(point);
 		notifyDataChanged();
-	}
-
-	@Override
-	public void updatePoint(Point newPoint, Point oldPoint) {
-		database.insertPoint(newPoint, oldPoint);
-		database.markPointUpdate(newPoint);
 	}
 
 	@Override
@@ -129,7 +123,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 			@Override
 			public void call(List<Point> points) {
 				for (Point point : points) {
-					database.insertPoint(point, null);
+					database.insertPoint(point);
 				}
 
 				notifyDataChanged();

@@ -12,8 +12,6 @@ public interface TrackManager {
 
 	void insertPoint(Point point);
 
-	void updatePoint(Point newPoint, Point oldPoint);
-
 	void insertTrack(Track track);
 
 	void insertToTrack(Track track, Point point);
