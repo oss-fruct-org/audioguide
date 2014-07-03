@@ -45,13 +45,13 @@ public class Database {
 		updateCv.put("pointId", pointId);
 		db.insert("point_update", null, updateCv);
 
-		Cursor cursor = db.rawQuery("SELECT tp.trackId FROM tp WHERE tp.pointId=?", Utils.toArray(pointId));
+		/*Cursor cursor = db.rawQuery("SELECT tp.trackId FROM tp WHERE tp.pointId=?", Utils.toArray(pointId));
 		while (cursor.moveToNext()) {
 			ContentValues updateCv2 = new ContentValues(1);
 			updateCv2.put("trackId", cursor.getLong(0));
 			db.insert("track_update", null, updateCv2);
 		}
-		cursor.close();
+		cursor.close();*/
 	}
 
 	public void markTrackUpdate(Track track) {
@@ -328,7 +328,7 @@ public class Database {
 
 	private static class Helper extends SQLiteOpenHelper {
 		public static final String DB_NAME = "tracksdb2";
-		public static final int DB_VERSION = 28; // published None
+		public static final int DB_VERSION = 33; // published None
 
 		public static final String CREATE_POINT_UPDATES_SQL = "CREATE TABLE point_update " +
 				"(pointId INTEGER," +

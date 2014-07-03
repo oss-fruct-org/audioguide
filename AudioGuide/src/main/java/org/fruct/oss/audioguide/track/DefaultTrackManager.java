@@ -118,7 +118,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	}
 
 	@Override
-	public void requestPointsInRadius(final float latitude, final float longitude, float radius, boolean autoStore) {
+	public void requestPointsInRadius(final float latitude, final float longitude, boolean autoStore) {
 		backend.loadPointsInRadius(latitude, longitude, radius, activeCategories, new Utils.Callback<List<Point>>() {
 			@Override
 			public void call(List<Point> points) {

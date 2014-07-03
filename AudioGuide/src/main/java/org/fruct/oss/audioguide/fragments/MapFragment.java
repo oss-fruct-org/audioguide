@@ -166,7 +166,7 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 
 		trackManager.requestPointsInRadius((float) myPositionOverlay.getLocation().getLatitude(),
 				(float) myPositionOverlay.getLocation().getLongitude(),
-				1000, true);
+				true);
 	}
 
 	private void startAddingPoint() {
