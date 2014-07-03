@@ -24,6 +24,8 @@ public class SettingsActivity extends PreferenceActivity implements SharedPrefer
 
 		rangePreference = (SliderPreference) findPreference(PREF_RANGE);
 		loadRadiusPreference = ((SliderPreference) findPreference(PREF_LOAD_RADIUS));
+
+
 	}
 
 	@Override

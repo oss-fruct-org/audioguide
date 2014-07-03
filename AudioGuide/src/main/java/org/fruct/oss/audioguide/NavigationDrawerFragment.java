@@ -1,6 +1,7 @@
 package org.fruct.oss.audioguide;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
@@ -21,6 +22,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+import org.fruct.oss.audioguide.preferences.SettingsActivity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,6 +33,9 @@ import org.slf4j.LoggerFactory;
  */
 public class NavigationDrawerFragment extends Fragment {
 	public static final Logger log = LoggerFactory.getLogger(NavigationDrawerFragment.class);
+
+	private static final int POSITION_SETTINGS = 4;
+
 	/**
 	 * Remember the position of the selected item.
 	 */
@@ -96,7 +101,10 @@ public class NavigationDrawerFragment extends Fragment {
 		mDrawerListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-				selectItem(position);
+				if (position == POSITION_SETTINGS)
+					getActivity().startActivity(new Intent(getActivity(), SettingsActivity.class));
+				else
+					selectItem(position);
 			}
 		});
 		mDrawerListView.setAdapter(new ArrayAdapter<String>(
@@ -107,7 +115,8 @@ public class NavigationDrawerFragment extends Fragment {
 						getString(R.string.title_section1),
 						getString(R.string.title_section2),
 						getString(R.string.title_section3),
-						getString(R.string.title_section4)
+						getString(R.string.title_section4),
+						getString(R.string.title_section5)
 				}));
 		mDrawerListView.setItemChecked(mCurrentSelectedPosition, true);
 		return mDrawerListView;
@@ -205,6 +214,7 @@ public class NavigationDrawerFragment extends Fragment {
 
 	public void selectItem(int position, Bundle argumentParameters) {
 		mCurrentSelectedPosition = position;
+
 		if (mDrawerListView != null) {
 			mDrawerListView.setItemChecked(position, true);
 		}
