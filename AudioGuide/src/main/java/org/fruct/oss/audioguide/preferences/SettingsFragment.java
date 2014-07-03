@@ -1,32 +1,31 @@
 package org.fruct.oss.audioguide.preferences;
 
+import android.annotation.TargetApi;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
-import android.preference.PreferenceActivity;
+import android.preference.PreferenceFragment;
 
 import org.fruct.oss.audioguide.R;
 
-public class SettingsActivity extends PreferenceActivity implements SharedPreferences.OnSharedPreferenceChangeListener {
-	public static final String PREF_RANGE = "pref_range";
-	public static final String PREF_WAKE = "pref_wake";
-	public static final String PREF_LOAD_RADIUS = "pref_load_radius";
-
+@TargetApi(Build.VERSION_CODES.HONEYCOMB)
+public class SettingsFragment extends PreferenceFragment implements SharedPreferences.OnSharedPreferenceChangeListener {
 	private SliderPreference rangePreference;
 	private SliderPreference loadRadiusPreference;
 	private SharedPreferences pref;
 
 	@Override
-	protected void onCreate(Bundle savedInstanceState) {
+	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
 		addPreferencesFromResource(R.xml.preferences);
 
-		rangePreference = (SliderPreference) findPreference(PREF_RANGE);
-		loadRadiusPreference = ((SliderPreference) findPreference(PREF_LOAD_RADIUS));
+		rangePreference = (SliderPreference) findPreference(SettingsActivity.PREF_RANGE);
+		loadRadiusPreference = ((SliderPreference) findPreference(SettingsActivity.PREF_LOAD_RADIUS));
 	}
 
 	@Override
-	protected void onResume() {
+	public void onResume() {
 		super.onResume();
 
 		assert getPreferenceScreen() != null;
@@ -39,20 +38,20 @@ public class SettingsActivity extends PreferenceActivity implements SharedPrefer
 	}
 
 	@Override
-	protected void onPause() {
+	public void onPause() {
 		pref.unregisterOnSharedPreferenceChangeListener(this);
 
 		super.onPause();
 	}
 
 	private void updateRangeSummary() {
-		int value = pref.getInt(PREF_RANGE, 50);
+		int value = pref.getInt(SettingsActivity.PREF_RANGE, 50);
 		rangePreference.setSummary(getResources().getQuantityString(R.plurals.pref_seek_bar_summary,
 				value, value));
 	}
 
 	private void updateLoadRadiusSummary() {
-		int value = pref.getInt(PREF_LOAD_RADIUS, 1000);
+		int value = pref.getInt(SettingsActivity.PREF_LOAD_RADIUS, 1000);
 		loadRadiusPreference.setSummary(getResources().getQuantityString(R.plurals.pref_load_radius_summary,
 				value, value));
 	}
@@ -60,9 +59,9 @@ public class SettingsActivity extends PreferenceActivity implements SharedPrefer
 
 	@Override
 	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
-		if (s.equals(PREF_RANGE)) {
+		if (s.equals(SettingsActivity.PREF_RANGE)) {
 			updateRangeSummary();
-		} else if (s.equals(PREF_LOAD_RADIUS)) {
+		} else if (s.equals(SettingsActivity.PREF_LOAD_RADIUS)) {
 			updateLoadRadiusSummary();
 		}
 	}

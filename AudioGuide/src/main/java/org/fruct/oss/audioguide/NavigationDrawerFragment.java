@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.ActionBarDrawerToggle;
@@ -23,6 +24,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 import org.fruct.oss.audioguide.preferences.SettingsActivity;
+import org.fruct.oss.audioguide.preferences.SettingsActivityCompat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -102,7 +104,10 @@ public class NavigationDrawerFragment extends Fragment {
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 				if (position == POSITION_SETTINGS)
-					getActivity().startActivity(new Intent(getActivity(), SettingsActivity.class));
+					getActivity().startActivity(new Intent(getActivity(),
+							Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB
+									? SettingsActivity.class
+									: SettingsActivityCompat.class));
 				else
 					selectItem(position);
 			}

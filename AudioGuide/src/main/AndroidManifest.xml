@@ -33,7 +33,14 @@
 
         <activity
             android:name="org.fruct.oss.audioguide.preferences.SettingsActivity"
-            android:label="@string/settings" >
+            android:label="@string/settings"
+            android:exported="false">
+        </activity>
+
+        <activity
+            android:name="org.fruct.oss.audioguide.preferences.SettingsActivityCompat"
+            android:label="@string/settings"
+            android:exported="false" >
         </activity>
 
         <service
