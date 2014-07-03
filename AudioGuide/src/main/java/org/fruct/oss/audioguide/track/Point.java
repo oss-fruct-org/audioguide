@@ -349,6 +349,8 @@ public class Point implements Parcelable {
 					point.photoUrl = value;
 				else if (key.equals("audio"))
 					point.audioUrl = value;
+				else if (key.equals("access"))
+					point.setPrivate(value.equals("rw"));
 
 				parser.nextTag();
 				parser.require(XmlPullParser.END_TAG, null, "Data");

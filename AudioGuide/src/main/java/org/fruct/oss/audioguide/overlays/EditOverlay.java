@@ -298,7 +298,8 @@ public class EditOverlay extends Overlay implements Closeable {
 				dragStartY = (int) event.getY();
 				dragStarted = false;
 
-				setupLongPressHandler(draggingItem);
+				if (draggingItem.data.isPrivate())
+					setupLongPressHandler(draggingItem);
 
 				mapView.invalidate();
 				return false;

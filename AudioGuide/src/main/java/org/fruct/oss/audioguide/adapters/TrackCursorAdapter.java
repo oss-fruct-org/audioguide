@@ -39,7 +39,7 @@ public class TrackCursorAdapter extends CursorAdapter implements View.OnClickLis
 		//holder.activeImage = (ImageButton) view.findViewById(R.id.activeImage);
 		//holder.activeImage.setTag(holder);
 
-		holder.localImage.setOnClickListener(this);
+		//holder.localImage.setOnClickListener(this);
 		//holder.activeImage.setOnClickListener(this);
 
 		view.setTag(holder);

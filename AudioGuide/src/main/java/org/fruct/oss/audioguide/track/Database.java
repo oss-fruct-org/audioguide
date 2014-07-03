@@ -65,8 +65,8 @@ public class Database {
 		db.execSQL("delete from track_update;");
 	}
 
-	public void clearPointUpdates() {
-		db.execSQL("delete from point_update;");
+	public void clearPointUpdate(long pointId) {
+		db.execSQL("delete from point_update where pointId=?", Utils.toArray(pointId));
 	}
 
 	public long insertPoint(Point newPoint) {
@@ -328,7 +328,7 @@ public class Database {
 
 	private static class Helper extends SQLiteOpenHelper {
 		public static final String DB_NAME = "tracksdb2";
-		public static final int DB_VERSION = 33; // published None
+		public static final int DB_VERSION = 47; // published None
 
 		public static final String CREATE_POINT_UPDATES_SQL = "CREATE TABLE point_update " +
 				"(pointId INTEGER," +

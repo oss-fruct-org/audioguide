@@ -322,6 +322,12 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 				actionMode.finish();
 				return true;
 
+			case R.id.action_save:
+				if (!selectedTrack.isLocal()) {
+					trackManager.storeTrackLocal(selectedTrack);
+				}
+				return true;
+
 			default:
 				return false;
 			}

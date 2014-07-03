@@ -39,8 +39,8 @@ public class SynchronizerThread extends HandlerThread {
 			@Override
 			public void run() {
 				try {
-					doSynchronizationStepTracks();
 					doSynchronizationStepPoints();
+					doSynchronizationStepTracks();
 					scheduleStep();
 				} catch (InterruptedException e) {
 					quitSafely();
@@ -72,6 +72,7 @@ public class SynchronizerThread extends HandlerThread {
 			storageBackend.updateTrack(track, points);
 		}
 		cursor.close();
+
 		database.clearTrackUpdates();
 	}
 
@@ -93,12 +94,12 @@ public class SynchronizerThread extends HandlerThread {
 				}
 
 				database.insertPoint(point);
+				database.clearPointUpdate(cursor.getLong(cursor.getColumnIndex("_id")));
 			}
 		} finally  {
 			cursor.close();
 		}
 
-		database.clearPointUpdates();
 	}
 
 	private void ensurePointFilesUploaded(Point point) throws IOException, GetsException {
