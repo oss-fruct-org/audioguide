@@ -172,7 +172,7 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 	private void startAddingPoint() {
 		EditPointDialog dialog = EditPointDialog.newInstance(null);
 		dialog.setListener(editDialogListener);
-		dialog.show(getFragmentManager(), "edit-track-dialog");
+		dialog.show(getFragmentManager(), "edit-point-dialog");
 	}
 
 	private void mockLocation() {
@@ -509,7 +509,7 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 		@Override
 		public void pointUpdated(Point point) {
 			log.debug("Point updated callback");
-			throw new UnsupportedOperationException();
+			trackManager.insertPoint(point);
 		}
 	};
 
@@ -560,10 +560,16 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 				actionMode.finish();
 				return true;
 
+			case R.id.action_edit:
+				EditPointDialog editPointDialog = EditPointDialog.newInstance(selectedPoint);
+				editPointDialog.setListener(editDialogListener);
+				editPointDialog.show(getFragmentManager(), "edit-point-dialog");
+				actionMode.finish();
+				return true;
+
 			default:
 				return false;
 			}
-
 		}
 
 		@Override

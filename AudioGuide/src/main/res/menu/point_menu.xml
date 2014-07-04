@@ -6,4 +6,9 @@
           android:icon="@drawable/ic_action_share"
           android:title="Add to track"
           app:showAsAction="always" />
+
+    <item android:id="@+id/action_edit"
+          android:icon="@drawable/ic_action_edit"
+          android:title="Edit"
+          app:showAsAction="always" />
 </menu>
