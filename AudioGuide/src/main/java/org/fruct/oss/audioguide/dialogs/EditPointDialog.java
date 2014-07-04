@@ -94,6 +94,7 @@ public class EditPointDialog extends DialogFragment implements DialogInterface.O
 		point = getArguments().getParcelable("point");
 		if (point == null) {
 			point = new Point();
+			point.createUuid();
 			isNewPoint = true;
 		}
 

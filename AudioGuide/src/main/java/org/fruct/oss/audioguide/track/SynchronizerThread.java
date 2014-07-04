@@ -87,7 +87,7 @@ public class SynchronizerThread extends HandlerThread {
 
 				if (point.getTime() == null) {
 					// Insert new point
-					point.setTime();
+					point.createTime();
 					storageBackend.insertPoint(point.getCategoryId(), point);
 				} else {
 					storageBackend.updatePoint(point);

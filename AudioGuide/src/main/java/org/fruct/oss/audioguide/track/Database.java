@@ -197,8 +197,14 @@ public class Database {
 	}
 
 	private long findPointId(Point point) {
-		Cursor cursor = db.query("point", ID_COLUMNS, "name=? and description=? and uuid=?",
-				Utils.toArray(point.getName(), point.getDescription(), point.getUuid()/*, point.getLatE6(), point.getLonE6()*/), null, null, null);
+		Cursor cursor;
+		if (point.getUuid() == null) {
+			cursor = db.query("point", ID_COLUMNS, "name=? and description=?",
+					Utils.toArray(point.getName(), point.getDescription()), null, null, null);
+		} else {
+			cursor = db.query("point", ID_COLUMNS, "uuid=?",
+					Utils.toArray(point.getUuid()), null, null, null);
+		}
 
 		try {
 			if (!cursor.moveToFirst())
@@ -328,7 +334,7 @@ public class Database {
 
 	private static class Helper extends SQLiteOpenHelper {
 		public static final String DB_NAME = "tracksdb2";
-		public static final int DB_VERSION = 48; // published None
+		public static final int DB_VERSION = 54; // published None
 
 		public static final String CREATE_POINT_UPDATES_SQL = "CREATE TABLE point_update " +
 				"(pointId INTEGER," +
