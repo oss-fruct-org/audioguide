@@ -3,6 +3,7 @@ package org.fruct.oss.audioguide.dialogs;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.v4.app.DialogFragment;
@@ -15,7 +16,7 @@ import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.Track;
 import org.fruct.oss.audioguide.track.TrackManager;
 
-public class InsertPointDialog extends DialogFragment implements DialogInterface.OnClickListener {
+public class InsertPointDialog extends DialogFragment implements DialogInterface.OnClickListener, CursorHolder.Listener {
 	private Track track;
 
 	private PointCursorAdapter adapter;
@@ -42,6 +43,7 @@ public class InsertPointDialog extends DialogFragment implements DialogInterface
 		point = getArguments().getParcelable("point");
 		adapter = new PointCursorAdapter(getActivity(), true);
 		cursorHolder = trackManager.loadPoints(track);
+		cursorHolder.setListener(this);
 		cursorHolder.attachToAdapter(adapter);
 	}
 
@@ -72,6 +74,13 @@ public class InsertPointDialog extends DialogFragment implements DialogInterface
 
 	@Override
 	public void onClick(DialogInterface dialogInterface, int i) {
+	}
 
+	@Override
+	public void onReady(Cursor cursor) {
+		if (cursor.getCount() == 0) {
+			trackManager.insertToTrack(track, point, 0);
+			dismiss();
+		}
 	}
 }

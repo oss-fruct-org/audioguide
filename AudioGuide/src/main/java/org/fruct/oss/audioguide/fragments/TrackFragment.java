@@ -1,6 +1,8 @@
 package org.fruct.oss.audioguide.fragments;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -323,13 +325,11 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 				return true;
 
 			case R.id.action_save:
-				if (!selectedTrack.isLocal()) {
-					trackManager.storeTrackLocal(selectedTrack);
-				}
+				trackManager.storeTrackLocal(selectedTrack);
 				return true;
 
 			case R.id.action_delete:
-				trackManager.deleteTrack(selectedTrack);
+				startDeletingTrack(selectedTrack);
 				return true;
 
 			default:
@@ -350,5 +350,30 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 								.findFragmentById(R.id.navigation_drawer);
 		trackManager.activateTrackMode(selectedTrack);
 		frag.selectItem(1, null);
+	}
+
+	private void startDeletingTrack(final Track track) {
+		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+		builder.setTitle(R.string.delete_track);
+		builder.setPositiveButton(R.string.delete_track_server, new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialogInterface, int i) {
+				trackManager.deleteTrack(track, true);
+			}
+		});
+
+		builder.setNeutralButton(R.string.delete_track_local, new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialogInterface, int i) {
+				trackManager.deleteTrack(track, false);
+			}
+		});
+
+		builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialogInterface, int i) {
+			}
+		});
+		builder.create().show();
 	}
 }

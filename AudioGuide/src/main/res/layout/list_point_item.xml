@@ -75,7 +75,7 @@
         android:id="@+id/position_bottom"
         android:visibility="gone"
         android:layout_width="match_parent"
-        android:layout_height="2dp"
+        android:layout_height="3dp"
         android:background="#ffffff00"
         android:layout_alignParentBottom="true" />
 
@@ -83,7 +83,7 @@
         android:id="@+id/position_top"
         android:visibility="gone"
         android:layout_width="match_parent"
-        android:layout_height="2dp"
+        android:layout_height="3dp"
         android:background="#ffffff00"
         android:layout_alignParentTop="true" />
 

@@ -283,8 +283,8 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	}
 
 	@Override
-	public void deleteTrack(Track track) {
-		if (track.isPrivate()) {
+	public void deleteTrack(Track track, boolean deleteFromServer) {
+		if (deleteFromServer && track.isPrivate()) {
 			backend.deleteTrack(track, new Utils.Callback<Track>() {
 				@Override
 				public void call(Track track) {

@@ -7,6 +7,11 @@ import android.support.v4.widget.CursorAdapter;
 import java.io.Closeable;
 
 public abstract class CursorHolder implements Closeable {
+	public static interface Listener {
+		void onReady(Cursor cursor);
+	}
+
+	private Listener listener;
 	private CursorReceiver cursorReceiver;
 	private Cursor cursor;
 
@@ -44,10 +49,21 @@ public abstract class CursorHolder implements Closeable {
 		if (oldCursor != null) {
 			oldCursor.close();
 		}
+
+		if (listener != null) {
+			listener.onReady(cursor);
+		}
 	}
 
 	boolean isClosed() {
 		return isClosed;
+	}
+
+	public void setListener(Listener listener) {
+		this.listener = listener;
+		if (cursor != null) {
+			listener.onReady(cursor);
+		}
 	}
 
 	void queryAsync() {
