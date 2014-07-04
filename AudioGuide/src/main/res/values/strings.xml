@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
     <string name="app_name">AudioGuide</string>
 
     <string name="title_section1">Tracks</string>
     <string name="title_section2">Map</string>
     <string name="title_section3">GeTS</string>
+    <string name="title_section4">About</string>
+    <string name="title_section5">Settings</string>
+    <string name="title_section6">Help</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
@@ -14,12 +18,9 @@
     <string name="title_activity_file_chooser">Choose File</string>
     <string name="hello_world">Hello world!</string>
     <string name="settings">Settings</string>
-    <string name="title_section4">About</string>
-    <string name="title_section5">Settings</string>
     <string name="delete_track_server">From server</string>
     <string name="delete_track_local">Local</string>
     <string name="delete_track">Delete track</string>
-
 
     <string-array name="track_spinner_array">
         <item>All</item>
@@ -27,16 +28,17 @@
         <item>Public</item>
         <item>Local</item>
         <item>Active</item>
-
     </string-array>
-    
+
     <plurals name="pref_seek_bar_summary">
         <item quantity="one">Play sound if point nearer than %d meter</item>
         <item quantity="other">Play sound if point nearer than %d meters</item>
     </plurals>
-
     <plurals name="pref_load_radius_summary">
         <item quantity="one">Load points nearer than %d meter</item>
         <item quantity="other">Load points nearer than %d meters</item>
     </plurals>
+
+    <string name="title_activity_help">HelpActivity</string>
+
 </resources>

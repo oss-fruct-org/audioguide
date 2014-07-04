@@ -37,6 +37,7 @@ public class NavigationDrawerFragment extends Fragment {
 	public static final Logger log = LoggerFactory.getLogger(NavigationDrawerFragment.class);
 
 	private static final int POSITION_SETTINGS = 4;
+	private static final int POSITION_HELP = 5;
 
 	/**
 	 * Remember the position of the selected item.
@@ -103,7 +104,9 @@ public class NavigationDrawerFragment extends Fragment {
 		mDrawerListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-				if (position == POSITION_SETTINGS)
+				if (position == POSITION_HELP)
+					getActivity().startActivity(new Intent(getActivity(), HelpActivity.class));
+				else if (position == POSITION_SETTINGS)
 					getActivity().startActivity(new Intent(getActivity(),
 							Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB
 									? SettingsActivity.class
@@ -121,7 +124,8 @@ public class NavigationDrawerFragment extends Fragment {
 						getString(R.string.title_section2),
 						getString(R.string.title_section3),
 						getString(R.string.title_section4),
-						getString(R.string.title_section5)
+						getString(R.string.title_section5),
+						getString(R.string.title_section6)
 				}));
 		mDrawerListView.setItemChecked(mCurrentSelectedPosition, true);
 		return mDrawerListView;
