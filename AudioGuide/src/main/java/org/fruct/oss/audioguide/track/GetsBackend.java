@@ -277,6 +277,18 @@ public class GetsBackend implements StorageBackend, CategoriesBackend {
 		});
 	}
 
+	@Override
+	public void deleteTrack(final Track track, final Utils.Callback<Track> callback) {
+		Gets gets = Gets.getInstance();
+		gets.addRequest(new DeleteTrackRequest(gets, track) {
+			@Override
+			protected void onPostProcess(GetsResponse response) {
+				if (response.getCode() == 0) {
+					callback.call(track);
+				}
+			}
+		});
+	}
 
 	private static class UpdateRequest {
 		boolean isSuccess = true;

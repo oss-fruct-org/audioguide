@@ -53,4 +53,5 @@ public interface TrackManager {
 
 	void setCategoryState(Category category, boolean isActive);
 
+	void deleteTrack(Track track);
 }

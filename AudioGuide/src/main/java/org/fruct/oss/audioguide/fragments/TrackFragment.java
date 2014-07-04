@@ -328,6 +328,10 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 				}
 				return true;
 
+			case R.id.action_delete:
+				trackManager.deleteTrack(selectedTrack);
+				return true;
+
 			default:
 				return false;
 			}
@@ -337,14 +341,14 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 		public void onDestroyActionMode(ActionMode actionMode) {
 			selectedTrack = null;
 		}
-
-		private void startGuide() {
-			NavigationDrawerFragment frag =
-					(NavigationDrawerFragment)
-							getActivity().getSupportFragmentManager()
-									.findFragmentById(R.id.navigation_drawer);
-			trackManager.activateTrackMode(selectedTrack);
-			frag.selectItem(1, null);
-		}
 	};
+
+	private void startGuide() {
+		NavigationDrawerFragment frag =
+				(NavigationDrawerFragment)
+						getActivity().getSupportFragmentManager()
+								.findFragmentById(R.id.navigation_drawer);
+		trackManager.activateTrackMode(selectedTrack);
+		frag.selectItem(1, null);
+	}
 }

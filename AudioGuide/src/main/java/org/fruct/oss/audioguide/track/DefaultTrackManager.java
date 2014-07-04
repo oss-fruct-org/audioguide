@@ -282,6 +282,21 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 		requestTracksInRadius();
 	}
 
+	@Override
+	public void deleteTrack(Track track) {
+		if (track.isPrivate()) {
+			backend.deleteTrack(track, new Utils.Callback<Track>() {
+				@Override
+				public void call(Track track) {
+					database.deleteTrack(track);
+					notifyDataChanged();
+				}
+			});
+		} else {
+			database.deleteTrack(track);
+		}
+	}
+
 	private void loadRemoteCategories() {
 		categoriesBackend.loadCategories(new Utils.Callback<List<Category>>() {
 			@Override

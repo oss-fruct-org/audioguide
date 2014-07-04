@@ -18,4 +18,6 @@ public interface StorageBackend {
 	void loadPointsInRadius(float lat, float lon, float radius, List<Category> activeCategories, Utils.Callback<List<Point>> callback);
 
 	void loadPointsInTrack(Track track, Utils.Callback<List<Point>> callback);
+
+	void deleteTrack(Track track, Utils.Callback<Track> callback);
 }

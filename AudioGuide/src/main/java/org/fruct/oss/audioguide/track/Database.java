@@ -358,6 +358,10 @@ public class Database {
 		}
 	}
 
+	public void deleteTrack(Track track) {
+		db.delete("track", "name=?", new String[]{ track.getName() });
+	}
+
 	private static class Helper extends SQLiteOpenHelper {
 		public static final String DB_NAME = "tracksdb2";
 		public static final int DB_VERSION = 58; // published None
