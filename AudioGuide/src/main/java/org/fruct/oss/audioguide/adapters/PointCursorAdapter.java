@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.support.v4.widget.CursorAdapter;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -26,22 +27,26 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class PointCursorAdapter extends CursorAdapter implements FileListener {
+public class PointCursorAdapter extends CursorAdapter implements FileListener, View.OnClickListener, View.OnTouchListener {
 	private final static Logger log = LoggerFactory.getLogger(PointCursorAdapter.class);
 
 	private final FileManager fileManager;
 
 	private final Context context;
+
+	private boolean isPlaceSelectable;
 	private Set<Point> highlightedItems = new HashSet<Point>();
 
 	private Set<String> pendingIconUrls = new HashSet<String>();
 	private HashMap<String, PointHolder> pendingAudioUrls = new HashMap<String, PointHolder>();
 
+	private int selectedPosition = -1;
 
-	public PointCursorAdapter(Context context) {
+	public PointCursorAdapter(Context context, boolean isPlaceSelectable) {
 		super(context, null, false);
 
 		this.context = context;
+		this.isPlaceSelectable = isPlaceSelectable;
 
 		this.fileManager = DefaultFileManager.getInstance();
 		this.fileManager.addWeakListener(this);
@@ -61,6 +66,14 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener {
 		holder.icon = (ImageView) view.findViewById(android.R.id.icon);
 		holder.progressBar = (ProgressBar) view.findViewById(R.id.progress_bar);
 
+		holder.positionBottom = (View) view.findViewById(R.id.position_bottom);
+		holder.positionTop = (View) view.findViewById(R.id.position_top);
+
+		if (isPlaceSelectable) {
+			view.setOnTouchListener(this);
+			view.setFocusable(true);
+		}
+
 		return view;
 	}
 
@@ -75,6 +88,7 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener {
 		holder.text2.setText(point.getDescription());
 		holder.audioImage.setVisibility(point.hasAudio() ? View.VISIBLE : View.GONE);
 		holder.icon.setImageDrawable(null);
+		holder.position = cursor.getPosition();
 
 		if (point.hasPhoto()) {
 			String photoUrl = point.getPhotoUrl();
@@ -105,6 +119,17 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener {
 				pendingAudioUrls.put(audioUrl, holder);
 				fileManager.insertAudioUri(audioUrl);
 			}*/
+		}
+
+		if (selectedPosition == holder.position) {
+			holder.positionTop.setVisibility(View.VISIBLE);
+			holder.positionBottom.setVisibility(View.GONE);
+		} else if (selectedPosition == holder.position + 1) {
+			holder.positionBottom.setVisibility(View.VISIBLE);
+			holder.positionTop.setVisibility(View.GONE);
+		} else {
+			holder.positionBottom.setVisibility(View.GONE);
+			holder.positionTop.setVisibility(View.GONE);
 		}
 
 		if (highlightedItems.contains(point)) {
@@ -156,6 +181,29 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener {
 		return new Point(cursor);
 	}
 
+	@Override
+	public void onClick(View view) {
+	}
+
+	@Override
+	public boolean onTouch(View view, MotionEvent motionEvent) {
+		if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
+			PointHolder holder = (PointHolder) view.getTag();
+			if (motionEvent.getY() < view.getMeasuredHeight() / 2) {
+				selectedPosition = holder.position;
+			} else {
+				selectedPosition = holder.position + 1;
+			}
+			notifyDataSetChanged();
+		}
+
+		return false;
+	}
+
+	public int getSelectedPosition() {
+		return selectedPosition;
+	}
+
 	private static class PointHolder {
 		Point point;
 		TextView text1;
@@ -164,5 +212,10 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener {
 		ImageView audioImage;
 		ImageView icon;
 		ProgressBar progressBar;
+
+		View positionBottom;
+		View positionTop;
+
+		int position;
 	}
 }

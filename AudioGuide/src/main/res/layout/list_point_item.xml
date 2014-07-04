@@ -70,4 +70,21 @@
         android:paddingBottom="2dp"
         android:visibility="invisible"
         />
+
+    <View
+        android:id="@+id/position_bottom"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="#ffffff00"
+        android:layout_alignParentBottom="true" />
+
+    <View
+        android:id="@+id/position_top"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="#ffffff00"
+        android:layout_alignParentTop="true" />
+
 </RelativeLayout>

@@ -89,7 +89,7 @@ public class PointFragment extends ListFragment {
 			track = savedInstanceState.getParcelable(STATE_TRACK);
 		}
 
-		pointAdapter = new PointCursorAdapter(getActivity());
+		pointAdapter = new PointCursorAdapter(getActivity(), false);
 		cursorHolder = trackManager.loadPoints(track);
 		cursorHolder.attachToAdapter(pointAdapter);
 

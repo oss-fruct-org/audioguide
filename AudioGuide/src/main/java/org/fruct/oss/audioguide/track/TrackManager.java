@@ -14,7 +14,7 @@ public interface TrackManager {
 
 	void insertTrack(Track track);
 
-	void insertToTrack(Track track, Point point);
+	void insertToTrack(Track track, Point point, int selectedPosition);
 
 	void storeTrackLocal(Track track);
 

@@ -37,6 +37,7 @@ import android.widget.Toast;
 import org.fruct.oss.audioguide.MultiPanel;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.dialogs.EditPointDialog;
+import org.fruct.oss.audioguide.dialogs.InsertPointDialog;
 import org.fruct.oss.audioguide.dialogs.SelectTrackDialog;
 import org.fruct.oss.audioguide.overlays.EditOverlay;
 import org.fruct.oss.audioguide.overlays.MyPositionOverlay;
@@ -481,7 +482,8 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 	private SelectTrackDialog.Listener addPointToTrackListener = new SelectTrackDialog.Listener() {
 		@Override
 		public void trackSelected(Track track) {
-			trackManager.insertToTrack(track, selectedPoint);
+			InsertPointDialog dialog = InsertPointDialog.newInstance(track, selectedPoint);
+			dialog.show(getFragmentManager(), "insert-point-dialog");
 			selectedPoint = null;
 		}
 	};

@@ -76,7 +76,7 @@ dependencies {
     //compile 'org.simpleframework:simple-xml:2.7.1@jar'
     //
     //
-    compile fileTree(include: ['*.jar', '*.aar'], dir: 'libs')
+    compile fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
     androidTestCompile 'com.jayway.android.robotium:robotium-solo:5.0.1'
     // You must install or update the Support Repository through the SDK manager to use this dependency.
     compile 'com.android.support:support-v4:20.+'

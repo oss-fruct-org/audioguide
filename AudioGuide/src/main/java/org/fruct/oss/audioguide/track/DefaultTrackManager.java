@@ -71,8 +71,8 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	}
 
 	@Override
-	public void insertToTrack(Track track, Point point) {
-		database.insertToTrack(track, point);
+	public void insertToTrack(Track track, Point point, int selectedPosition) {
+		database.insertToTrack(track, point, selectedPosition);
 		database.markTrackUpdate(track);
 		notifyDataChanged();
 	}
@@ -94,9 +94,9 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 					if (point.hasAudio()) {
 						fileManager.insertRemoteFile("no-title", Uri.parse(point.getAudioUrl()));
 					}
-
-					database.insertToTrack(track, point);
 				}
+
+				database.insertPointsToTrack(track, points);
 				notifyDataChanged();
 			}
 		});
@@ -141,8 +141,9 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 
 				for (Point point : points) {
 					point.setPrivate(track.isPrivate());
-					database.insertToTrack(track, point);
 				}
+
+				database.insertPointsToTrack(track, points);
 
 				notifyDataChanged();
 			}

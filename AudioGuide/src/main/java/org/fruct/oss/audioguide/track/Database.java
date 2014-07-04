@@ -123,16 +123,41 @@ public class Database {
 		return newId;
 	}
 
-	public void insertToTrack(Track track, Point point) {
+	public void insertPointsToTrack(Track track, List<Point> points) {
+		long trackId = findTrackId(track);
+
+		db.beginTransaction();
+		try {
+			if (trackId == -1)
+				trackId = insertTrack(track);
+			db.delete("tp", "tp.trackId=?", Utils.toArray(trackId));
+			int idx = 0;
+			for (Point point : points) {
+				long pointId = insertPoint(point);
+				db.execSQL("INSERT INTO tp VALUES (?, ?, ?);", Utils.toArray(trackId, pointId, idx));
+				idx++;
+			}
+			db.setTransactionSuccessful();
+		} finally {
+			db.endTransaction();
+		}
+	}
+
+	public void insertToTrack(Track track, Point point, int position) {
 		long pointId = insertPoint(point);
 
 		long trackId = findTrackId(track);
 		if (trackId == -1)
 			trackId = insertTrack(track);
 
-		long relationId = findRelationId(trackId, pointId);
-		if (relationId == -1) {
-			db.execSQL("INSERT INTO tp VALUES (?, ?, (SELECT (IFNULL (MAX(idx), 0) + 1) FROM tp));", Utils.toArray(trackId, pointId));
+		// Reorder points
+		db.beginTransaction();
+		try {
+			db.execSQL("UPDATE tp SET idx = idx + 1 WHERE idx >= ? AND trackId=?;", Utils.toArray(position, trackId));
+			db.execSQL("INSERT INTO tp VALUES (?, ?, ?);", Utils.toArray(trackId, pointId, position));
+			db.setTransactionSuccessful();
+		} finally {
+			db.endTransaction();
 		}
 	}
 
@@ -147,10 +172,11 @@ public class Database {
 	public Cursor loadPointsCursor(Track track) {
 		Cursor cursor = db.rawQuery(
 				"SELECT point.name, point.description, point.audioUrl, point.photoUrl, point.lat, point.lon, point.private, point.categoryId, point.time, point.uuid, point.id AS _id " +
-				"FROM point INNER JOIN tp " +
-				"ON tp.pointId=point.id " +
-				"WHERE tp.trackId IN (SELECT track.id FROM track WHERE track.name=?) " +
-				"ORDER BY tp.idx;", Utils.toArray(track.getName()));
+						"FROM point INNER JOIN tp " +
+						"ON tp.pointId=point.id " +
+						"WHERE tp.trackId IN (SELECT track.id FROM track WHERE track.name=?) " +
+						"ORDER BY tp.idx;", Utils.toArray(track.getName())
+		);
 		return cursor;
 	}
 
@@ -217,7 +243,7 @@ public class Database {
 	}
 
 	private long findTrackId(Track track) {
-		Cursor cursor = db.query("track", ID_COLUMNS, "name=?",	Utils.toArray(track.getName()), null, null, null);
+		Cursor cursor = db.query("track", ID_COLUMNS, "name=?", Utils.toArray(track.getName()), null, null, null);
 
 		try {
 			if (!cursor.moveToFirst())
@@ -334,7 +360,7 @@ public class Database {
 
 	private static class Helper extends SQLiteOpenHelper {
 		public static final String DB_NAME = "tracksdb2";
-		public static final int DB_VERSION = 55; // published None
+		public static final int DB_VERSION = 58; // published None
 
 		public static final String CREATE_POINT_UPDATES_SQL = "CREATE TABLE point_update " +
 				"(pointId INTEGER," +
