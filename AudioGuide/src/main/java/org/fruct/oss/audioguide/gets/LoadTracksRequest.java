@@ -77,7 +77,7 @@ public class LoadTracksRequest extends GetsRequest {
 
 		categories = ((List<Category>) gets.getEnv("categories"));
 
-		if (categories == null)
+		if (categories == null || categories.isEmpty())
 			return false;
 
 		categories = new ArrayList<Category>(categories);
