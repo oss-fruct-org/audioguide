@@ -14,7 +14,7 @@
 
     <item android:id="@+id/action_place"
           android:icon="@drawable/ic_action_accept"
-          android:title="Place"
+          android:title="Place here"
           app:showAsAction="ifRoom"/>
 
     <item android:id="@+id/action_find_me"

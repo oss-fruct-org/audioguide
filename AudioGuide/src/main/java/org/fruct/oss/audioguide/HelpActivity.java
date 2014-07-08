@@ -100,7 +100,7 @@ public class HelpActivity extends ActionBarActivity {
 			HelpEntry[] helpEntries4 = {
 					new HelpEntry("Point menu", "Long press point to access point menu", 0, true),
 					new HelpEntry("Add to track", "Add point to track", R.drawable.ic_action_share, true),
-					new HelpEntry("Add to track", "Edit point description, image and audio", R.drawable.ic_action_edit, true),
+					new HelpEntry("Edit", "Edit point description, image and audio", R.drawable.ic_action_edit, true),
 			};
 
 			switch (position) {
