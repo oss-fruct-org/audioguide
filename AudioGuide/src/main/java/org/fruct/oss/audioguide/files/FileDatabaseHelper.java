@@ -5,7 +5,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 public class FileDatabaseHelper extends SQLiteOpenHelper {
-	private static final int DB_VERSION = 3;
+	private static final int DB_VERSION = 4;
 	private static final String CREATE_FILE_TABLE = "CREATE TABLE file " +
 			"(title TEXT, " +
 			"localUrl TEXT, " +

@@ -14,6 +14,7 @@ import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
+import android.os.Message;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
@@ -22,6 +23,9 @@ import android.support.v4.content.LocalBroadcastManager;
 import org.fruct.oss.audioguide.LocationReceiver;
 import org.fruct.oss.audioguide.MainActivity;
 import org.fruct.oss.audioguide.R;
+import org.fruct.oss.audioguide.SingletonService;
+import org.fruct.oss.audioguide.files.DefaultFileManager;
+import org.fruct.oss.audioguide.files.FileManager;
 import org.fruct.oss.audioguide.preferences.SettingsActivity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,6 +75,7 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 	private PowerManager.WakeLock wakeLock;
 	private AudioPlayer audioPlayer;
 	private TrackManager trackManager;
+	private Handler monitorHandler;
 
 	public TrackingService() {
 	}
@@ -178,7 +183,10 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 
 		pref.registerOnSharedPreferenceChangeListener(this);
 		//startLocationTrack();
+
+		startService(new Intent(SingletonService.ACTION_START, null, this, SingletonService.class));
 	}
+
 
 	private void updateDistanceTracker() {
 		if (distanceTracker != null) {
@@ -275,8 +283,10 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 
 		audioPlayer.stopAudioTrack();
 
-		log.info("TrackingService onDestroy");
 		releaseWakeLock();
+
+		startService(new Intent(SingletonService.ACTION_STOP, null, this, SingletonService.class));
+		log.info("TrackingService onDestroy");
 	}
 
 	private void acquireWakeLock() {

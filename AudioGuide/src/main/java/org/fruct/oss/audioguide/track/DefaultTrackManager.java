@@ -51,9 +51,11 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	}
 
 	@Override
-	public void close() {
+	public synchronized void close() {
 		database.close();
 		synchronizer.interrupt();
+		synchronizer.quit();
+		instance = null;
 	}
 
 	@Override
@@ -123,6 +125,10 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 			@Override
 			public void call(List<Point> points) {
 				for (Point point : points) {
+					if (point.hasAudio()) {
+						fileManager.insertRemoteFile("no-title", Uri.parse(point.getAudioUrl()));
+					}
+
 					database.insertPoint(point);
 				}
 
@@ -140,6 +146,10 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 					return;
 
 				for (Point point : points) {
+					if (point.hasAudio()) {
+						fileManager.insertRemoteFile("no-title", Uri.parse(point.getAudioUrl()));
+					}
+
 					point.setPrivate(track.isPrivate());
 				}
 

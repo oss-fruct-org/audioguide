@@ -5,9 +5,10 @@ import android.location.Location;
 import org.fruct.oss.audioguide.gets.Category;
 import org.fruct.oss.audioguide.models.Model;
 
+import java.io.Closeable;
 import java.util.List;
 
-public interface TrackManager {
+public interface TrackManager extends Closeable {
 	public static final String PREF_TRACK_MODE = "pref_track_mode";
 
 	void insertPoint(Point point);
@@ -30,6 +31,7 @@ public interface TrackManager {
 
 	void removeListener(TrackListener listener);
 
+	void close();
 
 	CursorHolder loadTracks();
 

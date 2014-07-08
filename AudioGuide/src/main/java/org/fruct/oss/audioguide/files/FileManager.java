@@ -5,9 +5,12 @@ import android.net.Uri;
 
 import org.fruct.oss.audioguide.parsers.GetsException;
 
+import java.io.Closeable;
 import java.io.IOException;
 
-public interface FileManager {
+public interface FileManager extends Closeable {
+
+	void close();
 
 	public enum ScaleMode {
 		NO_SCALE, SCALE_CROP, SCALE_FIT

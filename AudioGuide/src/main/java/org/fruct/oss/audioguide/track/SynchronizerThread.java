@@ -38,11 +38,15 @@ public class SynchronizerThread extends HandlerThread {
 		handler.postDelayed(new Runnable() {
 			@Override
 			public void run() {
+				if (Thread.interrupted())
+					return;
+
 				try {
 					doSynchronizationStepPoints();
 					doSynchronizationStepTracks();
 					scheduleStep();
 				} catch (InterruptedException e) {
+					log.info("SynchronizerThread interrupted");
 					quitSafely();
 				} catch (Exception ex) {
 					log.error("Synchronization error: ", ex);

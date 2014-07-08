@@ -67,13 +67,16 @@ public class DefaultFileManager implements FileManager, Closeable, Runnable {
 		mainHandler = new Handler(Looper.getMainLooper());
 	}
 
-	public void close() {
+	@Override
+	public synchronized void close() {
 		if (!isClosed) {
 			log.debug("DefaultFileManager.close");
 			isClosed = true;
 			dbHelper.close();
 			downloadThread.interrupt();
 		}
+
+		instance = null;
 	}
 
 	@Override
@@ -132,6 +135,7 @@ public class DefaultFileManager implements FileManager, Closeable, Runnable {
 
 		try {
 			if (!cursor.moveToFirst()) {
+				insertRemoteFile("no-title", uri);
 				return null;
 			} else {
 				String urlStr = cursor.getString(0);
