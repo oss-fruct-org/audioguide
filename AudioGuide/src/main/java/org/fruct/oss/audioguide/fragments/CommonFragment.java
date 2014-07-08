@@ -17,6 +17,7 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import org.fruct.oss.audioguide.R;
+import org.fruct.oss.audioguide.SingletonService;
 import org.fruct.oss.audioguide.dialogs.CategoriesDialog;
 import org.fruct.oss.audioguide.track.TrackingService;
 import org.slf4j.Logger;
@@ -52,7 +53,7 @@ public class CommonFragment extends Fragment {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		log.debug("onCreate");
+		log.debug("CommonFragment.onCreate");
 
 		setHasOptionsMenu(true);
 		setRetainInstance(true);
@@ -68,6 +69,7 @@ public class CommonFragment extends Fragment {
 		if (savedInstanceState != null) {
 			isTrackingActive = savedInstanceState.getBoolean("isTrackingActive");
 		}
+		getActivity().startService(new Intent(SingletonService.ACTION_START, null, getActivity(), SingletonService.class));
 	}
 
 	@Override
@@ -110,6 +112,7 @@ public class CommonFragment extends Fragment {
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
+		getActivity().startService(new Intent(SingletonService.ACTION_STOP, null, getActivity(), SingletonService.class));
 
 		LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(errorReceiver);
 	}

@@ -183,8 +183,6 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 
 		pref.registerOnSharedPreferenceChangeListener(this);
 		//startLocationTrack();
-
-		startService(new Intent(SingletonService.ACTION_START, null, this, SingletonService.class));
 	}
 
 
@@ -285,7 +283,6 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 
 		releaseWakeLock();
 
-		startService(new Intent(SingletonService.ACTION_STOP, null, this, SingletonService.class));
 		log.info("TrackingService onDestroy");
 	}
 
