@@ -12,6 +12,7 @@
         android:textSize="20sp"
         android:textStyle="bold"
         android:layout_alignParentTop="true"
+
         />
 
     <TextView

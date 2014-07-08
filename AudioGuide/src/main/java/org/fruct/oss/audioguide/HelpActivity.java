@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
+import android.graphics.PorterDuff;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.Fragment;
@@ -72,36 +73,65 @@ public class HelpActivity extends ActionBarActivity {
 
         @Override
         public Fragment getItem(int position) {
-			HelpEntry[] helpEntries = {
-				new HelpEntry("qweasdzxc", "asdzxcasd", R.drawable.ic_action_pause),
-				new HelpEntry("asdasdasd", "zxczxczxc", R.drawable.ic_action_refresh)
+			HelpEntry[] helpEntries1 = {
+				new HelpEntry("Sound", "Use this button to start sound automatically", R.drawable.ic_action_volume_on, true),
+				new HelpEntry("Refresh", "Press to refresh list of tracks or points", R.drawable.ic_action_refresh, true),
+				new HelpEntry("Filter", "Use \"Filter\" to show tracks or points from selected categories", 0, true)
+			};
+
+			HelpEntry[] helpEntries2 = {
+					new HelpEntry("Tracks", "Press \"Add\" button to create track", R.drawable.ic_action_new, true),
+					new HelpEntry("Track menu", "Long press to show track's menu", R.drawable.ic_action_refresh, true),
+					new HelpEntry("Activate", "Show track on map hiding unrelated points", R.drawable.ic_action_location_found, true),
+					new HelpEntry("Save", "Save content of track to your device", R.drawable.ic_action_save, false),
+					new HelpEntry("Delete", "Delete track. AudioGuide will ask you delete track locally or on remote server", R.drawable.ic_action_discard, true)
+			};
+
+			HelpEntry[] helpEntries3 = {
+					new HelpEntry("Modes", "Map has two modes: track and points", 0, true),
+					new HelpEntry("Track mode", "In track mode map shows only active track. Track mode can be switched from menu or from track window by selecting \"Activate\" option from track's menu. " +
+							"Track mode can be deactivated by choosing menu button", android.R.drawable.ic_menu_mapmode, true),
+					new HelpEntry("Point mode", "Show all loaded points", android.R.drawable.ic_menu_mapmode, true),
+					new HelpEntry("Search", "Search near points. Searching radius can be adjusted in settings window", R.drawable.ic_action_search, true),
+					new HelpEntry("Place here", "Set position to current map center", 0, true),
+					new HelpEntry("Add point", "Create new point", R.drawable.ic_action_new, true)
+			};
+
+			HelpEntry[] helpEntries4 = {
+					new HelpEntry("Point menu", "Long press point to access point menu", 0, true),
+					new HelpEntry("Add to track", "Add point to track", R.drawable.ic_action_share, true),
+					new HelpEntry("Add to track", "Edit point description, image and audio", R.drawable.ic_action_edit, true),
 			};
 
 			switch (position) {
 			case 0:
+				return PlaceholderFragment.newLayoutInstance(helpEntries1);
 			case 1:
+				return PlaceholderFragment.newLayoutInstance(helpEntries2);
 			case 2:
-				return PlaceholderFragment.newLayoutInstance(helpEntries);
+				return PlaceholderFragment.newLayoutInstance(helpEntries3);
+			case 3:
+				return PlaceholderFragment.newLayoutInstance(helpEntries4);
 			default:
-				return PlaceholderFragment.newLayoutInstance(helpEntries);
+				return PlaceholderFragment.newLayoutInstance(helpEntries1);
 			}
 		}
 
         @Override
         public int getCount() {
             // Show 3 total pages.
-            return 3;
+            return 4;
         }
 
         @Override
         public CharSequence getPageTitle(int position) {
             Locale l = Locale.getDefault();
             switch (position) {
-                case 0:
-                    return getString(R.string.title_section1).toUpperCase(l);
                 case 1:
-                    return getString(R.string.title_section2).toUpperCase(l);
+                    return getString(R.string.title_section1).toUpperCase(l);
                 case 2:
+                    return getString(R.string.title_section2).toUpperCase(l);
+                case 3:
                     return getString(R.string.title_section3).toUpperCase(l);
             }
             return null;
@@ -147,7 +177,7 @@ public class HelpActivity extends ActionBarActivity {
 			scrollView.addView(linearLayout);
 
 			for (HelpEntry entry : entires) {
-				View entryView = inflater.inflate(R.layout.help_template, linearLayout);
+				View entryView = inflater.inflate(R.layout.help_template, linearLayout, false);
 
 				TextView titleView = (TextView) entryView.findViewById(R.id.help_template_title);
 				TextView textView = (TextView) entryView.findViewById(R.id.help_template_text);
@@ -158,7 +188,15 @@ public class HelpActivity extends ActionBarActivity {
 
 				if (entry.iconRes != 0) {
 					iconView.setImageResource(entry.iconRes);
+					iconView.setVisibility(View.VISIBLE);
+
+					if (entry.reversed) {
+						iconView.setColorFilter(0xff515151, PorterDuff.Mode.SRC_ATOP);
+					}
 				}
+
+
+				linearLayout.addView(entryView);
 			}
 
 			return scrollView;
@@ -178,14 +216,16 @@ public class HelpActivity extends ActionBarActivity {
 
 
 	private static class HelpEntry implements Serializable {
-		HelpEntry(String title, String text, int iconRes) {
+		HelpEntry(String title, String text, int iconRes, boolean reversed) {
 			this.title = title;
 			this.text = text;
 			this.iconRes = iconRes;
+			this.reversed = reversed;
 		}
 
 		String title;
 		String text;
 		int iconRes;
+		boolean reversed;
 	}
 }
