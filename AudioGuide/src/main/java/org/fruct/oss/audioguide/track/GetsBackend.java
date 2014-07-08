@@ -138,7 +138,7 @@ public class GetsBackend implements StorageBackend, CategoriesBackend {
 
 	private void sendPoint(long categoryId, Point point, final UpdateRequest request) {
 		Gets gets = Gets.getInstance();
-		gets.addRequest(new AddPointRequest(gets, categoryId, point) {
+		gets.addRequest(new AddPointRequest(gets, categoryId, point, 0) {
 			@Override
 			protected void onPostProcess(GetsResponse response) {
 				super.onPostProcess(response);
@@ -158,9 +158,9 @@ public class GetsBackend implements StorageBackend, CategoriesBackend {
 		});
 	}
 
-	private void sendPoint(Track track, Point point, final UpdateRequest request) {
+	private void sendPoint(Track track, Point point, int idx, final UpdateRequest request) {
 		Gets gets = Gets.getInstance();
-		gets.addRequest(new AddPointRequest(gets, track, point) {
+		gets.addRequest(new AddPointRequest(gets, track, point, idx) {
 			@Override
 			protected void onPostProcess(GetsResponse response) {
 				super.onPostProcess(response);
@@ -205,8 +205,9 @@ public class GetsBackend implements StorageBackend, CategoriesBackend {
 				}
 			});
 		} else {
+			int c = 0;
 			for (Point point : points) {
-				sendPoint(track, point, request);
+				sendPoint(track, point, c++, request);
 			}
 
 			if (points.isEmpty()) {

@@ -17,7 +17,7 @@ import java.util.Locale;
 import java.util.StringTokenizer;
 import java.util.UUID;
 
-public class Point implements Parcelable {
+public class Point implements Parcelable, Comparable<Point> {
 	public static class CursorFields {
 		public int name;
 		public int desc;
@@ -42,6 +42,9 @@ public class Point implements Parcelable {
 	private boolean isPrivate;
 	private long categoryId = -1;
 	private String uuid;
+
+	// Index in track
+	private long idx = -1;
 
 	public void setCoordinates(int latE6, int lonE6) {
 		this.latE6 = latE6;
@@ -175,6 +178,14 @@ public class Point implements Parcelable {
 
 	public void setTime(String timeStr) {
 		this.time = timeStr;
+	}
+
+	public long getIdx() {
+		return idx;
+	}
+
+	public void setIdx(long idx) {
+		this.idx = idx;
 	}
 
 	public void createTime() {
@@ -358,6 +369,8 @@ public class Point implements Parcelable {
 					point.audioUrl = value;
 				else if (key.equals("access"))
 					point.setPrivate(value.equals("rw"));
+				else if (key.equals("idx"))
+					point.setIdx(Long.parseLong(value));
 
 				parser.nextTag();
 				parser.require(XmlPullParser.END_TAG, null, "Data");
@@ -365,6 +378,11 @@ public class Point implements Parcelable {
 				Utils.skip(parser);
 			}
 		}
+	}
+
+	@Override
+	public int compareTo(Point point) {
+		return (int) (idx - point.idx);
 	}
 
 	public static CursorFields getCursorFields(Cursor cursor) {

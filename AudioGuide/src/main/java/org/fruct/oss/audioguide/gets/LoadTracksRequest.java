@@ -75,12 +75,12 @@ public class LoadTracksRequest extends GetsRequest {
 		if (categories != null)
 			return true;
 
-		categories = ((List<Category>) gets.getEnv("categories"));
+		List<Category> categories = ((List<Category>) gets.getEnv("categories"));
 
 		if (categories == null || categories.isEmpty())
 			return false;
 
-		categories = new ArrayList<Category>(categories);
+		this.categories = new ArrayList<Category>(categories);
 		return true;
 	}
 

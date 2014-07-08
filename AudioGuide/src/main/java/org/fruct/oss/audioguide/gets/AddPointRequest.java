@@ -19,18 +19,22 @@ public class AddPointRequest extends GetsRequest {
 
 	private final Point point;
 
-	public AddPointRequest(Gets gets, Track track, Point point) {
+	private int idx;
+
+	public AddPointRequest(Gets gets, Track track, Point point, int idx) {
 		super(gets);
 		this.track = track;
 		this.point = point;
 		this.categoryId = -1;
+		this.idx = idx;
 	}
 
-	public AddPointRequest(Gets gets, long categoryId, Point point) {
+	public AddPointRequest(Gets gets, long categoryId, Point point, int idx) {
 		super(gets);
 		this.categoryId = categoryId;
 		this.track = null;
 		this.point = point;
+		this.idx = idx;
 	}
 
 	@Override
@@ -39,7 +43,7 @@ public class AddPointRequest extends GetsRequest {
 				track != null ? track.getName() : null,
 				categoryId,
 				point.getName(),
-				createDescription(point),
+				createDescription(point, idx),
 				"http://example.com",
 				point.getLatE6() / 1e6,
 				point.getLonE6() / 1e6,
@@ -108,7 +112,7 @@ public class AddPointRequest extends GetsRequest {
 		}
 	}
 
-	static String createDescription(Point point) {
+	static String createDescription(Point point, int idx) {
 		if (!point.hasPhoto() && !point.hasAudio() && point.getCategoryId() == -1) {
 			return point.getDescription();
 		}
@@ -126,6 +130,8 @@ public class AddPointRequest extends GetsRequest {
 
 			if (point.getCategoryId() != -1)
 				stringer.key("category_id").value(point.getCategoryId());
+
+			stringer.key("idx").value(idx);
 
 			return stringer.endObject().toString();//.replace("\\/", "/");
 		} catch (JSONException e) {

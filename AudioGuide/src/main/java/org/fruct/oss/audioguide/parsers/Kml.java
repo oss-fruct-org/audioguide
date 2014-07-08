@@ -7,6 +7,8 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public class Kml implements IContent {
@@ -66,6 +68,8 @@ public class Kml implements IContent {
 		parser.require(XmlPullParser.END_TAG, null, "kml");
 		parser.nextTag();
 		parser.require(XmlPullParser.END_TAG, null, "content");
+
+		Collections.sort(points);
 
 		kml.points = points;
 		return kml;

@@ -20,7 +20,7 @@ public class UpdatePointRequest extends GetsRequest {
 
 	@Override
 	protected String createRequestString() {
-		return createUpdatePointRequest(point.getUuid(), point.getName(), AddPointRequest.createDescription(point),
+		return createUpdatePointRequest(point.getUuid(), point.getName(), AddPointRequest.createDescription(point, 0),
 				"http://example.com", point.getLatE6() / 1e6, point.getLonE6() / 1e6,
 				0f, point.getTime());
 	}
