@@ -55,8 +55,8 @@ public class Point implements Parcelable, Comparable<Point> {
 	public void setCoordinates(String coordinates) {
 		StringTokenizer tok = new StringTokenizer(coordinates, ",", false);
 
-		double	latitude = Double.parseDouble(tok.nextToken());
 		double longitude = Double.parseDouble(tok.nextToken());
+		double latitude = Double.parseDouble(tok.nextToken());
 		latE6 = (int) (latitude * 1e6);
 		lonE6 = (int) (longitude * 1e6);
 		cachedLocation = null;

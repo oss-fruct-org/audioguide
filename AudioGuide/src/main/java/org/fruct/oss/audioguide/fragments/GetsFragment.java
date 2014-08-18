@@ -129,12 +129,13 @@ public class GetsFragment extends Fragment implements WebViewDialog.Listener, Sh
 				AuthRedirectResponse redirect = (AuthRedirectResponse) response.getContent();
 				sessionId = redirect.getSessionId();
 
-				WebViewDialog authDialog = new WebViewDialog(redirect.getRedirectUrl(), new Predicate<String>() {
+				WebViewDialog authDialog = WebViewDialog.newInstance(redirect.getRedirectUrl(), new Predicate<String>() {
 					@Override
 					public boolean apply(String url) {
 						return url.startsWith(Gets.GETS_SERVER + "/include/GoogleAuth.php");
 					}
 				});
+
 				authDialog.show(getFragmentManager(), "auth-dialog");
 				authDialog.setListener(GetsFragment.this);
 			}
