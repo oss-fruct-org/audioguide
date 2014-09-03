@@ -71,9 +71,13 @@ public class DefaultFileManager implements FileManager, Closeable, Runnable {
 	public synchronized void close() {
 		if (!isClosed) {
 			log.debug("DefaultFileManager.close");
-			isClosed = true;
-			dbHelper.close();
+
 			downloadThread.interrupt();
+
+			synchronized (db) {
+				isClosed = true;
+				dbHelper.close();
+			}
 		}
 
 		instance = null;
@@ -281,6 +285,9 @@ public class DefaultFileManager implements FileManager, Closeable, Runnable {
 		while (!isClosed) {
 			Cursor cursor;
 			synchronized (db) {
+				if (isClosed)
+					break;
+
 				cursor = db.rawQuery("SELECT title, remoteUrl FROM file " +
 						"WHERE cacheUrl IS NULL;", null);
 
@@ -290,6 +297,7 @@ public class DefaultFileManager implements FileManager, Closeable, Runnable {
 						Thread.sleep(1000);
 					} catch (InterruptedException ignored) {
 					}
+					cursor.close();
 					continue;
 				}
 			}
@@ -302,8 +310,13 @@ public class DefaultFileManager implements FileManager, Closeable, Runnable {
 				try {
 					downloadUrl(remoteUrl, cacheFile);
 
-					db.execSQL("UPDATE file SET cacheUrl=? WHERE remoteUrl=?",
-							Utils.toArray(Uri.fromFile(cacheFile), remoteUrl));
+					synchronized (db) {
+						if (isClosed)
+							return;
+
+						db.execSQL("UPDATE file SET cacheUrl=? WHERE remoteUrl=?",
+								Utils.toArray(Uri.fromFile(cacheFile), remoteUrl));
+					}
 
 					mainHandler.post(new Runnable() {
 						@Override
@@ -317,6 +330,9 @@ public class DefaultFileManager implements FileManager, Closeable, Runnable {
 					log.error("Error downloading file: {}", remoteUrl);
 					cacheFile.delete();
 				}
+
+				if (isClosed)
+					return;
 			} while (cursor.moveToNext());
 
 			cursor.close();
