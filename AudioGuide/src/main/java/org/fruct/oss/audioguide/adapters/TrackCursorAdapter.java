@@ -5,16 +5,22 @@ import android.content.Context;
 import android.database.Cursor;
 import android.graphics.PorterDuff;
 import android.support.v4.widget.CursorAdapter;
+import android.util.Log;
+import android.view.InflateException;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import org.fruct.oss.audioguide.App;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.track.DefaultTrackManager;
 import org.fruct.oss.audioguide.track.Track;
 import org.fruct.oss.audioguide.track.TrackManager;
+
+import java.lang.reflect.InvocationTargetException;
 
 public class TrackCursorAdapter extends CursorAdapter implements View.OnClickListener {
 	public TrackCursorAdapter(Context context) {
@@ -23,7 +29,13 @@ public class TrackCursorAdapter extends CursorAdapter implements View.OnClickLis
 
 	@Override
 	public View newView(Context context, Cursor cursor, ViewGroup viewGroup) {
-		View view = ((Activity) context).getLayoutInflater().inflate(R.layout.list_track_item, viewGroup, false);
+		View view = null;
+		LayoutInflater inflater = ((Activity) context).getLayoutInflater();
+		try {
+			view = inflater.inflate(R.layout.list_track_item, viewGroup, false);
+		} catch (InflateException ex) {
+			Log.e("ERRR", ex.getCause().getCause().getCause().toString());
+		}
 		assert view != null;
 
 		TrackHolder holder = new TrackHolder();

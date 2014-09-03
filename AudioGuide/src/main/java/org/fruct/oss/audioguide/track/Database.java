@@ -215,6 +215,8 @@ public class Database {
 	}
 
 	public Cursor loadUpdatedPoints() {
+		// FIXME: java.lang.IllegalStateException: database /data/data/org.fruct.oss.audioguide/databases/tracksdb2 already closed
+		// From synchronized
 		Cursor cursor = db.rawQuery("SELECT point.name, point.description, point.audioUrl, point.photoUrl, point.lat, point.lon, point.private, point.categoryId, point.time, point.uuid, point.id AS _id " +
 				"FROM point INNER JOIN point_update " +
 				"ON point.id = point_update.pointId " +

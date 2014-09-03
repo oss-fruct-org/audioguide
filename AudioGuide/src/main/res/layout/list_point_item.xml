@@ -3,7 +3,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
                 xmlns:tools="http://schemas.android.com/tools"
                 android:orientation="vertical"
-                android:minHeight="48dp"
+                android:minHeight="?android:listPreferredItemHeight"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
@@ -11,9 +11,9 @@
         android:id="@android:id/icon"
         android:layout_alignParentLeft="true"
         android:layout_centerVertical="true"
-        android:layout_height="48dp"
-        android:layout_width="48dp"
-        android:layout_margin="4dp"/>
+        android:layout_height="40dp"
+        android:layout_width="40dp"
+        android:layout_margin="6dp"/>
 
     <LinearLayout
         android:layout_toLeftOf="@+id/buttonsLayout"
@@ -27,7 +27,8 @@
             android:id="@android:id/text1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="24sp"
+            android:textSize="18sp"
+            android:textColor="#ff58585B"
             tools:text="Hello world Hello world"
             />
 
@@ -35,7 +36,8 @@
             android:id="@android:id/text2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="16sp"
+            android:textSize="14sp"
+            android:textColor="#ff58585B"
             tools:text="Hello world qweqweqwe qwewww"
             />
 

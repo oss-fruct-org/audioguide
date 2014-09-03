@@ -3,22 +3,29 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
                 xmlns:tools="http://schemas.android.com/tools"
                 android:orientation="vertical"
-                android:minHeight="32dp"
+                android:minHeight="?android:listPreferredItemHeight"
                 android:layout_width="match_parent"
                 android:descendantFocusability="blocksDescendants"
-                android:layout_height="match_parent">
+                android:layout_height="match_parent"
+                android:background="@drawable/list_item_activated"
+    >
 
     <LinearLayout
         android:layout_alignParentLeft="true"
         android:layout_toLeftOf="@+id/buttonsLayout"
         android:orientation="vertical"
         android:layout_width="wrap_content"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:paddingLeft="4dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp"
+        >
         <TextView
             android:id="@android:id/text1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="24sp"
+            android:textSize="18sp"
+            android:textColor="#ff58585B"
             tools:text="Hello world Hello world"
             />
 
@@ -26,7 +33,8 @@
             android:id="@android:id/text2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="16sp"
+            android:textSize="14sp"
+            android:textColor="#ff58585B"
             tools:text="Hello world qweqweqwe qwewww"
             />
     </LinearLayout>
@@ -58,18 +66,5 @@
             android:background="@null"
             android:layout_margin="8dp"
             />
-
-<!--
-        <ImageButton
-            android:src="@drawable/ic_action_accept"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/activeImage"
-            android:contentDescription="Active"
-            android:background="@null"
-            android:layout_margin="8dp"
-            />
--->
-
     </LinearLayout>
 </RelativeLayout>

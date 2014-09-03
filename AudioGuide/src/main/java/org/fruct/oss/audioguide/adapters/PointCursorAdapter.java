@@ -96,7 +96,7 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 				pendingIconUrls.remove(photoUrl);
 			}
 
-			Bitmap iconBitmap = fileManager.getImageBitmap(photoUrl, Utils.getDP(48), Utils.getDP(48), FileManager.ScaleMode.SCALE_FIT);
+			Bitmap iconBitmap = fileManager.getImageBitmap(photoUrl, Utils.getDP(48), Utils.getDP(48), FileManager.ScaleMode.SCALE_CROP);
 			if (iconBitmap != null) {
 				holder.icon.setImageDrawable(new BitmapDrawable(context.getResources(), iconBitmap));
 			} else {
@@ -135,7 +135,7 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 		if (highlightedItems.contains(point)) {
 			view.setBackgroundColor(0xffffd700);
 		} else {
-			view.setBackgroundColor(0xffffffff);
+			view.setBackgroundColor(0x00ffffff);
 		}
 	}
 

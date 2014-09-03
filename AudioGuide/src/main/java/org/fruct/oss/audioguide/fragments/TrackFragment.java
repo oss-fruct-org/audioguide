@@ -58,6 +58,7 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 	private MenuItem popupItemSend;
 
 	private Track selectedTrack;
+	private int selectedPosition;
 
 	public static TrackFragment newInstance() {
 		return new TrackFragment();
@@ -87,12 +88,17 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 		}
 	}
 
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+		return inflater.inflate(R.layout.fragment_list_view, container, false);
+	}
 
 	@Override
 	public void onResume() {
 		super.onResume();
 
 		setupSpinner();
+		getListView().setChoiceMode(AbsListView.CHOICE_MODE_SINGLE);
 	}
 
 	@Override
@@ -205,6 +211,8 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 
 	private void showContextualActionBar(int position) {
 		selectedTrack = trackCursorAdapter.getTrack(position);
+		selectedPosition = position;
+		getListView().setItemChecked(position, true);
 		ActionBarActivity activity = ((ActionBarActivity) getActivity());
 		activity.startSupportActionMode(actionModeCallback);
 	}
@@ -340,6 +348,7 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 		@Override
 		public void onDestroyActionMode(ActionMode actionMode) {
 			selectedTrack = null;
+			getListView().setItemChecked(selectedPosition, false);
 		}
 	};
 
