@@ -86,7 +86,9 @@ public class NavigationDrawerFragment extends Fragment {
 		}
 
 		// Select either the default item (0) or the last selected item.
-		selectItem(mCurrentSelectedPosition);
+		if (!mFromSavedInstanceState) {
+			selectItem(mCurrentSelectedPosition);
+		}
 	}
 
 	@Override
@@ -292,7 +294,7 @@ public class NavigationDrawerFragment extends Fragment {
 		ActionBar actionBar = getActionBar();
 		actionBar.setDisplayShowTitleEnabled(true);
 		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
-		log.debug("setNavigationMode STANDARD");
+
 		actionBar.setTitle(R.string.app_name);
 	}
 

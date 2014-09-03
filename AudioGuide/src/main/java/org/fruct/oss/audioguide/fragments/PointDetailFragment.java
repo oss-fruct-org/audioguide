@@ -40,6 +40,7 @@ public class PointDetailFragment extends Fragment implements FileListener {
 	private Bitmap imageBitmap;
 
 	private int imageSize;
+	private boolean isStateSaved;
 
 	/**
      * Use this factory method to create a new instance of
@@ -64,7 +65,7 @@ public class PointDetailFragment extends Fragment implements FileListener {
 	@Override
 	public void onStart() {
 		super.onStart();
-
+		isStateSaved = false;
 		initializeBottomPanel();
 	}
 
@@ -84,9 +85,11 @@ public class PointDetailFragment extends Fragment implements FileListener {
 
 	@Override
 	public void onStop() {
-		PanelFragment panelFragment = (PanelFragment) getFragmentManager().findFragmentByTag("bottom-panel-fragment");
-		if (panelFragment != null) {
-			panelFragment.clearFallbackPoint();
+		if (!isStateSaved) {
+			PanelFragment panelFragment = (PanelFragment) getFragmentManager().findFragmentByTag("bottom-panel-fragment");
+			if (panelFragment != null) {
+				panelFragment.clearFallbackPoint();
+			}
 		}
 
 		super.onStop();
@@ -260,6 +263,8 @@ public class PointDetailFragment extends Fragment implements FileListener {
 
 		outState.putParcelable(STATE_POINT, point);
 		outState.putBoolean(STATE_IS_OVERLAY, isOverlay);
+
+		isStateSaved = true;
 	}
 
 	private void tryUpdateImage(int imageWidth, int imageHeight) {

@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.LocalBroadcastManager;
@@ -41,11 +42,8 @@ public class MainActivity extends ActionBarActivity
 		TestFragment.OnFragmentInteractionListener {
 	private final static Logger log = LoggerFactory.getLogger(MainActivity.class);
 
-	private static final String STATE_STACK_SIZE = "stack-size";
-	private static final String STATE_STACK = "stack-fragment";
-	private static final String STATE_CURRENT_FRAGMENT = "current-fragment";
-
 	private static final String TAG_PANEL_FRAGMENT = "panel-fragment";
+	public static final String STATE_BACK_STACK_COUNT = "state-back-stack-count";
 
 	/**
 	 * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
@@ -57,12 +55,9 @@ public class MainActivity extends ActionBarActivity
 	 */
 	private CharSequence mTitle;
 
-	private ArrayList<FragmentStorage> fragmentStack = new ArrayList<FragmentStorage>();
-	private Fragment currentFragment;
-
 	private FragmentManager fragmentManager;
-	private boolean suppressDrawerItemSelect = false;
 	private BroadcastReceiver startAudioReceiver;
+	private int backStackCount;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -71,20 +66,10 @@ public class MainActivity extends ActionBarActivity
 
 		fragmentManager = getSupportFragmentManager();
 
+		setContentView(R.layout.activity_main);
+
 		if (fragmentManager.findFragmentByTag("common-fragment") == null)
 			fragmentManager.beginTransaction().add(CommonFragment.newInstance(), "common-fragment").commit();
-
-		if (savedInstanceState != null) {
-			suppressDrawerItemSelect = true;
-
-			fragmentStack = savedInstanceState.getParcelableArrayList(STATE_STACK);
-			currentFragment = fragmentManager.getFragment(savedInstanceState, STATE_CURRENT_FRAGMENT);
-
-			for (FragmentStorage storage : fragmentStack)
-				storage.setFragmentManager(fragmentManager);
-		}
-
-		setContentView(R.layout.activity_main);
 
 		mNavigationDrawerFragment = (NavigationDrawerFragment)
 				fragmentManager.findFragmentById(R.id.navigation_drawer);
@@ -96,6 +81,7 @@ public class MainActivity extends ActionBarActivity
 				(DrawerLayout) findViewById(R.id.drawer_layout));
 
 		if (savedInstanceState != null) {
+			backStackCount = savedInstanceState.getInt(STATE_BACK_STACK_COUNT);
 			updateUpButton();
 		}
 
@@ -157,11 +143,6 @@ public class MainActivity extends ActionBarActivity
 
 	@Override
 	public void onNavigationDrawerItemSelected(int position, Bundle fragmentParameters) {
-		if (suppressDrawerItemSelect) {
-			suppressDrawerItemSelect = false;
-			return;
-		}
-
 		Fragment fragment = null;
 		switch (position) {
 		case 0:
@@ -182,12 +163,13 @@ public class MainActivity extends ActionBarActivity
 			fragment.setArguments(fragmentParameters);
 		}
 
-		fragmentStack.clear();
-		currentFragment = fragment;
+		fragmentManager.popBackStack(TAG_PANEL_FRAGMENT, FragmentManager.POP_BACK_STACK_INCLUSIVE);
 
-		fragmentManager.beginTransaction()
-				.replace(R.id.panel1, fragment, TAG_PANEL_FRAGMENT)
-				.commit();
+		FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+		fragmentTransaction.addToBackStack(TAG_PANEL_FRAGMENT);
+		fragmentTransaction.replace(R.id.panel1, fragment, "content_fragment");
+		fragmentTransaction.commit();
+		backStackCount = 1;
 
 		updateUpButton();
 	}
@@ -196,10 +178,10 @@ public class MainActivity extends ActionBarActivity
 		if (mNavigationDrawerFragment == null)
 			return;
 
-		if (fragmentStack.size() <= 0) {
-			mNavigationDrawerFragment.setUpEnabled(true);
-		} else {
+		if (backStackCount > 1) {
 			mNavigationDrawerFragment.setUpEnabled(false);
+		} else {
+			mNavigationDrawerFragment.setUpEnabled(true);
 		}
 	}
 
@@ -222,19 +204,29 @@ public class MainActivity extends ActionBarActivity
 
 	@Override
 	public void onBackPressed() {
-		if (fragmentStack.size() > 0)
-			popFragment();
-		else
-			super.onBackPressed();
+		int count = fragmentManager.getBackStackEntryCount();
+		String name;
+		do {
+			FragmentManager.BackStackEntry entry = fragmentManager.getBackStackEntryAt(--count);
+			fragmentManager.popBackStack();
+			name = entry.getName();
+		} while (name == null);
+		backStackCount--;
+
+		if (name.equals(TAG_PANEL_FRAGMENT)) {
+			finish();
+		} else {
+			updateUpButton();
+		}
 	}
 
 	public void restoreActionBar() {
 		ActionBar actionBar = getSupportActionBar();
 
-		if (fragmentStack.isEmpty() && currentFragment instanceof TrackFragment)
+		/*if (fragmentStack.isEmpty() && currentFragment instanceof TrackFragment)
 			actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
 		else
-			actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
+			actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);*/
 
 
 		actionBar.setDisplayShowTitleEnabled(true);
@@ -243,9 +235,7 @@ public class MainActivity extends ActionBarActivity
 
 	@Override
 	public boolean onSupportNavigateUp() {
-		if (fragmentStack.size() > 0)
-			popFragment();
-
+		onBackPressed();
 		return super.onSupportNavigateUp();
 	}
 
@@ -278,86 +268,35 @@ public class MainActivity extends ActionBarActivity
 
 	@Override
 	public void pushFragment(Fragment fragment) {
-		FragmentTransaction trans = fragmentManager.beginTransaction();
+		fragmentManager.beginTransaction()
+				.addToBackStack("fragment-transaction-" + fragment.hashCode())
+				.replace(R.id.panel1, fragment)
+				.commit();
 
-		FragmentStorage oldStorage = new FragmentStorage(currentFragment).setFragmentManager(fragmentManager);
-		fragmentStack.add(oldStorage);
-		oldStorage.storeFragment();
-
-		currentFragment = fragment;
-		trans.replace(R.id.panel1, fragment, TAG_PANEL_FRAGMENT);
-		trans.commit();
-
+		backStackCount++;
 		updateUpButton();
 	}
 
 	@Override
 	public void replaceFragment(Fragment fragment, Fragment firstFragment) {
 		pushFragment(fragment);
-
-		/*int size = fragmentStack.size();
-
-		FragmentStorage lastFragmentStorage = fragmentStack.get(size - 1);
-		if (!lastFragmentStorage.isStored() && lastFragmentStorage.getFragment() == firstFragment) {
-			pushFragment(fragment);
-			return;
-		}
-
-		int indexOfLastKeepedFragment = size - 1;
-
-		for (int i = size - 1; i >= 0; i--) {
-			FragmentStorage storage = fragmentStack.get(i);
-			if (!storage.isStored()) {
-				if (storage.getFragment() == firstFragment) {
-					indexOfLastKeepedFragment = i;
-					break;
-				}
-			} else {
-				throw new UnsupportedOperationException(
-						"Shifting until off-screen fragment not supported yet");
-			}
-		}
-
-		FragmentTransaction trans = fragmentManager.beginTransaction();
-		removeFragments(trans);
-
-		for (int i = size - 1; i > indexOfLastKeepedFragment; i--) {
-			fragmentStack.remove(i);
-		}
-
-		fragmentStack.add(new FragmentStorage(fragment).setFragmentManager(fragmentManager));
-		trans.add(R.id.panel1, fragment, TAG_PANEL_FRAGMENT);
-		trans.commit();
-		updateUpButton();*/
 	}
 
 	@Override
 	public void popFragment() {
-		FragmentTransaction trans = fragmentManager.beginTransaction();
-		trans.remove(currentFragment);
-
-		Fragment newFragment = fragmentStack.get(fragmentStack.size() - 1).getFragment();
-		fragmentStack.remove(fragmentStack.size() - 1);
-
-		currentFragment = newFragment;
-		trans.replace(R.id.panel1, newFragment, TAG_PANEL_FRAGMENT);
-		trans.commit();
+		onBackPressed();
 
 		updateUpButton();
 	}
 
 	@Override
 	protected void onSaveInstanceState(Bundle outState) {
-		outState.putInt(STATE_STACK_SIZE, fragmentStack.size());
-		outState.putParcelableArrayList(STATE_STACK, fragmentStack);
-		fragmentManager.putFragment(outState, STATE_CURRENT_FRAGMENT, currentFragment);
-
 		super.onSaveInstanceState(outState);
+		outState.putInt(STATE_BACK_STACK_COUNT, backStackCount);
 	}
 
 	@Override
 	public void onFragmentInteraction(Uri uri) {
-
 	}
 
 	@Override
@@ -406,74 +345,5 @@ public class MainActivity extends ActionBarActivity
 			((MainActivity) activity).onSectionAttached(
 					getArguments().getInt(ARG_SECTION_NUMBER));
 		}
-	}
-
-	private static class FragmentStorage implements Parcelable {
-		private Fragment fragment;
-		private Fragment.SavedState state;
-		private Class<? extends Fragment> aClass;
-		private FragmentManager fragmentManager;
-
-		public FragmentStorage(Fragment fragment) {
-			this.fragment = fragment;
-		}
-
-		public FragmentStorage setFragmentManager(FragmentManager fragmentManager) {
-			this.fragmentManager = fragmentManager;
-			return this;
-		}
-
-		public void storeFragment() {
-			if (fragment == null)
-				return;
-
-			state = fragmentManager.saveFragmentInstanceState(fragment);
-			aClass = fragment.getClass();
-			fragment = null;
-		}
-
-
-		public Fragment getFragment() {
-			if (fragment != null)
-				return fragment;
-
-			try {
-				fragment = aClass.newInstance();
-				fragment.setInitialSavedState(state);
-			} catch (InstantiationException e) {
-				e.printStackTrace();
-			} catch (IllegalAccessException e) {
-				e.printStackTrace();
-			}
-
-			return fragment;
-		}
-
-		@Override
-		public int describeContents() {
-			return 0;
-		}
-
-		@Override
-		public void writeToParcel(Parcel parcel, int i) {
-			parcel.writeParcelable(state, i);
-			parcel.writeSerializable(aClass);
-		}
-
-		@SuppressWarnings("unchecked")
-		public static final Creator<FragmentStorage> CREATOR = new Creator<FragmentStorage>() {
-			@Override
-			public FragmentStorage createFromParcel(Parcel parcel) {
-				FragmentStorage  fs = new FragmentStorage(null);
-				fs.state = parcel.readParcelable(null);
-				fs.aClass = (Class<? extends Fragment>) parcel.readSerializable();
-				return fs;
-			}
-
-			@Override
-			public FragmentStorage[] newArray(int i) {
-				return new FragmentStorage[i];
-			}
-		};
 	}
 }

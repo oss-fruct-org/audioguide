@@ -35,6 +35,7 @@ public class CommonFragment extends Fragment {
 	private BroadcastReceiver errorReceiver;
 	private ServiceConnection trackingServiceConnection;
 	private TrackingService trackingService;
+	private boolean isStateSaved;
 
 	public static CommonFragment newInstance() {
 		return new CommonFragment();
@@ -45,7 +46,7 @@ public class CommonFragment extends Fragment {
 	@Override
 	public void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
-
+		isStateSaved = true;
 		outState.putBoolean("isTrackingActive", isTrackingActive);
 	}
 
@@ -75,6 +76,7 @@ public class CommonFragment extends Fragment {
 	@Override
 	public void onStart() {
 		super.onStart();
+		isStateSaved = false;
 
 		getActivity().startService(new Intent(TrackingService.ACTION_FOREGROUND, null,
 				getActivity(), TrackingService.class));
@@ -105,10 +107,11 @@ public class CommonFragment extends Fragment {
 			trackingServiceConnection = null;
 		}
 
-		getActivity().startService(new Intent(TrackingService.ACTION_BACKGROUND,
-				null, getActivity(), TrackingService.class));
+		if (!isStateSaved) {
+			getActivity().startService(new Intent(TrackingService.ACTION_BACKGROUND,
+					null, getActivity(), TrackingService.class));
+		}
 	}
-
 	@Override
 	public void onDestroy() {
 		super.onDestroy();

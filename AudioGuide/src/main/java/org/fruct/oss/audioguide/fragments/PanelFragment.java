@@ -2,12 +2,14 @@ package org.fruct.oss.audioguide.fragments;
 
 
 
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.LocalBroadcastManager;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -83,6 +85,7 @@ public class PanelFragment extends Fragment {
 
 	public void stopPlaying() {
 		isStarted = false;
+		duration = -1;
 
 		pauseButton.setVisibility(View.GONE);
 		playButton.setVisibility(View.VISIBLE);
@@ -98,6 +101,7 @@ public class PanelFragment extends Fragment {
 	@Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+		log.trace("onCreate");
 
 		setRetainInstance(true);
 
@@ -139,7 +143,20 @@ public class PanelFragment extends Fragment {
 		stopReceiver = null;
 		stopReceiver = null;
 
+		log.trace("onDestroy");
 		super.onDestroy();
+	}
+
+	@Override
+	public void onAttach(Activity activity) {
+		super.onAttach(activity);
+		log.trace("onAttach");
+	}
+
+	@Override
+	public void onDetach() {
+		super.onDetach();
+		log.trace("onDetach");
 	}
 
 	@Override
@@ -236,7 +253,8 @@ public class PanelFragment extends Fragment {
 		this.fallbackPoint = null;
 
 		if (!isStarted()) {
-			getActivity().getSupportFragmentManager().beginTransaction()
+			FragmentActivity activity = getActivity();
+			activity.getSupportFragmentManager().beginTransaction()
 					.setCustomAnimations(R.anim.bottom_up, R.anim.bottom_down)
 					.remove(this).commitAllowingStateLoss();
 		}

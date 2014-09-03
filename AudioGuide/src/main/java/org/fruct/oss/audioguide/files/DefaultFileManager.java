@@ -134,6 +134,7 @@ public class DefaultFileManager implements FileManager, Closeable, Runnable {
 			return uri.getPath();
 		}
 
+		// FIXME: java.lang.IllegalStateException: database not open
 		Cursor cursor = db.rawQuery("SELECT cacheUrl FROM file WHERE remoteUrl=?",
 				Utils.toArray(uri.toString()));
 
