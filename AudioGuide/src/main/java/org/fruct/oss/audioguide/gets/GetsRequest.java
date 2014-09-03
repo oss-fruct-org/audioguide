@@ -7,20 +7,12 @@ import org.fruct.oss.audioguide.parsers.IContent;
 
 public abstract class GetsRequest {
 	protected final Gets gets;
-	private Handler handler;
 	private int index;
 
 	public GetsRequest(Gets gets) {
 		this.gets = gets;
 	}
 
-	void setHandler(Handler handler) {
-		this.handler = handler;
-	}
-
-	Handler getHandler() {
-		return handler;
-	}
 
 	protected abstract String createRequestString();
 	protected abstract String getRequestUrl();
@@ -39,13 +31,4 @@ public abstract class GetsRequest {
 	}
 
 	protected abstract void onError();
-
-
-	void setIndex(int index) {
-		this.index = index;
-	}
-
-	public int getIndex() {
-		return index;
-	}
 }

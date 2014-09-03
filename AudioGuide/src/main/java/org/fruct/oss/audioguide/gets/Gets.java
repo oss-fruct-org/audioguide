@@ -1,7 +1,12 @@
 package org.fruct.oss.audioguide.gets;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Handler;
 import android.os.Looper;
 import android.preference.PreferenceManager;
@@ -30,42 +35,39 @@ public class Gets implements Runnable {
 	private final ArrayList<GetsRequest> requestQueue = new ArrayList<GetsRequest>();
 
 	private final Context context;
-	private int index = 0;
+	private final ConnectivityManager connectivityManager;
+	private BroadcastReceiver networkStateReceiver;
+	private boolean isNetworkSuspended;
 
 	private HashMap<String, Object> requestEnvironment = new HashMap<String, Object>();
+	private Handler handler;
+	private boolean isRequestsBlocked;
 
 	public Gets(Context context) {
 		this.context = context;
 
-		/*requestQueue = new PriorityQueue<GetsRequest>(10, new Comparator<GetsRequest>() {
-			@Override
-			public int compare(GetsRequest getsRequest, GetsRequest getsRequest2) {
-				final int priority1 = getsRequest.getPriority();
-				final int priority2 = getsRequest2.getPriority();
-				if (priority1 == priority2) {
-					return getsRequest.getIndex() - getsRequest2.getIndex();
-				} else {
-					return priority1 - priority2;
-				}
-			}
-		});*/
-
-		Thread thread = new Thread(this);
-		thread.setDaemon(true);
-		thread.start();
+		handler = new Handler(Looper.getMainLooper());
+		connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
 
 		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
 		String token = pref.getString(GetsBackend.PREF_AUTH_TOKEN, null);
 		if (token != null) {
 			setEnv("token", token);
 		}
+
+		Thread thread = new Thread(this);
+		thread.setDaemon(true);
+		thread.start();
+	}
+
+	private void close() {
+		if (networkStateReceiver != null) {
+			context.unregisterReceiver(networkStateReceiver);
+		}
 	}
 
 	public void addRequest(GetsRequest request) {
 		synchronized (requestQueue) {
-			request.setHandler(new Handler(Looper.getMainLooper()));
-			request.setIndex(index++);
-
 			requestQueue.add(request);
 			requestQueue.notifyAll();
 		}
@@ -91,18 +93,23 @@ public class Gets implements Runnable {
 
 	@Override
 	public void run() {
-		boolean isRequestsBlocked = false;
+		isRequestsBlocked = false;
+		checkNetwork();
+
 		while (!Thread.interrupted()) {
 			GetsRequest request = null;
 
 			synchronized (requestQueue) {
-				while (isRequestsBlocked || requestQueue.isEmpty()) {
+				while (isRequestsBlocked || requestQueue.isEmpty() || isNetworkSuspended) {
 					isRequestsBlocked = false;
 					try {
 						requestQueue.wait();
 					} catch (InterruptedException e) {
+						close();
 						return;
 					}
+
+					checkNetwork();
 				}
 
 				for (Iterator<GetsRequest> iter = requestQueue.iterator(); iter.hasNext(); ) {
@@ -122,6 +129,48 @@ public class Gets implements Runnable {
 				isRequestsBlocked = true;
 			}
 		}
+	}
+
+	private boolean checkNetwork() {
+		NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+		if (networkInfo != null && networkInfo.isConnectedOrConnecting()) {
+			resumeNetwork();
+			return true;
+		} else {
+			suspendNetwork();
+			return false;
+		}
+	}
+
+	private void suspendNetwork() {
+		if (isNetworkSuspended) {
+			return;
+		}
+
+		log.info("Network unavailable, suspending gets operations");
+		isNetworkSuspended = true;
+
+		networkStateReceiver = new BroadcastReceiver() {
+			@Override
+			public void onReceive(Context context, Intent intent) {
+				synchronized (requestQueue) {
+					requestQueue.notifyAll();
+				}
+			}
+		};
+		context.registerReceiver(networkStateReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
+	}
+
+	private void resumeNetwork() {
+		if (!isNetworkSuspended) {
+			return;
+		}
+
+		log.info("Network available, resuming gets operations");
+
+		isNetworkSuspended = false;
+		context.unregisterReceiver(networkStateReceiver);
+		networkStateReceiver = null;
 	}
 
 	private void processRequest(final GetsRequest request) {
@@ -157,7 +206,7 @@ public class Gets implements Runnable {
 		}
 
 		if (request.onPostExecute(response)) {
-			request.getHandler().post(new Runnable() {
+			handler.post(new Runnable() {
 				@Override
 				public void run() {
 					addRequest(request);
@@ -169,7 +218,7 @@ public class Gets implements Runnable {
 	}
 
 	private void notifyOnError(final GetsRequest request) {
-		request.getHandler().post(new Runnable() {
+		handler.post(new Runnable() {
 			@Override
 			public void run() {
 				request.onError();
@@ -178,7 +227,7 @@ public class Gets implements Runnable {
 	}
 
 	private void notifyOnPostProcess(final GetsRequest request, final GetsResponse response) {
-		request.getHandler().post(new Runnable() {
+		handler.post(new Runnable() {
 			@Override
 			public void run() {
 				request.onPostProcess(response);
