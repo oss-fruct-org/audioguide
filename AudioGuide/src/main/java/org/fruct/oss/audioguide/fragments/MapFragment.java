@@ -19,6 +19,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.view.ActionMode;
@@ -156,7 +157,10 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 			} else {
 				SelectTrackDialog dialog = SelectTrackDialog.newInstance();
 				dialog.setListener(activateTrackListener);
-				dialog.show(getFragmentManager(), "select-track-dialog");
+
+				FragmentTransaction trans = getFragmentManager().beginTransaction();
+				trans.addToBackStack("select-track-dialog");
+				dialog.show(trans, "select-track-dialog");
 			}
 			break;
 

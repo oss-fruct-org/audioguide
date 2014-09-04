@@ -207,6 +207,20 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	}
 
 	@Override
+	public CursorHolder loadLocalTracks() {
+		CursorHolder cursorHolder = new CursorHolder() {
+			@Override
+			protected Cursor doQuery() {
+				return database.loadLocalTracks();
+			}
+		};
+
+		addCursorHolder(cursorHolder);
+		cursorHolder.queryAsync();
+		return cursorHolder;
+	}
+
+	@Override
 	public CursorHolder loadLocalPoints() {
 		CursorHolder cursorHolder = new CursorHolder() {
 			@Override

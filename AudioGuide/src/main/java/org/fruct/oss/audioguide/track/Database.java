@@ -206,6 +206,13 @@ public class Database {
 		return cursor;
 	}
 
+	public Cursor loadLocalTracks() {
+		Cursor cursor = db.rawQuery("SELECT track.name, track.description, track.url, track.local, track.categoryId, track.private, track.hname, track.id AS _id " +
+				"FROM track " +
+				"WHERE track.local = 1;", null);
+		return cursor;
+	}
+
 	public Cursor loadUpdatedTracks() {
 		Cursor cursor = db.rawQuery("SELECT track.name, track.description, track.url, track.local, track.categoryId, track.private, track.hname, track.id AS _id " +
 				"FROM track INNER JOIN track_update " +

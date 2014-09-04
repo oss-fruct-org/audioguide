@@ -338,6 +338,7 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 				return true;
 
 			case R.id.action_save:
+				// FIXME: selectedTrack can sometimes be null
 				trackManager.storeTrackLocal(selectedTrack);
 				return true;
 

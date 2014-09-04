@@ -37,6 +37,8 @@ public interface TrackManager extends Closeable {
 
 	CursorHolder loadPrivateTracks();
 
+	CursorHolder loadLocalTracks();
+
 	CursorHolder loadLocalPoints();
 
 	CursorHolder loadPoints(Track track);
@@ -56,4 +58,5 @@ public interface TrackManager extends Closeable {
 	void setCategoryState(Category category, boolean isActive);
 
 	void deleteTrack(Track track, boolean deleteFromServer);
+
 }

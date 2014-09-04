@@ -32,7 +32,7 @@ public class SelectTrackDialog extends DialogFragment implements DialogInterface
 		super.onCreate(savedInstanceState);
 
 		this.trackManager = DefaultTrackManager.getInstance();
-		cursorHolder = trackManager.loadPrivateTracks();
+		cursorHolder = trackManager.loadLocalTracks();
 		adapter = new TrackCursorAdapter(getActivity());
 		cursorHolder.attachToAdapter(adapter);
 	}
