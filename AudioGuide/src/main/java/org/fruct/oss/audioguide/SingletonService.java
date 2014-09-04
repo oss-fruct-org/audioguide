@@ -9,10 +9,12 @@ import org.fruct.oss.audioguide.files.DefaultFileManager;
 import org.fruct.oss.audioguide.files.FileManager;
 import org.fruct.oss.audioguide.track.DefaultTrackManager;
 import org.fruct.oss.audioguide.track.TrackManager;
-
-import java.io.File;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SingletonService extends Service {
+	private static final Logger log = LoggerFactory.getLogger(SingletonService.class);
+
 	public static final int STOP_DELAY = 10000;
 	private TrackManager trackManager;
 	private FileManager fileManager;
@@ -22,12 +24,13 @@ public class SingletonService extends Service {
 
 	private Handler handler;
 
-    public SingletonService() {
-    }
+	public SingletonService() {
+	}
 
 	@Override
 	public void onCreate() {
 		super.onCreate();
+		log.trace("onCreate");
 
 		trackManager = DefaultTrackManager.getInstance();
 		fileManager = DefaultFileManager.getInstance();
@@ -38,6 +41,7 @@ public class SingletonService extends Service {
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
+		log.trace("onDestroy");
 
 		trackManager.close();
 		fileManager.close();
@@ -61,9 +65,9 @@ public class SingletonService extends Service {
 	}
 
 	@Override
-    public IBinder onBind(Intent intent) {
-        return null;
-    }
+	public IBinder onBind(Intent intent) {
+		return null;
+	}
 
 	private Runnable stopper = new Runnable() {
 		@Override

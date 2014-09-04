@@ -340,10 +340,12 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 			case R.id.action_save:
 				// FIXME: selectedTrack can sometimes be null
 				trackManager.storeTrackLocal(selectedTrack);
+				actionMode.finish();
 				return true;
 
 			case R.id.action_delete:
 				startDeletingTrack(selectedTrack);
+				actionMode.finish();
 				return true;
 
 			default:
@@ -353,7 +355,6 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 
 		@Override
 		public void onDestroyActionMode(ActionMode actionMode) {
-			selectedTrack = null;
 			getListView().setItemChecked(selectedPosition, false);
 		}
 	};
