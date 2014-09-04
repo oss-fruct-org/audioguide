@@ -532,6 +532,7 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 
 			PointDetailFragment detailsFragment = PointDetailFragment.newInstance(point, true);
 			getActivity().getSupportFragmentManager().beginTransaction()
+					.addToBackStack("details-fragment")
 					.replace(R.id.panel_details, detailsFragment, "details-fragment")
 					.commit();
 		}

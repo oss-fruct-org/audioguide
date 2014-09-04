@@ -313,6 +313,8 @@ public class PointDetailFragment extends Fragment implements FileListener {
 
 			imageBitmap = newBitmap;
 			pendingUrl = null;
+		} else {
+			imageView.setVisibility(View.GONE);
 		}
 	}
 
