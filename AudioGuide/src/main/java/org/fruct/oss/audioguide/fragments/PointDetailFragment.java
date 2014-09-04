@@ -41,6 +41,7 @@ public class PointDetailFragment extends Fragment implements FileListener {
 
 	private int imageSize;
 	private boolean isStateSaved;
+	private boolean isImageExpanded;
 
 	/**
      * Use this factory method to create a new instance of
@@ -138,7 +139,6 @@ public class PointDetailFragment extends Fragment implements FileListener {
 				view.getViewTreeObserver().removeGlobalOnLayoutListener(this);
 				imageSize = view.getMeasuredWidth();
 				tryUpdateImage(imageSize, imageSize);
-
 			}
 		});
 
@@ -278,15 +278,25 @@ public class PointDetailFragment extends Fragment implements FileListener {
 			}
 
 			imageView.setAdjustViewBounds(true);
-			imageView.setMaxWidth(imageSize);
-			imageView.setMaxHeight(imageSize);
+			//imageView.setMaxWidth(imageSize);
+			//imageView.setMaxHeight(imageSize);
 
+			int ww = newBitmap.getWidth();
+			int hh = newBitmap.getHeight();
 			imageView.setImageDrawable(new BitmapDrawable(Resources.getSystem(), newBitmap));
 
 			imageBitmap = newBitmap;
 			pendingUrl = null;
 		}
 	}
+
+	/*private void expandImage() {
+
+	}
+
+	private void shrinkImage() {
+
+	}*/
 
 	@Override
 	public void itemLoaded(String url) {
@@ -297,6 +307,5 @@ public class PointDetailFragment extends Fragment implements FileListener {
 
 	@Override
 	public void itemDownloadProgress(String url, int current, int max) {
-
 	}
 }

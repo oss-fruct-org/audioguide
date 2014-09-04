@@ -177,18 +177,18 @@ public class DefaultFileManager implements FileManager, Closeable, Runnable {
 
 	@Override
 	public Bitmap getImageBitmap(String remoteUrl, int width, int height, ScaleMode mode) {
-		Bitmap bitmap = iconCache.get(remoteUrl);
+		Bitmap bitmap = iconCache.get(remoteUrl, mode);
 		if (bitmap == null || bitmap.getWidth() < width || bitmap.getHeight() < height) {
 			// Create sampled bitmap that not worse than passed dimension (width, height)
 			String localUrl = getLocalPath(Uri.parse(remoteUrl));
-			if (localUrl == null) {
+			if (localUrl == null || !new File(localUrl).exists()) {
 				insertRemoteFile("no-title", Uri.parse(remoteUrl));
 				return null;
 			}
 
 			bitmap = AUtils.decodeSampledBitmapFromResource(Resources.getSystem(),
 					localUrl, width, height);
-			iconCache.put(remoteUrl, bitmap);
+			iconCache.put(remoteUrl, mode, bitmap);
 		}
 
 		if (mode == ScaleMode.NO_SCALE) {

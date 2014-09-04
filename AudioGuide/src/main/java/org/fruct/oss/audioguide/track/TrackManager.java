@@ -37,12 +37,12 @@ public interface TrackManager extends Closeable {
 
 	CursorHolder loadPrivateTracks();
 
-
 	CursorHolder loadLocalPoints();
 
 	CursorHolder loadPoints(Track track);
 
 	CursorHolder loadRelations();
+
 
 	Track getTrackByName(String name);
 
