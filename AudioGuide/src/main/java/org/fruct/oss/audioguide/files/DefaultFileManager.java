@@ -32,6 +32,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.ref.PhantomReference;
+import java.lang.ref.ReferenceQueue;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Locale;
@@ -372,5 +374,4 @@ public class DefaultFileManager implements FileManager, Closeable, Runnable {
 				conn.disconnect();
 		}
 	}
-
 }
