@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.ListFragment;
@@ -29,10 +30,13 @@ import org.fruct.oss.audioguide.adapters.TrackCursorAdapter;
 import org.fruct.oss.audioguide.dialogs.EditTrackDialog;
 import org.fruct.oss.audioguide.track.CursorHolder;
 import org.fruct.oss.audioguide.track.DefaultTrackManager;
+import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.Track;
 import org.fruct.oss.audioguide.track.TrackManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.CountDownLatch;
 
 public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemClickListener, AdapterView.OnItemLongClickListener {
 	private final static Logger log = LoggerFactory.getLogger(TrackFragment.class);
@@ -237,6 +241,7 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 
 		inflater.inflate(R.menu.refresh, menu);
 		inflater.inflate(R.menu.edit_track_menu, menu);
+		inflater.inflate(R.menu.categories_filter, menu);
 	}
 
 	@Override
@@ -353,12 +358,28 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 	};
 
 	private void startGuide() {
-		NavigationDrawerFragment frag =
-				(NavigationDrawerFragment)
-						getActivity().getSupportFragmentManager()
-								.findFragmentById(R.id.navigation_drawer);
-		trackManager.activateTrackMode(selectedTrack);
-		frag.selectItem(1, null);
+		final Track selectedTrack = this.selectedTrack;
+		final CursorHolder holder = trackManager.loadPoints(selectedTrack);
+		holder.setListener(new CursorHolder.Listener() {
+			@Override
+			public void onReady(Cursor cursor) {
+				if (cursor.moveToFirst()) {
+					Point firstPoint = new Point(cursor);
+
+					Bundle args = new Bundle();
+					args.putParcelable(MapFragment.ARG_POINT, firstPoint);
+
+					trackManager.activateTrackMode(selectedTrack);
+					NavigationDrawerFragment frag =
+							(NavigationDrawerFragment)
+									getActivity().getSupportFragmentManager()
+											.findFragmentById(R.id.navigation_drawer);
+
+					frag.selectItem(1, args);
+				}
+				holder.close();
+			}
+		});
 	}
 
 	private void startDeletingTrack(final Track track) {

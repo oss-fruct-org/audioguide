@@ -9,6 +9,9 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
@@ -16,6 +19,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import org.fruct.oss.audioguide.MultiPanel;
+import org.fruct.oss.audioguide.NavigationDrawerFragment;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.files.DefaultFileManager;
 import org.fruct.oss.audioguide.files.FileListener;
@@ -111,6 +115,8 @@ public class PointDetailFragment extends Fragment implements FileListener {
 
 		fileManager = DefaultFileManager.getInstance();
 		fileManager.addWeakListener(this);
+
+		setHasOptionsMenu(true);
 	}
 
     @Override
@@ -155,6 +161,31 @@ public class PointDetailFragment extends Fragment implements FileListener {
 			});
 		}
 		return view;
+	}
+
+	@Override
+	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+		inflater.inflate(R.menu.point_details_menu, menu);
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		if (item.getItemId() == R.id.action_show_on_map) {
+			showOnMap();
+		}
+
+		return super.onOptionsItemSelected(item);
+	}
+
+	private void showOnMap() {
+		NavigationDrawerFragment frag =
+				(NavigationDrawerFragment)
+						getActivity().getSupportFragmentManager()
+								.findFragmentById(R.id.navigation_drawer);
+
+		Bundle bundle = new Bundle();
+		bundle.putParcelable(MapFragment.ARG_POINT, point);
+		frag.selectItem(1, bundle);
 	}
 
 	private void setupOverlayMode(View view) {
@@ -278,11 +309,6 @@ public class PointDetailFragment extends Fragment implements FileListener {
 			}
 
 			imageView.setAdjustViewBounds(true);
-			//imageView.setMaxWidth(imageSize);
-			//imageView.setMaxHeight(imageSize);
-
-			int ww = newBitmap.getWidth();
-			int hh = newBitmap.getHeight();
 			imageView.setImageDrawable(new BitmapDrawable(Resources.getSystem(), newBitmap));
 
 			imageBitmap = newBitmap;

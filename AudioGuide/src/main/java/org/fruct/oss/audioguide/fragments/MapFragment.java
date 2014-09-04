@@ -75,6 +75,7 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 	private final static String PREF_LATITUDE = "pref-latitude";
 	private final static String PREF_LONGITUDE = "pref-longitude";
 	private final static String PREF_ZOOM = "pref-zoom";
+	public static final String ARG_POINT = "point";
 
 	private MapView mapView;
 	private TrackManager trackManager;
@@ -123,6 +124,7 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
 		super.onCreateOptionsMenu(menu, inflater);
 		inflater.inflate(R.menu.map_menu, menu);
+		inflater.inflate(R.menu.categories_filter, menu);
 	}
 
 	@Override
@@ -194,11 +196,6 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 
 		createMapView(view);
 
-		createClickHandlerOverlay();
-
-		createCenterOverlay();
-		updatePointsOverlay();
-		createMyPositionOverlay();
 
 		final GeoPoint initialMapCenter;
 		final int initialZoomLevel;
@@ -207,11 +204,20 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 			initialMapCenter = new GeoPoint(savedInstanceState.getInt("map-center-lat"),
 					savedInstanceState.getInt("map-center-lon"));
 			initialZoomLevel = savedInstanceState.getInt("zoom");
+		} else if (getArguments() != null) {
+			Point centerPoint = getArguments().getParcelable(ARG_POINT);
+			initialMapCenter = new GeoPoint(centerPoint.getLatE6(), centerPoint.getLonE6());
+			initialZoomLevel = 17;
 		} else {
 			initialZoomLevel = pref.getInt(PREF_ZOOM, 15);
 			initialMapCenter = new GeoPoint(pref.getFloat(PREF_LATITUDE, 61.7833f),
 					pref.getFloat(PREF_LONGITUDE, 34.35f));
 		}
+
+		createClickHandlerOverlay();
+		createCenterOverlay();
+		updatePointsOverlay();
+		createMyPositionOverlay();
 
 		final ViewTreeObserver vto = view.getViewTreeObserver();
 		vto.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
@@ -250,12 +256,10 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 	public void onResume() {
 		super.onResume();
 
-		if (getArguments() != null) {
-			Point point = getArguments().getParcelable("point");
+		/*if (getArguments() != null) {
+			Point point = getArguments().getParcelable(ARG_POINT);
 			centerOn(new GeoPoint(point.getLatE6(), point.getLonE6()), 17);
-		}
-
-
+		}*/
 	}
 
 	@Override

@@ -124,7 +124,6 @@ public class CommonFragment extends Fragment {
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
 		super.onCreateOptionsMenu(menu, inflater);
 		inflater.inflate(R.menu.navigate, menu);
-		inflater.inflate(R.menu.categories_filter, menu);
 
 		navigateAction = menu.findItem(R.id.action_navigate);
 		updateMenuIcon(isTrackingActive);
