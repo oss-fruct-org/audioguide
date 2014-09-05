@@ -2,6 +2,7 @@ package org.fruct.oss.audioguide;
 
 import android.app.Service;
 import android.content.Intent;
+import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
 
@@ -66,7 +67,7 @@ public class SingletonService extends Service {
 
 	@Override
 	public IBinder onBind(Intent intent) {
-		return null;
+		return binder;
 	}
 
 	private Runnable stopper = new Runnable() {
@@ -75,4 +76,11 @@ public class SingletonService extends Service {
 			stopSelf();
 		}
 	};
+
+	private Binder binder = new Binder();
+	private class Binder extends android.os.Binder {
+		public SingletonService getService() {
+			return SingletonService.this;
+		}
+	}
 }

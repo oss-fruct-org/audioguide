@@ -5,8 +5,10 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.location.Location;
 import android.net.Uri;
@@ -76,6 +78,15 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 	private AudioPlayer audioPlayer;
 	private TrackManager trackManager;
 	private Handler monitorHandler;
+	private ServiceConnection singletonServiceConnection = new ServiceConnection() {
+		@Override
+		public void onServiceConnected(ComponentName name, IBinder service) {
+		}
+
+		@Override
+		public void onServiceDisconnected(ComponentName name) {
+		}
+	};
 
 	public TrackingService() {
 	}
@@ -183,6 +194,8 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 
 		pref.registerOnSharedPreferenceChangeListener(this);
 		//startLocationTrack();
+
+		bindService(new Intent(this, SingletonService.class), singletonServiceConnection, BIND_AUTO_CREATE);
 	}
 
 
@@ -282,6 +295,8 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 		audioPlayer.stopAudioTrack();
 
 		releaseWakeLock();
+
+		unbindService(singletonServiceConnection);
 
 		log.info("TrackingService onDestroy");
 	}
