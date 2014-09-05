@@ -49,7 +49,7 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 		this.isPlaceSelectable = isPlaceSelectable;
 
 		this.fileManager = DefaultFileManager.getInstance();
-		this.fileManager.addWeakListener(this);
+		//this.fileManager.addWeakListener(this);
 	}
 
 	@Override
@@ -68,6 +68,7 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 
 		holder.positionBottom = (View) view.findViewById(R.id.position_bottom);
 		holder.positionTop = (View) view.findViewById(R.id.position_top);
+		holder.bitmapSetter = new FileManager.ImageViewSetter(holder.icon);
 
 		if (isPlaceSelectable) {
 			view.setOnTouchListener(this);
@@ -96,13 +97,15 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 				pendingIconUrls.remove(photoUrl);
 			}
 
+			fileManager.requestImageBitmap(photoUrl, Utils.getDP(48), Utils.getDP(48), FileManager.ScaleMode.SCALE_CROP, holder.bitmapSetter);
+/*
 			Bitmap iconBitmap = fileManager.getImageBitmap(photoUrl, Utils.getDP(48), Utils.getDP(48), FileManager.ScaleMode.SCALE_CROP);
 			if (iconBitmap != null) {
 				holder.icon.setImageDrawable(new BitmapDrawable(context.getResources(), iconBitmap));
 			} else {
 				pendingIconUrls.add(photoUrl);
 				holder.icon.setImageDrawable(null);
-			}
+			}*/
 		}
 
 		if (point.hasAudio()) {
@@ -156,14 +159,14 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 
 	@Override
 	public void itemLoaded(final String url) {
-		if (pendingIconUrls.contains(url))
+		/*if (pendingIconUrls.contains(url))
 			notifyDataSetChanged();
 
 		PointHolder holder = pendingAudioUrls.get(url);
 		if (holder != null) {
 			holder.progressBar.setVisibility(View.GONE);
 			pendingAudioUrls.remove(url);
-		}
+		}*/
 	}
 
 	@Override
@@ -217,5 +220,6 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 		View positionTop;
 
 		int position;
+		FileManager.ImageViewSetter bitmapSetter;
 	}
 }

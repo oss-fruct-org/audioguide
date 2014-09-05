@@ -42,7 +42,7 @@ public class PointDetailFragment extends Fragment implements FileListener {
 
 	private String pendingUrl;
 	private ImageView imageView;
-	private Bitmap imageBitmap;
+	//private Bitmap imageBitmap;
 
 	private int imageSize;
 	private boolean isStateSaved;
@@ -274,17 +274,13 @@ public class PointDetailFragment extends Fragment implements FileListener {
     public void onDetach() {
         super.onDetach();
 		multiPanel = null;
-    }
+		fileManager.recycleAllBitmaps();
+	}
 
 	@Override
 	public void onDestroyView() {
 		super.onDestroyView();
-
 		pendingUrl = null;
-		//if (imageBitmap != null) {
-		//	imageBitmap.recycle();
-		//	imageBitmap = null;
-		//}
 	}
 
 	@Override
@@ -300,17 +296,8 @@ public class PointDetailFragment extends Fragment implements FileListener {
 	private void tryUpdateImage(int imageWidth, int imageHeight) {
 		if (point.hasPhoto()) {
 			String remoteUrl = point.getPhotoUrl();
-			Bitmap newBitmap = fileManager.getImageBitmap(remoteUrl, imageWidth, imageHeight, FileManager.ScaleMode.NO_SCALE);
-
-			if (newBitmap == null && pendingUrl == null) {
-				pendingUrl = remoteUrl;
-				return;
-			}
-
 			imageView.setAdjustViewBounds(true);
-			imageView.setImageDrawable(new BitmapDrawable(Resources.getSystem(), newBitmap));
-
-			imageBitmap = newBitmap;
+			fileManager.requestImageBitmap(remoteUrl, imageWidth, imageHeight, FileManager.ScaleMode.NO_SCALE, new FileManager.ImageViewSetter(imageView));
 			pendingUrl = null;
 		} else {
 			imageView.setVisibility(View.GONE);
