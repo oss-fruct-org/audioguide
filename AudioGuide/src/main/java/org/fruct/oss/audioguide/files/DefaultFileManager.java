@@ -94,11 +94,11 @@ public class DefaultFileManager implements FileManager, Closeable {
 	private void initFromLocalCache() {
 		for (File file : cacheDir.listFiles()) {
 			String cachedPath = file.getPath();
-			updateLocalRecord(null, null, cachedPath);
+			FileRecord fileRecord = updateLocalRecord(null, null, cachedPath);
 		}
 	}
 
-	private void updateLocalRecord(String remoteUrl, String localUrl, String cachedPath) {
+	private FileRecord updateLocalRecord(String remoteUrl, String localUrl, String cachedPath) {
 		FileRecord matchedFileRecord = null;
 		for (FileRecord fileRecord : files) {
 			if (cachedPath != null && cachedPath.equals(fileRecord.cachedPath)) {
@@ -128,6 +128,8 @@ public class DefaultFileManager implements FileManager, Closeable {
 		if (cachedPath != null) {
 			matchedFileRecord.cachedPath = cachedPath;
 		}
+
+		return matchedFileRecord;
 	}
 
 	private FileRecord findFileRecordByRemoteUrl(String remoteUrl) {
@@ -379,7 +381,7 @@ public class DefaultFileManager implements FileManager, Closeable {
 		activeBitmapSetters.clear();
 	}
 
-	private String downloadUrl(String remoteUrl) {
+	private String downloadUrl(final String remoteUrl) {
 		String cachedPath = getLocalPath(Uri.parse(remoteUrl));
 		if (cachedPath != null) {
 			return cachedPath;
@@ -388,6 +390,15 @@ public class DefaultFileManager implements FileManager, Closeable {
 		File cachedFile = new File(cacheDir, Utils.hashString(remoteUrl));
 		try {
 			downloadUrl(remoteUrl, cachedFile);
+			mainHandler.post(new Runnable() {
+				@Override
+				public void run() {
+					for (FileListener fileListener : fileListeners.keySet()) {
+						fileListener.itemLoaded(remoteUrl);
+					}
+				}
+			});
+
 		} catch (IOException e) {
 			cachedFile.delete();
 			return null;

@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
+import android.net.Uri;
 import android.support.v4.widget.CursorAdapter;
 import android.view.MotionEvent;
 import android.view.View;
@@ -114,18 +115,17 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 
 		if (point.hasAudio()) {
 			String audioUrl = point.getAudioUrl();
-			//if (pendingAudioUrls.containsKey(audioUrl)) {
-			//	pendingAudioUrls.remove(audioUrl);
-			//}
+			if (pendingAudioUrls.containsKey(audioUrl)) {
+				pendingAudioUrls.remove(audioUrl);
+			}
 
-			/*if (fileManager.isFileLocal(audioUrl)) {
+			if (fileManager.getLocalPath(Uri.parse(audioUrl)) != null) {
 				holder.progressBar.setVisibility(View.GONE);
 			} else {
 				holder.progressBar.setVisibility(View.VISIBLE);
 				holder.progressBar.setProgress(0);
 				pendingAudioUrls.put(audioUrl, holder);
-				fileManager.insertAudioUri(audioUrl);
-			}*/
+			}
 		}
 
 		if (selectedPosition == holder.position) {
@@ -163,14 +163,14 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 
 	@Override
 	public void itemLoaded(final String url) {
-		/*if (pendingIconUrls.contains(url))
+		if (pendingIconUrls.contains(url))
 			notifyDataSetChanged();
 
 		PointHolder holder = pendingAudioUrls.get(url);
 		if (holder != null) {
 			holder.progressBar.setVisibility(View.GONE);
 			pendingAudioUrls.remove(url);
-		}*/
+		}
 	}
 
 	@Override

@@ -72,7 +72,9 @@ public class PointDetailFragment extends Fragment implements FileListener {
 	public void onStart() {
 		super.onStart();
 		isStateSaved = false;
-		initializeBottomPanel();
+
+		if (point.hasAudio())
+			initializeBottomPanel();
 	}
 
 	private void initializeBottomPanel() {
