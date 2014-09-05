@@ -1,7 +1,6 @@
 package org.fruct.oss.audioguide.fragments;
 
 import android.app.Activity;
-import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.BitmapDrawable;
@@ -80,7 +79,7 @@ public class PointDetailFragment extends Fragment implements FileListener {
 		PanelFragment panelFragment = (PanelFragment) getFragmentManager().findFragmentByTag("bottom-panel-fragment");
 
 		if (panelFragment == null) {
-			panelFragment = PanelFragment.newInstance(point, -1);
+			panelFragment = PanelFragment.newInstance(point, -1, null);
 			getFragmentManager().beginTransaction()
 					.setCustomAnimations(R.anim.bottom_up, R.anim.bottom_down)
 					.replace(R.id.panel_container,
@@ -332,4 +331,5 @@ public class PointDetailFragment extends Fragment implements FileListener {
 	@Override
 	public void itemDownloadProgress(String url, int current, int max) {
 	}
+
 }

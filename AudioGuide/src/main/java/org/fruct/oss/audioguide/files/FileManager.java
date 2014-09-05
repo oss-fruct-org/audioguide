@@ -27,11 +27,11 @@ public interface FileManager extends Closeable {
 	String getLocalPath(Uri remoteUri);
 	Uri uploadLocalFile(Uri localUri) throws IOException, GetsException;
 
+	void requestAudioDownload(String remoteUrl);
+
 	void requestImageBitmap(String remoteUrl, int width, int height, ScaleMode mode, BitmapSetter bitmapSetter);
 
 	void recycleAllBitmaps();
-
-	Bitmap getImageBitmap(String remoteUrl, int width, int height, ScaleMode mode);
 
 	boolean isLocal(Uri uri);
 

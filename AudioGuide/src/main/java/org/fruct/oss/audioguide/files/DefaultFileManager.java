@@ -4,10 +4,8 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
-import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
@@ -15,7 +13,6 @@ import android.os.Looper;
 import android.preference.PreferenceManager;
 
 import org.fruct.oss.audioguide.App;
-import org.fruct.oss.audioguide.BuildConfig;
 import org.fruct.oss.audioguide.gets.Gets;
 import org.fruct.oss.audioguide.parsers.FileContent;
 import org.fruct.oss.audioguide.parsers.GetsException;
@@ -23,7 +20,6 @@ import org.fruct.oss.audioguide.parsers.GetsResponse;
 import org.fruct.oss.audioguide.parsers.PostUrlContent;
 import org.fruct.oss.audioguide.track.GetsBackend;
 import org.fruct.oss.audioguide.util.AUtils;
-import org.fruct.oss.audioguide.util.PersistentArray;
 import org.fruct.oss.audioguide.util.ProgressInputStream;
 import org.fruct.oss.audioguide.util.Utils;
 import org.slf4j.Logger;
@@ -38,7 +34,6 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -271,6 +266,19 @@ public class DefaultFileManager implements FileManager, Closeable {
 		return remoteUri;
 	}
 
+	@Override
+	public void requestAudioDownload(final String remoteUrl) {
+		String cachedPath = getLocalPath(Uri.parse(remoteUrl));
+		if (cachedPath == null) {
+			executor.execute(new Runnable() {
+				@Override
+				public void run() {
+					downloadUrl(remoteUrl);
+				}
+			});
+		}
+	}
+
 	private void requestDownload(final String remoteUrl) {
 		synchronized (requestedRemoteUrls) {
 			if (!requestedRemoteUrls.containsKey(remoteUrl)) {
@@ -296,23 +304,6 @@ public class DefaultFileManager implements FileManager, Closeable {
 				requestedRemoteUrls.put(remoteUrl, future);
 			}
 		}
-	}
-
-	private String awaitDownload(final String remoteUrl) throws InterruptedException {
-		Future<String> cachedUrl = null;
-		synchronized (requestedRemoteUrls) {
-			cachedUrl = requestedRemoteUrls.get(remoteUrl);
-		}
-
-		if (cachedUrl != null) {
-			try {
-				return cachedUrl.get();
-			} catch (ExecutionException e) {
-				log.error("Download remoteUrl failed:", e);
-			}
-		}
-
-		return null;
 	}
 
 	@Override
@@ -407,10 +398,6 @@ public class DefaultFileManager implements FileManager, Closeable {
 		return cachedFile.getPath();
 	}
 
-
-	public Bitmap getImageBitmap(String remoteUrl, int width, int height, ScaleMode mode) {
-		return null;
-	}
 
 	/*@Override
 	public Bitmap getImageBitmap(String remoteUrl, int width, int height, ScaleMode mode) {

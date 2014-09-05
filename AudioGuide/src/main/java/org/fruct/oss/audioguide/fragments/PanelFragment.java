@@ -8,8 +8,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -42,12 +44,14 @@ public class PanelFragment extends Fragment {
 	private boolean isStarted;
 
 	private Point fallbackPoint;
+	private Point point;
 
 	private boolean isDragging;
 
 	private int lastProgress;
 	private View playButton;
 	private View pauseButton;
+	private PointDetailFragment detailsFragment;
 
 	/**
      * Use this factory method to create a new instance of
@@ -55,12 +59,13 @@ public class PanelFragment extends Fragment {
      *
      * @return A new instance of fragment PanelFragment.
      */
-    public static PanelFragment newInstance(Point point, int duration) {
+    public static PanelFragment newInstance(Point fallbackPoint, int duration, Point playingPoint) {
         PanelFragment fragment = new PanelFragment();
 
         Bundle args = new Bundle();
 		args.putInt("duration", duration);
-		args.putParcelable("point", point);
+		args.putParcelable("fallbackPoint", fallbackPoint);
+		args.putParcelable("point", playingPoint);
 
 		fragment.setArguments(args);
         return fragment;
@@ -107,7 +112,8 @@ public class PanelFragment extends Fragment {
 
 		if (getArguments() != null) {
 			duration = getArguments().getInt("duration", -1);
-			fallbackPoint = getArguments().getParcelable("point");
+			fallbackPoint = getArguments().getParcelable("fallbackPoint");
+			point = getArguments().getParcelable("point");
 		}
 
 		LocalBroadcastManager.getInstance(getActivity()).registerReceiver(positionReceiver = new BroadcastReceiver() {
@@ -130,6 +136,10 @@ public class PanelFragment extends Fragment {
 			@Override
 			public void onReceive(Context context, Intent intent) {
 				stopPlaying();
+				if (getFragmentManager().findFragmentByTag("details-fragment") == detailsFragment) {
+					getFragmentManager().popBackStack("details-fragment", FragmentManager.POP_BACK_STACK_INCLUSIVE);
+					detailsFragment = null;
+				}
 			}
 		}, new IntentFilter(AudioPlayer.BC_ACTION_STOP_PLAY));
 	}
@@ -228,6 +238,13 @@ public class PanelFragment extends Fragment {
 
 		if (duration != -1) {
 			startPlaying(duration);
+			if (getFragmentManager().findFragmentByTag("details-fragment") == null) {
+				detailsFragment = PointDetailFragment.newInstance(point, true);
+				getFragmentManager().beginTransaction()
+						.addToBackStack("details-fragment")
+						.add(R.id.panel_details, detailsFragment, "details-fragment")
+						.commit();
+			}
 		} else {
 			playButton.setVisibility(View.VISIBLE);
 			pauseButton.setVisibility(View.GONE);

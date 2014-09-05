@@ -33,6 +33,7 @@ import org.fruct.oss.audioguide.fragments.PanelFragment;
 import org.fruct.oss.audioguide.fragments.TrackFragment;
 import org.fruct.oss.audioguide.preferences.SettingsActivity;
 import org.fruct.oss.audioguide.track.AudioPlayer;
+import org.fruct.oss.audioguide.track.Point;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -93,11 +94,12 @@ public class MainActivity extends ActionBarActivity
 			@Override
 			public void onReceive(Context context, Intent intent) {
 				final int duration = intent.getIntExtra("duration", 0);
+				final Point point = intent.getParcelableExtra("point");
 
 				PanelFragment panelFragment = (PanelFragment) getSupportFragmentManager().findFragmentByTag("bottom-panel-fragment");
 
 				if (panelFragment == null) {
-					panelFragment = PanelFragment.newInstance(null, duration);
+					panelFragment = PanelFragment.newInstance(null, duration, point);
 					fragmentManager.beginTransaction()
 							.setCustomAnimations(R.anim.bottom_up, R.anim.bottom_down)
 							.replace(R.id.panel_container, panelFragment, "bottom-panel-fragment").commit();
