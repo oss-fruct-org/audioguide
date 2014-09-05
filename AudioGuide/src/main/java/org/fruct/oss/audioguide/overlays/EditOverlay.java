@@ -8,6 +8,7 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
+import android.os.Looper;
 import android.util.Pair;
 import android.view.MotionEvent;
 
@@ -36,6 +37,7 @@ import java.util.Random;
 
 public class EditOverlay extends Overlay implements Closeable {
 	private final Context context;
+	private final MapView mapView;
 
 	public interface Listener {
 		void pointMoved(Point p, IGeoPoint geoPoint);
@@ -91,9 +93,10 @@ public class EditOverlay extends Overlay implements Closeable {
 	private final List<Pair<Long, Long>> relations = new ArrayList<Pair<Long, Long>>();
 
 	public EditOverlay(Context ctx, CursorHolder pointsCursorHolder,
-					   CursorHolder relationsCursorHolder, int markerIndex) {
+					   CursorHolder relationsCursorHolder, int markerIndex, MapView mapView) {
 		super(ctx);
 
+		this.mapView = mapView;
 		this.context = ctx;
 		this.pointsCursorHolder = pointsCursorHolder;
 		this.relationsCursorHolder = relationsCursorHolder;
@@ -129,6 +132,8 @@ public class EditOverlay extends Overlay implements Closeable {
 		pointsCursorHolder.close();
 		if (relationsCursorHolder != null)
 			relationsCursorHolder.close();
+
+		fileManager.recycleAllBitmaps();
 	}
 
 	private int getMeanColor(Drawable drawable) {
@@ -242,17 +247,6 @@ public class EditOverlay extends Overlay implements Closeable {
 		} else {
 			canvas.drawText(String.valueOf(index), point.x, point.y - itemSize + itemSize / 3, itemBackgroundPaint);
 		}
-	}
-
-	public void addPoint(GeoPoint geoPoint, org.fruct.oss.audioguide.track.Point t) {
-		EditOverlayItem item = new EditOverlayItem(geoPoint, t);
-
-		if (item.data.hasPhoto()) {
-			item.iconBitmap = fileManager.getImageBitmap(item.data.getPhotoUrl(),
-					Utils.getDP(48), Utils.getDP(48), FileManager.ScaleMode.SCALE_CROP);
-		}
-
-		items.put(-1l, item);
 	}
 
 	public boolean testHit(MotionEvent e, MapView mapView, EditOverlayItem item, HitResult result) {
@@ -399,12 +393,14 @@ private void checkDistance(MapView mapView, android.graphics.Point p) {
 						new GeoPoint(point.getLatE6(), point.getLonE6()), point);
 
 				if (item.data.hasPhoto()) {
-					item.iconBitmap = fileManager.getImageBitmap(item.data.getPhotoUrl(),
-							Utils.getDP(48), Utils.getDP(48), FileManager.ScaleMode.SCALE_CROP);
+					fileManager.requestImageBitmap(item.data.getPhotoUrl(),
+							Utils.getDP(48), Utils.getDP(48), FileManager.ScaleMode.SCALE_CROP, new EditOverlayBitmapSetter(item));
 				}
 
 				items.put(id, item);
 			}
+
+			mapView.invalidate();
 
 			return oldCursor;
 		}
@@ -470,5 +466,47 @@ private void checkDistance(MapView mapView, android.graphics.Point p) {
 		EditOverlayItem item;
 		int relHookX;
 		int relHookY;
+	}
+
+	class EditOverlayBitmapSetter implements FileManager.BitmapSetter {
+		private final EditOverlayItem item;
+		private Bitmap bitmap;
+		private Handler handler = new Handler(Looper.getMainLooper());
+
+		public EditOverlayBitmapSetter(EditOverlayItem item) {
+			this.item = item;
+		}
+
+		private Object tag;
+
+		@Override
+		public void bitmapReady(final Bitmap newBitmap) {
+			handler.post(new Runnable() {
+				@Override
+				public void run() {
+					item.iconBitmap = newBitmap;
+					recycle();
+					bitmap = newBitmap;
+					mapView.invalidate();
+				}
+			});
+		}
+
+		@Override
+		public void recycle() {
+			if (bitmap != null && !bitmap.isRecycled()) {
+				bitmap.recycle();
+			}
+		}
+
+		@Override
+		public void setTag(Object tag) {
+			this.tag = tag;
+		}
+
+		@Override
+		public Object getTag() {
+			return tag;
+		}
 	}
 }

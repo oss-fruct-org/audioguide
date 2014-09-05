@@ -37,7 +37,7 @@ public interface FileManager extends Closeable {
 
 	void addWeakListener(FileListener pointCursorAdapter);
 
-	static interface BitmapSetter {
+	public static interface BitmapSetter {
 		void bitmapReady(Bitmap bitmap);
 		void recycle();
 

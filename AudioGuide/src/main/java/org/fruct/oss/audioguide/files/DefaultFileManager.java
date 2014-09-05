@@ -9,11 +9,13 @@ import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.preference.PreferenceManager;
 
 import org.fruct.oss.audioguide.App;
+import org.fruct.oss.audioguide.BuildConfig;
 import org.fruct.oss.audioguide.gets.Gets;
 import org.fruct.oss.audioguide.parsers.FileContent;
 import org.fruct.oss.audioguide.parsers.GetsException;
@@ -313,7 +315,7 @@ public class DefaultFileManager implements FileManager, Closeable {
 	}
 
 	@Override
-	public void requestImageBitmap(final String remoteUrl, final int width, final int height, ScaleMode mode, final BitmapSetter bitmapSetter) {
+	public void requestImageBitmap(final String remoteUrl, final int width, final int height, final ScaleMode mode, final BitmapSetter bitmapSetter) {
 		log.trace("Requested image bitmap {}", remoteUrl);
 		activeBitmapSetters.add(bitmapSetter);
 
@@ -321,6 +323,9 @@ public class DefaultFileManager implements FileManager, Closeable {
 			@Override
 			public void run() {
 				try {
+					if (bitmapSetter.getTag() != this)
+						return;
+
 					String cachedPath = getLocalPath(Uri.parse(remoteUrl));
 					if (cachedPath == null) {
 						log.error("  Request image bitmap failed");
@@ -328,6 +333,28 @@ public class DefaultFileManager implements FileManager, Closeable {
 
 					Bitmap bitmap = AUtils.decodeSampledBitmapFromResource(Resources.getSystem(),
 								cachedPath, width, height);
+
+					if (mode != ScaleMode.NO_SCALE) {
+						float ax = bitmap.getWidth() / (float) width;
+						float ay = bitmap.getHeight() / (float) height;
+						float ma = mode == ScaleMode.SCALE_CROP
+								? Math.min(ax, ay)
+								: Math.max(ax, ay);
+
+						Matrix matrix = new Matrix();
+						matrix.postScale(1/ma, 1/ma);
+
+						Bitmap oldBitmap = bitmap;
+						if (mode == ScaleMode.SCALE_CROP) {
+							// TODO: scale_crop can't handle non-square dst
+							int minDim = Math.min(bitmap.getWidth(), bitmap.getHeight());
+							bitmap = Bitmap.createBitmap(bitmap, 0, 0, minDim, minDim, matrix, true);
+						} else {
+							bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+						}
+						oldBitmap.recycle();
+					}
+
 					bitmapSetter.bitmapReady(bitmap);
 				} finally {
 					synchronized (scaleExecutor) {
@@ -339,6 +366,7 @@ public class DefaultFileManager implements FileManager, Closeable {
 
 		synchronized (scaleExecutor) {
 			String cachedPath = getLocalPath(Uri.parse(remoteUrl));
+			bitmapSetter.setTag(runnable);
 			if (cachedPath == null) {
 				requestedBitmaps.put(remoteUrl, runnable);
 				requestDownload(remoteUrl);
@@ -350,9 +378,13 @@ public class DefaultFileManager implements FileManager, Closeable {
 
 	@Override
 	public void recycleAllBitmaps() {
-		for (BitmapSetter bitmapSetter : activeBitmapSetters) {
-			bitmapSetter.recycle();
+		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
+			for (BitmapSetter bitmapSetter : activeBitmapSetters) {
+				bitmapSetter.recycle();
+			}
 		}
+
+		activeBitmapSetters.clear();
 	}
 
 	private String downloadUrl(String remoteUrl) {

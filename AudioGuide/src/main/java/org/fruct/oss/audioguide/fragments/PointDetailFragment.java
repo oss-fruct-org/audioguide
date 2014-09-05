@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -272,9 +273,18 @@ public class PointDetailFragment extends Fragment implements FileListener {
 
     @Override
     public void onDetach() {
-        super.onDetach();
+		super.onDetach();
 		multiPanel = null;
-		fileManager.recycleAllBitmaps();
+
+		if (!isOverlay) {
+			fileManager.recycleAllBitmaps();
+		} else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
+			if (imageView.getDrawable() instanceof BitmapDrawable) {
+				Bitmap bitmap = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
+				if (bitmap != null && !bitmap.isRecycled())
+					bitmap.recycle();
+			}
+		}
 	}
 
 	@Override

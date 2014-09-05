@@ -54,6 +54,8 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 
 	@Override
 	public View newView(Context context, Cursor cursor, ViewGroup viewGroup) {
+		log.debug("newView");
+
 		View view = ((Activity) context).getLayoutInflater().inflate(R.layout.list_point_item, viewGroup, false);
 		assert view != null;
 
@@ -81,6 +83,8 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 	@Override
 	public void bindView(View view, Context context, Cursor cursor) {
 		Point point = new Point(cursor);
+		log.debug("bindView " + point.getName());
+
 		PointHolder holder = ((PointHolder) view.getTag());
 
 		holder.point = point;

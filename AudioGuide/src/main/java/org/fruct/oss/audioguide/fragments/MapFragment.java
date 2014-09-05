@@ -404,7 +404,7 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 
 		EditOverlay freePointsOverlay = new EditOverlay(getActivity(),
 				activePoints, relations,
-				1);
+				1, mapView);
 
 		freePointsOverlay.setListener(trackOverlayListener);
 		freePointsOverlay.setMarkerIndex(1);
