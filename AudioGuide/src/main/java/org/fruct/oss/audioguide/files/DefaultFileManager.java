@@ -24,6 +24,7 @@ import org.fruct.oss.audioguide.parsers.PostUrlContent;
 import org.fruct.oss.audioguide.track.GetsBackend;
 import org.fruct.oss.audioguide.util.AUtils;
 import org.fruct.oss.audioguide.util.PersistentArray;
+import org.fruct.oss.audioguide.util.ProgressInputStream;
 import org.fruct.oss.audioguide.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -576,7 +577,7 @@ public class DefaultFileManager implements FileManager, Closeable {
 		}
 	}*/
 
-	private void downloadUrl(String uri, File localFile) throws IOException {
+	private void downloadUrl(final String uri, File localFile) throws IOException {
 		URL url = new URL(uri);
 
 		OutputStream output = null;
@@ -595,6 +596,19 @@ public class DefaultFileManager implements FileManager, Closeable {
 			if (code == 200) {
 				output = new FileOutputStream(localFile);
 				input = conn.getInputStream();
+				input = new ProgressInputStream(input, fileSize, 100000, new ProgressInputStream.ProgressListener() {
+					@Override
+					public void update(final int current, final int max) {
+						mainHandler.post(new Runnable() {
+							@Override
+							public void run() {
+								for (FileListener fileListener : fileListeners.keySet()) {
+									fileListener.itemDownloadProgress(uri, current, max);
+								}
+							}
+						});
+					}
+				});
 				Utils.copyStream(input, output);
 			}
 		} finally {

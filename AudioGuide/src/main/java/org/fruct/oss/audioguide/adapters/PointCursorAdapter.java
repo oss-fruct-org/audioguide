@@ -49,7 +49,7 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 		this.isPlaceSelectable = isPlaceSelectable;
 
 		this.fileManager = DefaultFileManager.getInstance();
-		//this.fileManager.addWeakListener(this);
+		this.fileManager.addWeakListener(this);
 	}
 
 	@Override
@@ -97,9 +97,9 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 
 		if (point.hasPhoto()) {
 			String photoUrl = point.getPhotoUrl();
-			if (pendingIconUrls.contains(photoUrl)) {
-				pendingIconUrls.remove(photoUrl);
-			}
+			//if (pendingIconUrls.contains(photoUrl)) {
+			//	pendingIconUrls.remove(photoUrl);
+			//}
 
 			fileManager.requestImageBitmap(photoUrl, Utils.getDP(48), Utils.getDP(48), FileManager.ScaleMode.SCALE_CROP, holder.bitmapSetter);
 /*
@@ -114,9 +114,9 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 
 		if (point.hasAudio()) {
 			String audioUrl = point.getAudioUrl();
-			if (pendingAudioUrls.containsKey(audioUrl)) {
-				pendingAudioUrls.remove(audioUrl);
-			}
+			//if (pendingAudioUrls.containsKey(audioUrl)) {
+			//	pendingAudioUrls.remove(audioUrl);
+			//}
 
 			/*if (fileManager.isFileLocal(audioUrl)) {
 				holder.progressBar.setVisibility(View.GONE);
