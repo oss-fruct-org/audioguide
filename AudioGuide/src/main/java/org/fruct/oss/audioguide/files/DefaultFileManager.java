@@ -64,7 +64,7 @@ public class DefaultFileManager implements FileManager, Closeable {
 
 	private final Map<String, Future<String>> requestedRemoteUrls = new HashMap<String, Future<String>>();
 	private final Map<String, Runnable> requestedBitmaps = new HashMap<String, Runnable>();
-	private final Set<BitmapSetter> activeBitmapSetters = new HashSet<BitmapSetter>();
+	private final Map<String, List<BitmapSetter>> activeBitmapSetters = new HashMap<String, List<BitmapSetter>>();
 
 	private boolean isClosed;
 
@@ -309,9 +309,9 @@ public class DefaultFileManager implements FileManager, Closeable {
 	}
 
 	@Override
-	public void requestImageBitmap(final String remoteUrl, final int width, final int height, final ScaleMode mode, final BitmapSetter bitmapSetter) {
+	public void requestImageBitmap(final String remoteUrl, final int width, final int height, final ScaleMode mode, final BitmapSetter bitmapSetter, String clientId) {
 		log.trace("Requested image bitmap {}", remoteUrl);
-		activeBitmapSetters.add(bitmapSetter);
+		Utils.putMultiMap(activeBitmapSetters, clientId, bitmapSetter);
 
 		Runnable runnable = new Runnable() {
 			@Override
@@ -371,9 +371,9 @@ public class DefaultFileManager implements FileManager, Closeable {
 	}
 
 	@Override
-	public void recycleAllBitmaps() {
+	public void recycleAllBitmaps(String clientId) {
 		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
-			for (BitmapSetter bitmapSetter : activeBitmapSetters) {
+			for (BitmapSetter bitmapSetter : Utils.getMultiMap(activeBitmapSetters, clientId)) {
 				bitmapSetter.recycle();
 			}
 		}

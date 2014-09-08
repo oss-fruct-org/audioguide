@@ -278,7 +278,7 @@ public class PointDetailFragment extends Fragment implements FileListener {
 		multiPanel = null;
 
 		if (!isOverlay) {
-			fileManager.recycleAllBitmaps();
+			fileManager.recycleAllBitmaps("point-detail-fragment");
 		} else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
 			if (imageView.getDrawable() instanceof BitmapDrawable) {
 				Bitmap bitmap = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
@@ -308,7 +308,7 @@ public class PointDetailFragment extends Fragment implements FileListener {
 		if (point.hasPhoto()) {
 			String remoteUrl = point.getPhotoUrl();
 			imageView.setAdjustViewBounds(true);
-			fileManager.requestImageBitmap(remoteUrl, imageWidth, imageHeight, FileManager.ScaleMode.NO_SCALE, new FileManager.ImageViewSetter(imageView));
+			fileManager.requestImageBitmap(remoteUrl, imageWidth, imageHeight, FileManager.ScaleMode.NO_SCALE, new FileManager.ImageViewSetter(imageView), "point-detail-fragment");
 			pendingUrl = null;
 		} else {
 			imageView.setVisibility(View.GONE);

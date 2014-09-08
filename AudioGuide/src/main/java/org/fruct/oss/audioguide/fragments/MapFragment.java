@@ -291,6 +291,8 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 			trackOverlay.close();
 		}
 
+		mapView.getTileProvider().clearTileCache();
+
 		trackManager = null;
 	}
 

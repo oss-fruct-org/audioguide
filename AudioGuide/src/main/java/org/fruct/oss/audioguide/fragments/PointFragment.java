@@ -202,7 +202,7 @@ public class PointFragment extends ListFragment {
 	public void onDetach() {
 		super.onDetach();
 		multiPanel = null;
-		fileManager.recycleAllBitmaps();
+		fileManager.recycleAllBitmaps("point-fragment");
 	}
 
 	@Override

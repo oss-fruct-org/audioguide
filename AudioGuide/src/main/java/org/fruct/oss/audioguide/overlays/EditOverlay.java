@@ -133,7 +133,7 @@ public class EditOverlay extends Overlay implements Closeable {
 		if (relationsCursorHolder != null)
 			relationsCursorHolder.close();
 
-		fileManager.recycleAllBitmaps();
+		fileManager.recycleAllBitmaps("edit-overlay");
 	}
 
 	private int getMeanColor(Drawable drawable) {
@@ -394,7 +394,7 @@ private void checkDistance(MapView mapView, android.graphics.Point p) {
 
 				if (item.data.hasPhoto()) {
 					fileManager.requestImageBitmap(item.data.getPhotoUrl(),
-							Utils.getDP(48), Utils.getDP(48), FileManager.ScaleMode.SCALE_CROP, new EditOverlayBitmapSetter(item));
+							Utils.getDP(48), Utils.getDP(48), FileManager.ScaleMode.SCALE_CROP, new EditOverlayBitmapSetter(item), "edit-overlay");
 				}
 
 				items.put(id, item);

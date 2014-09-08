@@ -29,6 +29,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 @SuppressWarnings("unused")
 public class Utils {
@@ -432,5 +433,21 @@ public class Utils {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public static <K, V> void putMultiMap(Map<K, List<V>> map, K key, V value) {
+		List<V> list = map.get(key);
+		if (list == null) {
+			map.put(key, list = new ArrayList<V>());
+		}
+		list.add(value);
+	}
+
+	public static <K, V> List<V> getMultiMap(Map<K, List<V>> map, K key) {
+		List<V> list = map.get(key);
+		if (list == null) {
+			map.put(key, list = new ArrayList<V>());
+		}
+		return list;
 	}
 }

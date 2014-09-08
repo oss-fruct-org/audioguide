@@ -102,7 +102,7 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 			//	pendingIconUrls.remove(photoUrl);
 			//}
 
-			fileManager.requestImageBitmap(photoUrl, Utils.getDP(48), Utils.getDP(48), FileManager.ScaleMode.SCALE_CROP, holder.bitmapSetter);
+			fileManager.requestImageBitmap(photoUrl, Utils.getDP(48), Utils.getDP(48), FileManager.ScaleMode.SCALE_CROP, holder.bitmapSetter, "point-fragment");
 /*
 			Bitmap iconBitmap = fileManager.getImageBitmap(photoUrl, Utils.getDP(48), Utils.getDP(48), FileManager.ScaleMode.SCALE_CROP);
 			if (iconBitmap != null) {

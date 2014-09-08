@@ -29,9 +29,9 @@ public interface FileManager extends Closeable {
 
 	void requestAudioDownload(String remoteUrl);
 
-	void requestImageBitmap(String remoteUrl, int width, int height, ScaleMode mode, BitmapSetter bitmapSetter);
+	void requestImageBitmap(String remoteUrl, int width, int height, ScaleMode mode, BitmapSetter bitmapSetter, String clientId);
 
-	void recycleAllBitmaps();
+	void recycleAllBitmaps(String clientId);
 
 	boolean isLocal(Uri uri);
 
