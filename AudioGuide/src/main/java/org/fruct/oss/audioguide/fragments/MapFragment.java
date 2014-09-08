@@ -37,6 +37,7 @@ import android.widget.Toast;
 
 import org.fruct.oss.audioguide.MultiPanel;
 import org.fruct.oss.audioguide.R;
+import org.fruct.oss.audioguide.config.Config;
 import org.fruct.oss.audioguide.dialogs.EditPointDialog;
 import org.fruct.oss.audioguide.dialogs.InsertPointDialog;
 import org.fruct.oss.audioguide.dialogs.SelectTrackDialog;
@@ -126,6 +127,10 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 		super.onCreateOptionsMenu(menu, inflater);
 		inflater.inflate(R.menu.map_menu, menu);
 		inflater.inflate(R.menu.categories_filter, menu);
+
+		if (Config.isEditLocked()) {
+			menu.findItem(R.id.action_add).setVisible(false);
+		}
 	}
 
 	@Override

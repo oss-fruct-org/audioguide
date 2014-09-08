@@ -8,6 +8,7 @@ import android.net.Uri;
 import android.preference.PreferenceManager;
 
 import org.fruct.oss.audioguide.App;
+import org.fruct.oss.audioguide.config.Config;
 import org.fruct.oss.audioguide.files.DefaultFileManager;
 import org.fruct.oss.audioguide.files.FileManager;
 import org.fruct.oss.audioguide.gets.Category;
@@ -45,16 +46,23 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 		fileManager = DefaultFileManager.getInstance();
 
 		database = new Database(context);
-		synchronizer = new SynchronizerThread(database, backend);
-		synchronizer.start();
-		synchronizer.initializeHandler();
+
+		if (!Config.isEditLocked()) {
+			synchronizer = new SynchronizerThread(database, backend);
+			synchronizer.start();
+			synchronizer.initializeHandler();
+		} else {
+			synchronizer = null;
+		}
 	}
 
 	@Override
 	public synchronized void close() {
+		if (synchronizer != null) {
+			synchronizer.interrupt();
+			synchronizer.quit();
+		}
 		database.close();
-		synchronizer.interrupt();
-		synchronizer.quit();
 		instance = null;
 	}
 

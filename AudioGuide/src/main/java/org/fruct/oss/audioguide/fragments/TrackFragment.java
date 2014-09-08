@@ -27,6 +27,7 @@ import org.fruct.oss.audioguide.MultiPanel;
 import org.fruct.oss.audioguide.NavigationDrawerFragment;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.adapters.TrackCursorAdapter;
+import org.fruct.oss.audioguide.config.Config;
 import org.fruct.oss.audioguide.dialogs.EditTrackDialog;
 import org.fruct.oss.audioguide.track.CursorHolder;
 import org.fruct.oss.audioguide.track.DefaultTrackManager;
@@ -240,7 +241,9 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 		super.onCreateOptionsMenu(menu, inflater);
 
 		inflater.inflate(R.menu.refresh, menu);
-		inflater.inflate(R.menu.edit_track_menu, menu);
+		if (!Config.isEditLocked()) {
+			inflater.inflate(R.menu.edit_track_menu, menu);
+		}
 		inflater.inflate(R.menu.categories_filter, menu);
 	}
 
@@ -321,6 +324,11 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 		@Override
 		public boolean onCreateActionMode(ActionMode actionMode, Menu menu) {
 			actionMode.getMenuInflater().inflate(R.menu.track_menu, menu);
+
+			if (!selectedTrack.isLocal()) {
+				menu.findItem(R.id.action_delete).setVisible(false);
+			}
+
 			return true;
 		}
 
@@ -387,12 +395,14 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 	private void startDeletingTrack(final Track track) {
 		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 		builder.setTitle(R.string.delete_track);
-		builder.setPositiveButton(R.string.delete_track_server, new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialogInterface, int i) {
-				trackManager.deleteTrack(track, true);
-			}
-		});
+		if (!Config.isEditLocked() && track.isPrivate()) {
+			builder.setPositiveButton(R.string.delete_track_server, new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialogInterface, int i) {
+					trackManager.deleteTrack(track, true);
+				}
+			});
+		}
 
 		builder.setNeutralButton(R.string.delete_track_local, new DialogInterface.OnClickListener() {
 			@Override
