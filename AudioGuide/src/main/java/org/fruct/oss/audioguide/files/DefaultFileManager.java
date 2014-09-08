@@ -590,7 +590,13 @@ public class DefaultFileManager implements FileManager, Closeable {
 			conn.connect();
 
 			int code = conn.getResponseCode();
-			int fileSize = Integer.parseInt(conn.getHeaderField("Content-Length"));
+			int fileSize;
+			try {
+				fileSize = Integer.parseInt(conn.getHeaderField("Content-Length"));
+			} catch (NumberFormatException ex) {
+				fileSize = 1;
+			}
+
 			if (code == 200) {
 				output = new FileOutputStream(localFile);
 				input = conn.getInputStream();
@@ -601,7 +607,7 @@ public class DefaultFileManager implements FileManager, Closeable {
 							@Override
 							public void run() {
 								for (FileListener fileListener : fileListeners.keySet()) {
-									fileListener.itemDownloadProgress(uri, current, max);
+									fileListener.itemDownloadProgress(uri, Math.min(current, max), max);
 								}
 							}
 						});

@@ -3,16 +3,20 @@ package org.fruct.oss.audioguide.dialogs;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
+import android.support.v4.app.FragmentManager;
+import android.widget.Toast;
 
 import org.fruct.oss.audioguide.adapters.TrackCursorAdapter;
 import org.fruct.oss.audioguide.track.CursorHolder;
+import org.fruct.oss.audioguide.track.CursorReceiver;
 import org.fruct.oss.audioguide.track.DefaultTrackManager;
 import org.fruct.oss.audioguide.track.Track;
 import org.fruct.oss.audioguide.track.TrackManager;
 
-public class SelectTrackDialog extends DialogFragment implements DialogInterface.OnClickListener {
+public class SelectTrackDialog extends DialogFragment implements DialogInterface.OnClickListener, CursorReceiver {
 	private Listener listener;
 
 	public static interface Listener {
@@ -34,7 +38,7 @@ public class SelectTrackDialog extends DialogFragment implements DialogInterface
 		this.trackManager = DefaultTrackManager.getInstance();
 		cursorHolder = trackManager.loadLocalTracks();
 		adapter = new TrackCursorAdapter(getActivity());
-		cursorHolder.attachToAdapter(adapter);
+		cursorHolder.attachToReceiver(this);
 	}
 
 	@Override
@@ -42,6 +46,7 @@ public class SelectTrackDialog extends DialogFragment implements DialogInterface
 		super.onDestroy();
 
 		cursorHolder.close();
+		adapter = null;
 	}
 
 	public void setListener(Listener listener) {
@@ -63,6 +68,20 @@ public class SelectTrackDialog extends DialogFragment implements DialogInterface
 
 		if (listener != null) {
 			listener.trackSelected(selectedTrack);
+		}
+	}
+
+	@Override
+	public Cursor swapCursor(Cursor cursor) {
+		if (cursor.getCount() == 0) {
+			getFragmentManager().popBackStack("select-track-dialog", FragmentManager.POP_BACK_STACK_INCLUSIVE);
+			Toast.makeText(getActivity(), "No tracks to activate", Toast.LENGTH_SHORT).show();
+		}
+
+		if (adapter != null) {
+			return adapter.swapCursor(cursor);
+		} else {
+			return null;
 		}
 	}
 }
