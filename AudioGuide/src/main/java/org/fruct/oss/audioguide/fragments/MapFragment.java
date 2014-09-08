@@ -19,6 +19,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.ActionBarActivity;
@@ -88,6 +89,7 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 
 	private MyPositionOverlay myPositionOverlay;
 	private BroadcastReceiver locationReceiver;
+	private BroadcastReceiver pointInRangeReceiver;
 
 	private ViewGroup bottomToolbar;
 	private MultiPanel multiPanel;
@@ -95,7 +97,6 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 	private Point selectedPoint;
 
 	private List<EditOverlay> trackOverlays = new ArrayList<EditOverlay>();
-
 
 	/**
 	 * Use this factory method to create a new instance of
@@ -259,6 +260,25 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 				}
 			}
 		}, new IntentFilter(TrackingService.BC_ACTION_NEW_LOCATION));
+
+		LocalBroadcastManager.getInstance(getActivity()).registerReceiver(pointInRangeReceiver = new BroadcastReceiver() {
+			@Override
+			public void onReceive(Context context, Intent intent) {
+				final Point point = intent.getParcelableExtra(TrackingService.ARG_POINT);
+
+				PointDetailFragment detailsFragment = (PointDetailFragment) getFragmentManager().findFragmentByTag("details-fragment");
+				if (detailsFragment != null) {
+					getFragmentManager().popBackStack("details-fragment", FragmentManager.POP_BACK_STACK_INCLUSIVE);
+				}
+
+				detailsFragment = PointDetailFragment.newInstance(point, true);
+				getFragmentManager().beginTransaction()
+						.addToBackStack("details-fragment")
+						.add(R.id.panel_details, detailsFragment, "details-fragment")
+						.commit();
+			}
+		}, new IntentFilter(TrackingService.BC_ACTION_POINT_IN_RANGE));
+
 	}
 
 	@Override
@@ -279,6 +299,8 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 				.putFloat(PREF_LONGITUDE, (float) mapView.getMapCenter().getLongitude()).apply();
 
 		LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(locationReceiver);
+		LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(pointInRangeReceiver);
+
 		getActivity().unbindService(serviceConnection);
 
 		super.onStop();

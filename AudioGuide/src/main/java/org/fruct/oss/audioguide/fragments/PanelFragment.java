@@ -25,12 +25,6 @@ import org.fruct.oss.audioguide.track.TrackingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link PanelFragment#newInstance} factory method to
- * create an instance of this fragment.
- *
- */
 public class PanelFragment extends Fragment {
 	private static final Logger log = LoggerFactory.getLogger(PanelFragment.class);
 
@@ -78,6 +72,10 @@ public class PanelFragment extends Fragment {
 		return isStarted;
 	}
 
+	public void setCurrentPoint(Point point) {
+		this.point = point;
+	}
+
 	public void startPlaying(int duration) {
 		this.duration = duration;
 
@@ -115,6 +113,11 @@ public class PanelFragment extends Fragment {
 			fallbackPoint = getArguments().getParcelable("fallbackPoint");
 			point = getArguments().getParcelable("point");
 		}
+	}
+
+	@Override
+	public void onStart() {
+		super.onStart();
 
 		LocalBroadcastManager.getInstance(getActivity()).registerReceiver(positionReceiver = new BroadcastReceiver() {
 			@Override
@@ -128,7 +131,8 @@ public class PanelFragment extends Fragment {
 		LocalBroadcastManager.getInstance(getActivity()).registerReceiver(startReceiver = new BroadcastReceiver() {
 			@Override
 			public void onReceive(Context context, Intent intent) {
-				startPlaying(intent.getIntExtra("duration", -1));
+				if (stopReceiver != null)
+					startPlaying(intent.getIntExtra("duration", -1));
 			}
 		}, new IntentFilter(AudioPlayer.BC_ACTION_START_PLAY));
 
@@ -136,23 +140,31 @@ public class PanelFragment extends Fragment {
 			@Override
 			public void onReceive(Context context, Intent intent) {
 				stopPlaying();
-				if (getFragmentManager().findFragmentByTag("details-fragment") == detailsFragment) {
+				PointDetailFragment detailsFragment = (PointDetailFragment) getFragmentManager().findFragmentByTag("details-fragment");
+				if (detailsFragment != null && point != null && point.equals(detailsFragment.getPoint())) {
 					getFragmentManager().popBackStack("details-fragment", FragmentManager.POP_BACK_STACK_INCLUSIVE);
-					detailsFragment = null;
 				}
 			}
 		}, new IntentFilter(AudioPlayer.BC_ACTION_STOP_PLAY));
 	}
 
 	@Override
-	public void onDestroy() {
+	public void onStop() {
+		super.onStop();
+
 		LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(positionReceiver);
 		LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(stopReceiver);
 		LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(startReceiver);
+
 		positionReceiver = null;
 		stopReceiver = null;
 		stopReceiver = null;
 
+
+	}
+
+	@Override
+	public void onDestroy() {
 		log.trace("onDestroy");
 		super.onDestroy();
 	}
@@ -238,13 +250,6 @@ public class PanelFragment extends Fragment {
 
 		if (duration != -1) {
 			startPlaying(duration);
-			if (getFragmentManager().findFragmentByTag("details-fragment") == null) {
-				detailsFragment = PointDetailFragment.newInstance(point, true);
-				getFragmentManager().beginTransaction()
-						.addToBackStack("details-fragment")
-						.add(R.id.panel_details, detailsFragment, "details-fragment")
-						.commit();
-			}
 		} else {
 			playButton.setVisibility(View.VISIBLE);
 			pauseButton.setVisibility(View.GONE);

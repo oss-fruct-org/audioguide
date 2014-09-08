@@ -7,10 +7,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Parcel;
-import android.os.Parcelable;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.LocalBroadcastManager;
@@ -25,7 +22,6 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import org.fruct.oss.audioguide.fragments.AboutFragment;
-import org.fruct.oss.audioguide.fragments.CategoryFragment;
 import org.fruct.oss.audioguide.fragments.CommonFragment;
 import org.fruct.oss.audioguide.fragments.GetsFragment;
 import org.fruct.oss.audioguide.fragments.MapFragment;
@@ -36,8 +32,6 @@ import org.fruct.oss.audioguide.track.AudioPlayer;
 import org.fruct.oss.audioguide.track.Point;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
 public class MainActivity extends ActionBarActivity
 		implements NavigationDrawerFragment.NavigationDrawerCallbacks, MultiPanel,
 		TestFragment.OnFragmentInteractionListener {
@@ -98,14 +92,18 @@ public class MainActivity extends ActionBarActivity
 
 				PanelFragment panelFragment = (PanelFragment) getSupportFragmentManager().findFragmentByTag("bottom-panel-fragment");
 
-				if (panelFragment == null) {
+				if (panelFragment == null || panelFragment.isRemoving()) {
 					panelFragment = PanelFragment.newInstance(null, duration, point);
 					fragmentManager.beginTransaction()
 							.setCustomAnimations(R.anim.bottom_up, R.anim.bottom_down)
 							.replace(R.id.panel_container, panelFragment, "bottom-panel-fragment").commit();
+				} else {
+					panelFragment.setCurrentPoint(point);
+					panelFragment.startPlaying(duration);
 				}
 			}
 		}, new IntentFilter(AudioPlayer.BC_ACTION_START_PLAY));
+
 	}
 
 	private void unsetupBottomPanel() {

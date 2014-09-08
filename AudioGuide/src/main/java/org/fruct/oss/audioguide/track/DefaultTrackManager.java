@@ -62,6 +62,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 			synchronizer.interrupt();
 			synchronizer.quit();
 		}
+		
 		database.close();
 		instance = null;
 	}

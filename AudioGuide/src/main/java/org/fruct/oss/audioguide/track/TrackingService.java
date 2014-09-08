@@ -41,7 +41,7 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 	public static final String BC_ACTION_POINT_OUT_RANGE = "BC_ACTION_POINT_IOUTN_RANGE";
 	public static final String BC_ACTION_NEW_LOCATION = "BC_ACTION_NEW_LOCATION";
 
-	public static final String ARG_POINT = "ARG_POINT";
+	public static final String ARG_POINT = "point";
 	public static final String ARG_LOCATION = "ARG_LOCATION";
 
 	public static final String ACTION_WAKE = "org.fruct.oss.audioguide.TrackingService.ACTION_WAKE";

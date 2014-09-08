@@ -334,4 +334,7 @@ public class PointDetailFragment extends Fragment implements FileListener {
 	public void itemDownloadProgress(String url, int current, int max) {
 	}
 
+	public Point getPoint() {
+		return point;
+	}
 }
