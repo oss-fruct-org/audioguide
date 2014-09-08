@@ -62,7 +62,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 			synchronizer.interrupt();
 			synchronizer.quit();
 		}
-		
+
 		database.close();
 		instance = null;
 	}
@@ -116,6 +116,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 
 	@Override
 	public void requestTracksInRadius() {
+		loadRemoteCategories();
 		backend.loadTracksInRadius((float) location.getLatitude(), (float) location.getLongitude(), radius, activeCategories, new Utils.Callback<List<Track>>() {
 			@Override
 			public void call(List<Track> tracks) {
@@ -340,7 +341,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 				DefaultTrackManager.this.categories = categories;
 				database.updateCategories(categories);
 				activeCategories = database.getActiveCategories();
-				requestTracksInRadius();
+				//requestTracksInRadius();
 
 			}
 		});

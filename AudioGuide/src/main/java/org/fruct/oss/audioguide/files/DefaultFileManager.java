@@ -98,7 +98,7 @@ public class DefaultFileManager implements FileManager, Closeable {
 		}
 	}
 
-	private FileRecord updateLocalRecord(String remoteUrl, String localUrl, String cachedPath) {
+	private synchronized FileRecord updateLocalRecord(String remoteUrl, String localUrl, String cachedPath) {
 		FileRecord matchedFileRecord = null;
 		for (FileRecord fileRecord : files) {
 			if (cachedPath != null && cachedPath.equals(fileRecord.cachedPath)) {
@@ -132,7 +132,7 @@ public class DefaultFileManager implements FileManager, Closeable {
 		return matchedFileRecord;
 	}
 
-	private FileRecord findFileRecordByRemoteUrl(String remoteUrl) {
+	private synchronized FileRecord findFileRecordByRemoteUrl(String remoteUrl) {
 		String cachedPath = new File(cacheDir, Utils.hashString(remoteUrl)).getPath();
 		for (FileRecord fileRecord : files) {
 			if (remoteUrl.equals(fileRecord.remoteUrl)) {
