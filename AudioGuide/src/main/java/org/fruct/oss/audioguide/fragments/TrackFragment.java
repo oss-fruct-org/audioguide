@@ -327,6 +327,7 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 
 			if (!selectedTrack.isLocal()) {
 				menu.findItem(R.id.action_delete).setVisible(false);
+				menu.findItem(R.id.action_start_guide).setVisible(false);
 			}
 
 			return true;
