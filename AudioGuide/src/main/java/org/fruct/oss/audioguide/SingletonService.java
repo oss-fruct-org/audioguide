@@ -20,9 +20,6 @@ public class SingletonService extends Service {
 	private TrackManager trackManager;
 	private FileManager fileManager;
 
-	public static final String ACTION_START = "org.fruct.oss.audioguide.SingletonService.START";
-	public static final String ACTION_STOP = "org.fruct.oss.audioguide.SingletonService.STOP";
-
 	private Handler handler;
 
 	public SingletonService() {
@@ -49,28 +46,22 @@ public class SingletonService extends Service {
 	}
 
 	@Override
-	public int onStartCommand(Intent intent, int flags, int startId) {
-		if (intent == null)
-			return START_STICKY;
-
-		if (intent.getAction() == null)
-			return START_STICKY;
-
-		if (intent.getAction().equals(ACTION_START)) {
-			handler.removeCallbacks(stopper);
-		} else if (intent.getAction().equals(ACTION_STOP)) {
-			handler.postDelayed(stopper, STOP_DELAY);
-		}
-
-		return START_STICKY;
-	}
-
-	@Override
 	public IBinder onBind(Intent intent) {
 		return binder;
 	}
 
-	private Runnable stopper = new Runnable() {
+	@Override
+	public boolean onUnbind(Intent intent) {
+		handler.postDelayed(stopRunnable, STOP_DELAY);
+		return true;
+	}
+
+	@Override
+	public void onRebind(Intent intent) {
+		handler.removeCallbacks(stopRunnable);
+	}
+
+	private Runnable stopRunnable = new Runnable() {
 		@Override
 		public void run() {
 			stopSelf();

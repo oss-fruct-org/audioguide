@@ -37,6 +37,16 @@ public class CommonFragment extends Fragment {
 	private TrackingService trackingService;
 	private boolean isStateSaved;
 
+	private ServiceConnection singletonServiceConnection = new ServiceConnection() {
+		@Override
+		public void onServiceConnected(ComponentName name, IBinder service) {
+		}
+
+		@Override
+		public void onServiceDisconnected(ComponentName name) {
+		}
+	};
+
 	public static CommonFragment newInstance() {
 		return new CommonFragment();
 	}
@@ -70,7 +80,8 @@ public class CommonFragment extends Fragment {
 		if (savedInstanceState != null) {
 			isTrackingActive = savedInstanceState.getBoolean("isTrackingActive");
 		}
-		getActivity().startService(new Intent(SingletonService.ACTION_START, null, getActivity(), SingletonService.class));
+
+		getActivity().bindService(new Intent(getActivity(), SingletonService.class), singletonServiceConnection, Context.BIND_AUTO_CREATE);
 	}
 
 	@Override
@@ -112,12 +123,12 @@ public class CommonFragment extends Fragment {
 					null, getActivity(), TrackingService.class));
 		}
 	}
+
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
-		getActivity().startService(new Intent(SingletonService.ACTION_STOP, null, getActivity(), SingletonService.class));
-
 		LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(errorReceiver);
+		getActivity().unbindService(singletonServiceConnection);
 	}
 
 	@Override

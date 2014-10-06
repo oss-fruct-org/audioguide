@@ -198,7 +198,6 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 		bindService(new Intent(this, SingletonService.class), singletonServiceConnection, BIND_AUTO_CREATE);
 	}
 
-
 	private void updateDistanceTracker() {
 		if (distanceTracker != null) {
 			distanceTracker.removeListener(this);
