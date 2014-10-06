@@ -8,8 +8,8 @@ android {
         applicationId 'org.fruct.oss.audioguide'
         minSdkVersion 10
         targetSdkVersion 20
-        versionCode 8
-        versionName '0.0.8'
+        versionCode 9
+        versionName '0.0.9'
     }
 
     sourceSets {

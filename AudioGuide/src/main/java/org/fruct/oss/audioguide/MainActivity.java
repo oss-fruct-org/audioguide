@@ -21,6 +21,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import org.fruct.oss.audioguide.config.Config;
 import org.fruct.oss.audioguide.fragments.AboutFragment;
 import org.fruct.oss.audioguide.fragments.CommonFragment;
 import org.fruct.oss.audioguide.fragments.GetsFragment;
@@ -58,6 +59,8 @@ public class MainActivity extends ActionBarActivity
 	protected void onCreate(Bundle savedInstanceState) {
 		log.trace("MainActivity onCreate");
 		super.onCreate(savedInstanceState);
+
+		Config.checkEditLocked(this);
 
 		fragmentManager = getSupportFragmentManager();
 
