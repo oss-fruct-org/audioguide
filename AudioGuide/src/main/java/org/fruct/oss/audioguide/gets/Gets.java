@@ -28,7 +28,8 @@ import java.util.Iterator;
 
 public class Gets implements Runnable {
 	//public static final String GETS_SERVER = "http://getsi.ddns.net/getslocal";
-	public static final String GETS_SERVER = "http://oss.fruct.org/projects/gets/service";
+	//public static final String GETS_SERVER = "http://oss.fruct.org/projects/gets/service";
+	public static final String GETS_SERVER = "http://gets.cs.petrsu.ru/gets/service";
 
 	private final static Logger log = LoggerFactory.getLogger(Gets.class);
 

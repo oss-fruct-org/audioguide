@@ -158,10 +158,10 @@ public class CommonFragment extends Fragment {
 		if (navigateAction != null) {
 			if (isWatchActive) {
 				navigateAction.setTitle("Unfollow");
-				navigateAction.setIcon(R.drawable.ic_action_volume_muted);
+				navigateAction.setIcon(R.drawable.ic_action_inv_stop);
 			} else {
 				navigateAction.setTitle("Follow");
-				navigateAction.setIcon(R.drawable.ic_action_volume_on);
+				navigateAction.setIcon(R.drawable.ic_action_inv_play);
 			}
 		}
 	}
