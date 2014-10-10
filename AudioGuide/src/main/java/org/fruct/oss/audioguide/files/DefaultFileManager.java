@@ -390,6 +390,7 @@ public class DefaultFileManager implements FileManager, Closeable {
 
 		File cachedFile = new File(cacheDir, Utils.hashString(remoteUrl));
 		try {
+			log.trace("Starting download {}", remoteUrl);
 			downloadUrl(remoteUrl, cachedFile);
 			mainHandler.post(new Runnable() {
 				@Override

@@ -229,8 +229,20 @@ public class EditOverlay extends Overlay implements Closeable {
 
 	private void drawItem(Canvas canvas, MapView view, EditOverlayItem item, int index) {
 		Projection proj = view.getProjection();
+		Rect rect = proj.getIntrinsicScreenRect();
 
 		proj.toPixels(item.geoPoint, point);
+
+		if (!rect.contains(point.x, point.y)) {
+			return;
+		}
+
+		if (!item.iconRequested && item.data.hasPhoto()) {
+			log.trace("Requesting icon of point that in screen...");
+			item.iconRequested = true;
+			fileManager.requestImageBitmap(item.data.getPhotoUrl(),
+					Utils.getDP(48), Utils.getDP(48), FileManager.ScaleMode.SCALE_CROP, new EditOverlayBitmapSetter(item), "edit-overlay");
+		}
 
 		Drawable marker = draggingItem == item ? markerDrawable2 : markerDrawable;
 
@@ -392,11 +404,6 @@ private void checkDistance(MapView mapView, android.graphics.Point p) {
 				EditOverlayItem item = new EditOverlayItem(
 						new GeoPoint(point.getLatE6(), point.getLonE6()), point);
 
-				if (item.data.hasPhoto()) {
-					fileManager.requestImageBitmap(item.data.getPhotoUrl(),
-							Utils.getDP(48), Utils.getDP(48), FileManager.ScaleMode.SCALE_CROP, new EditOverlayBitmapSetter(item), "edit-overlay");
-				}
-
 				items.put(id, item);
 			}
 
@@ -443,6 +450,7 @@ private void checkDistance(MapView mapView, android.graphics.Point p) {
 		Point data;
 		GeoPoint geoPoint;
 		Bitmap iconBitmap;
+		boolean iconRequested;
 
 		@Override
 		public boolean equals(Object o) {

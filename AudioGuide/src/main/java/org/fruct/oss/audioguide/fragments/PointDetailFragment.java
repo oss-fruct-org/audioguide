@@ -121,9 +121,7 @@ public class PointDetailFragment extends Fragment implements FileListener {
 		fileManager.addWeakListener(this);
 
 		if (point.hasAudio()) {
-			if (fileManager.getLocalPath(Uri.parse(point.getAudioUrl())) == null) {
-				fileManager.requestAudioDownload(point.getAudioUrl());
-			}
+			fileManager.requestAudioDownload(point.getAudioUrl());
 		}
 
 		setHasOptionsMenu(true);
