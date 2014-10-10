@@ -290,7 +290,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 
 	@Override
 	public void updateLoadRadius(float radius) {
-		this.radius = radius;
+		this.radius = radius * 1000;
 	}
 
 	@Override
