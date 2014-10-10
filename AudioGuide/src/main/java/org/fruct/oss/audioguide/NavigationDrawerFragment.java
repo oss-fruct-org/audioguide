@@ -109,10 +109,7 @@ public class NavigationDrawerFragment extends Fragment {
 				if (position == POSITION_HELP)
 					getActivity().startActivity(new Intent(getActivity(), HelpActivity.class));
 				else if (position == POSITION_SETTINGS)
-					getActivity().startActivity(new Intent(getActivity(),
-							Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB
-									? SettingsActivity.class
-									: SettingsActivityCompat.class));
+					getActivity().startActivity(new Intent(getActivity(), SettingsActivity.class));
 				else
 					selectItem(position);
 			}

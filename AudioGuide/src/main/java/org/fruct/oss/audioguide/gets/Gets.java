@@ -46,6 +46,8 @@ public class Gets implements Runnable {
 	private Handler handler;
 	private boolean isRequestsBlocked;
 
+	private boolean isClosed;
+
 	public Gets(Context context) {
 		this.context = context;
 
@@ -64,6 +66,13 @@ public class Gets implements Runnable {
 	}
 
 	public void close() {
+		if (isClosed) {
+			log.error("trying to close Gets second time");
+			return;
+		}
+
+		isClosed = true;
+
 		thread.interrupt();
 
 		if (networkStateReceiver != null) {
@@ -278,13 +287,9 @@ public class Gets implements Runnable {
 	}
 
 	private static volatile Gets instance;
-	public static Gets getInstance() {
-		if (instance == null) {
-			synchronized (Gets.class) {
-				if (instance == null) {
-					instance = new Gets(App.getContext());
-				}
-			}
+	public synchronized static Gets getInstance() {
+		if (instance == null || instance.isClosed) {
+			instance = new Gets(App.getContext());
 		}
 
 		return instance;

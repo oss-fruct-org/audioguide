@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.location.Location;
 import android.net.Uri;
 import android.preference.PreferenceManager;
+import android.widget.Toast;
 
 import org.fruct.oss.audioguide.App;
 import org.fruct.oss.audioguide.config.Config;
@@ -181,6 +182,12 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 				notifyDataChanged();
 			}
 		});
+	}
+
+	@Override
+	public void requestPointsCleanup() {
+		database.cleanupPoints(location, radius);
+		notifyDataChanged();
 	}
 
 	@Override

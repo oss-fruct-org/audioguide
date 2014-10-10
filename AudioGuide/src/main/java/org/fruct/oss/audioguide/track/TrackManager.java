@@ -59,4 +59,5 @@ public interface TrackManager extends Closeable {
 
 	void deleteTrack(Track track, boolean deleteFromServer);
 
+	void requestPointsCleanup();
 }

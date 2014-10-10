@@ -22,7 +22,13 @@
         android:text="@plurals/pref_load_radius_summary"
         android:key="pref_load_radius"
         android:max="1000"
-        android:defaultValue="500"
+        android:defaultValue="100"
         exponential="false"
+        />
+
+    <Preference
+        android:title="Clean obsolete points"
+        android:key="pref_clean_points"
+        android:enabled="true"
         />
 </PreferenceScreen>
