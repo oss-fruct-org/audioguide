@@ -22,7 +22,7 @@
         android:text="@plurals/pref_load_radius_summary"
         android:key="pref_load_radius"
         android:max="1000"
-        android:defaultValue="100"
+        android:defaultValue="500"
         exponential="false"
         />
 

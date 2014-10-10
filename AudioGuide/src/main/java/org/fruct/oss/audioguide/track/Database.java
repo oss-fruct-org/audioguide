@@ -374,17 +374,18 @@ public class Database {
 	}
 
 	public void cleanupPoints(Location location, float radius) {
-		Cursor cursor = db.rawQuery("SELECT point.lat, point.lon, point.id " +
-				"FROM point " +
-				"LEFT JOIN tp ON tp.pointId = point.id " +
-				"LEFT JOIN track ON tp.trackId = track.id " +
-				"WHERE NOT point.private " +
-				"AND (track.id IS NULL OR NOT track.local);", null);
-
-		float[] dist = new float[1];
-		String[] whereArgs = new String[1];
 		db.beginTransaction();
+		Cursor cursor = null;
 		try {
+			cursor = db.rawQuery("SELECT point.lat, point.lon, point.id " +
+					"FROM point " +
+					"LEFT JOIN tp ON tp.pointId = point.id " +
+					"LEFT JOIN track ON tp.trackId = track.id " +
+					"WHERE NOT point.private " +
+					"AND (track.id IS NULL OR NOT track.local);", null);
+
+			float[] dist = new float[1];
+			String[] whereArgs = new String[1];
 			while (cursor.moveToNext()) {
 				double lat = cursor.getDouble(0) / 1e6;
 				double lon = cursor.getDouble(1) / 1e6;
@@ -397,10 +398,15 @@ public class Database {
 				}
 			}
 
+			db.execSQL("DELETE FROM track WHERE track.id NOT IN" +
+					"(SELECT tp.trackId FROM tp INNER JOIN point ON tp.pointId AND point.id);");
+
 			db.setTransactionSuccessful();
 		} finally {
 			db.endTransaction();
-			cursor.close();
+			if (cursor != null) {
+				cursor.close();
+			}
 		}
 	}
 

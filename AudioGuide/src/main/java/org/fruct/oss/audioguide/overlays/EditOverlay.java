@@ -58,6 +58,8 @@ public class EditOverlay extends Overlay implements Closeable {
 
 	private final FileManager fileManager;
 
+	private Rect clipRect = new Rect();
+
 	private Rect markerPadding;
 	private Drawable markerDrawable;
 	private Drawable markerDrawable2;
@@ -197,6 +199,9 @@ public class EditOverlay extends Overlay implements Closeable {
 		if (shadow)
 			return;
 
+		clipRect.set(view.getProjection().getIntrinsicScreenRect());
+		clipRect.inset(-itemSize, -itemSize);
+
 		drawPath(canvas, view);
 		drawItems(canvas, view);
 	}
@@ -229,12 +234,10 @@ public class EditOverlay extends Overlay implements Closeable {
 
 	private void drawItem(Canvas canvas, MapView view, EditOverlayItem item, int index) {
 		Projection proj = view.getProjection();
-		Rect rect = proj.getIntrinsicScreenRect();
-		rect.inset(-itemSize, -itemSize);
 
 		proj.toPixels(item.geoPoint, point);
 
-		if (!rect.contains(point.x, point.y)) {
+		if (!clipRect.contains(point.x, point.y)) {
 			return;
 		}
 
