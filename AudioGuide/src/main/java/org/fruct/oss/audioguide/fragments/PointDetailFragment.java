@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -118,6 +119,12 @@ public class PointDetailFragment extends Fragment implements FileListener {
 
 		fileManager = DefaultFileManager.getInstance();
 		fileManager.addWeakListener(this);
+
+		if (point.hasAudio()) {
+			if (fileManager.getLocalPath(Uri.parse(point.getAudioUrl())) == null) {
+				fileManager.requestAudioDownload(point.getAudioUrl());
+			}
+		}
 
 		setHasOptionsMenu(true);
 	}

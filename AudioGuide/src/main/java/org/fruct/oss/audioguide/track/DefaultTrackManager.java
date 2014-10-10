@@ -140,7 +140,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 				for (Point point : points) {
 					if (point.hasAudio()) {
 						fileManager.insertRemoteFile("no-title", Uri.parse(point.getAudioUrl()));
-						fileManager.requestAudioDownload(point.getAudioUrl());
+						//fileManager.requestAudioDownload(point.getAudioUrl());
 					}
 
 					database.insertPoint(point);
@@ -162,7 +162,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 				for (Point point : points) {
 					if (point.hasAudio()) {
 						fileManager.insertRemoteFile("no-title", Uri.parse(point.getAudioUrl()));
-						fileManager.requestAudioDownload(point.getAudioUrl());
+						//fileManager.requestAudioDownload(point.getAudioUrl());
 					}
 
 					point.setPrivate(track.isPrivate());
