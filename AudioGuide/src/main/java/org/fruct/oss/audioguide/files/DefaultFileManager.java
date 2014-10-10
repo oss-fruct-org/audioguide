@@ -323,6 +323,7 @@ public class DefaultFileManager implements FileManager, Closeable {
 					String cachedPath = getLocalPath(Uri.parse(remoteUrl));
 					if (cachedPath == null) {
 						log.error("  Request image bitmap failed");
+						return;
 					}
 
 					Bitmap bitmap = AUtils.decodeSampledBitmapFromResource(Resources.getSystem(),
@@ -400,6 +401,7 @@ public class DefaultFileManager implements FileManager, Closeable {
 			});
 
 		} catch (IOException e) {
+			log.error("Cannot download url: " + remoteUrl, e);
 			cachedFile.delete();
 			return null;
 		}
