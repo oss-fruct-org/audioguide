@@ -187,6 +187,7 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 
 		locationReceiver = new LocationReceiver(this);
 		trackManager = DefaultTrackManager.getInstance();
+		trackManager.updateLoadRadius(pref.getInt(SettingsActivity.PREF_LOAD_RADIUS, 500));
 
 		updateDistanceTracker();
 
@@ -412,8 +413,8 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 		intent.putExtra(ARG_LOCATION, location);
 
 		LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+
 		DefaultTrackManager.getInstance().updateUserLocation(location);
-		DefaultTrackManager.getInstance().updateLoadRadius(pref.getInt(SettingsActivity.PREF_LOAD_RADIUS, 500));
 	}
 
 	public void sendLastLocation() {

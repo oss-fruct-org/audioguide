@@ -33,6 +33,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	private final List<CursorHolder> cursorHolders = new ArrayList<CursorHolder>();
 
 	private final SynchronizerThread synchronizer;
+	private final Refresher refresher;
 
 	private Location location = new Location("no-provider");
 	private float radius;
@@ -46,6 +47,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 		fileManager = DefaultFileManager.getInstance();
 
 		database = new Database(context);
+		refresher = new Refresher(context, database, this);
 
 		if (!Config.isEditLocked()) {
 			synchronizer = new SynchronizerThread(database, backend);
@@ -286,11 +288,13 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	@Override
 	public void updateUserLocation(Location location) {
 		this.location = location;
+		refresher.updateUserLocation(location);
 	}
 
 	@Override
 	public void updateLoadRadius(float radius) {
 		this.radius = radius * 1000;
+		refresher.updateLoadRadius(radius * 1000);
 	}
 
 	@Override
