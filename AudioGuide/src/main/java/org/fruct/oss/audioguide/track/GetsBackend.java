@@ -19,11 +19,12 @@ import org.fruct.oss.audioguide.parsers.Kml;
 import org.fruct.oss.audioguide.parsers.TracksContent;
 import org.fruct.oss.audioguide.util.Utils;
 
+import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
-public class GetsBackend implements StorageBackend, CategoriesBackend {
+public class GetsBackend implements StorageBackend, CategoriesBackend, Closeable {
 	public static final String PREF_AUTH_TOKEN = "pref-auth-token";
 	public static final String LIST_FILES = "<request><params>" +
 			"<auth_token>%s</auth_token>" +
@@ -39,6 +40,10 @@ public class GetsBackend implements StorageBackend, CategoriesBackend {
 
 	GetsBackend() {
 		this.gets = Gets.getInstance();
+	}
+
+	public void close() {
+		gets.close();
 	}
 
 	@Override

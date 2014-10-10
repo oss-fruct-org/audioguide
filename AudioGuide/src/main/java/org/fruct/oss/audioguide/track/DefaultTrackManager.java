@@ -15,6 +15,7 @@ import org.fruct.oss.audioguide.gets.Category;
 import org.fruct.oss.audioguide.util.Utils;
 
 import java.io.Closeable;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -63,6 +64,13 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 		if (synchronizer != null) {
 			synchronizer.interrupt();
 			synchronizer.quit();
+		}
+
+		if (backend instanceof Closeable) {
+			try {
+				((Closeable) backend).close();
+			} catch (IOException ignored) {
+			}
 		}
 
 		database.close();

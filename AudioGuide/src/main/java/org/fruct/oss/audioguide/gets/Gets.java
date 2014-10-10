@@ -37,6 +37,8 @@ public class Gets implements Runnable {
 
 	private final Context context;
 	private final ConnectivityManager connectivityManager;
+	private final Thread thread;
+
 	private BroadcastReceiver networkStateReceiver;
 	private boolean isNetworkSuspended;
 
@@ -56,12 +58,14 @@ public class Gets implements Runnable {
 			setEnv("token", token);
 		}
 
-		Thread thread = new Thread(this);
-		thread.setDaemon(true);
+		thread = new Thread(this);
+		thread.setDaemon(false);
 		thread.start();
 	}
 
-	private void close() {
+	public void close() {
+		thread.interrupt();
+
 		if (networkStateReceiver != null) {
 			context.unregisterReceiver(networkStateReceiver);
 		}
@@ -106,7 +110,6 @@ public class Gets implements Runnable {
 					try {
 						requestQueue.wait();
 					} catch (InterruptedException e) {
-						close();
 						return;
 					}
 
@@ -206,6 +209,9 @@ public class Gets implements Runnable {
 			return;
 		}
 
+		if (Thread.currentThread().isInterrupted())
+			return;
+
 		if (request.onPostExecute(response)) {
 			handler.post(new Runnable() {
 				@Override
@@ -219,6 +225,9 @@ public class Gets implements Runnable {
 	}
 
 	private void notifyOnError(final GetsRequest request) {
+		if (Thread.currentThread().isInterrupted())
+			return;
+
 		handler.post(new Runnable() {
 			@Override
 			public void run() {
@@ -228,6 +237,9 @@ public class Gets implements Runnable {
 	}
 
 	private void notifyOnPostProcess(final GetsRequest request, final GetsResponse response) {
+		if (Thread.currentThread().isInterrupted())
+			return;
+
 		handler.post(new Runnable() {
 			@Override
 			public void run() {
