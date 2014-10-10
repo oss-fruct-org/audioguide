@@ -57,7 +57,7 @@ public class Refresher {
 
 	public void refresh(Location location) {
 		log.info("Auto-refreshing points");
-
+		hasPreviousLocation = true;
 		lastLatitude = (float) location.getLatitude();
 		lastLongitude = (float) location.getLongitude();
 		lastTimestamp = location.getTime();
@@ -77,7 +77,7 @@ public class Refresher {
 			return;
 		}
 
-		if (hasPreviousLocation) {
+		if (!hasPreviousLocation) {
 			refresh(location);
 			return;
 		}
@@ -92,6 +92,7 @@ public class Refresher {
 		Location.distanceBetween(location.getLatitude(), location.getLongitude(), lastLatitude, lastLongitude, ret);
 
 		if (ret[0] > loadRadius * REFRESH_RADIUS_FACTOR) {
+			log.debug("Refreshing because large distance diff {} > {}", ret[0], loadRadius * REFRESH_RADIUS_FACTOR);
 			refresh(location);
 		}
 	}

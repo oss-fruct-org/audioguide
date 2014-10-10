@@ -389,7 +389,7 @@ public class Database {
 			while (cursor.moveToNext()) {
 				double lat = cursor.getDouble(0) / 1e6;
 				double lon = cursor.getDouble(1) / 1e6;
-				double id = cursor.getInt(2);
+				int id = cursor.getInt(2);
 
 				Location.distanceBetween(lat, lon, location.getLatitude(), location.getLongitude(), dist);
 				if (dist[0] > radius) {
@@ -398,8 +398,8 @@ public class Database {
 				}
 			}
 
-			db.execSQL("DELETE FROM track WHERE track.id NOT IN" +
-					"(SELECT tp.trackId FROM tp INNER JOIN point ON tp.pointId AND point.id);");
+			db.execSQL("DELETE FROM track WHERE track.id NOT IN " +
+					"(SELECT tp.trackId FROM tp INNER JOIN point ON tp.pointId = point.id);");
 
 			db.setTransactionSuccessful();
 		} finally {
