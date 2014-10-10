@@ -230,6 +230,7 @@ public class EditOverlay extends Overlay implements Closeable {
 	private void drawItem(Canvas canvas, MapView view, EditOverlayItem item, int index) {
 		Projection proj = view.getProjection();
 		Rect rect = proj.getIntrinsicScreenRect();
+		rect.inset(-itemSize, -itemSize);
 
 		proj.toPixels(item.geoPoint, point);
 
@@ -241,7 +242,7 @@ public class EditOverlay extends Overlay implements Closeable {
 			log.trace("Requesting icon of point that in screen...");
 			item.iconRequested = true;
 			fileManager.requestImageBitmap(item.data.getPhotoUrl(),
-					Utils.getDP(48), Utils.getDP(48), FileManager.ScaleMode.SCALE_CROP, new EditOverlayBitmapSetter(item), "edit-overlay");
+					itemSize * 2, itemSize * 2, FileManager.ScaleMode.SCALE_CROP, new EditOverlayBitmapSetter(item), "edit-overlay");
 		}
 
 		Drawable marker = draggingItem == item ? markerDrawable2 : markerDrawable;
