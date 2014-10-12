@@ -101,9 +101,7 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 
 		if (point.hasAudio()) {
 			String audioUrl = point.getAudioUrl();
-			if (pendingAudioUrls.containsKey(audioUrl)) {
-				pendingAudioUrls.remove(audioUrl);
-			}
+			pendingAudioUrls.remove(audioUrl);
 
 			if (fileManager.getLocalPath(Uri.parse(audioUrl)) != null) {
 				holder.progressBar.setVisibility(View.GONE);
@@ -112,8 +110,12 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 				holder.audioImage.setVisibility(View.GONE);
 				holder.progressBar.setVisibility(View.VISIBLE);
 				holder.progressBar.setProgress(0);
+				holder.pendingUrl = audioUrl;
 				pendingAudioUrls.put(audioUrl, holder);
 			}
+		} else if (holder.pendingUrl != null) {
+			pendingAudioUrls.remove(holder.pendingUrl);
+			holder.pendingUrl = null;
 		}
 
 		if (selectedPosition == holder.position) {
@@ -211,6 +213,8 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 
 		View positionBottom;
 		View positionTop;
+
+		String pendingUrl;
 
 		int position;
 		FileManager.ImageViewSetter bitmapSetter;

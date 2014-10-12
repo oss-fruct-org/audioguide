@@ -227,6 +227,9 @@ public class DefaultFileManager implements FileManager, Closeable {
 			return remoteUri.getPath();
 		}
 
+		if (requestedRemoteUrls.containsKey(remoteUri.toString()))
+			return null;
+
 		FileRecord fileRecord = findFileRecordByRemoteUrl(remoteUri.toString());
 		if (fileRecord == null) {
 			log.trace("  File record not found");
