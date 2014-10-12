@@ -1,14 +1,19 @@
 package org.fruct.oss.audioguide.fragments;
 
 import android.app.Activity;
-import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
@@ -16,6 +21,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import org.fruct.oss.audioguide.MultiPanel;
+import org.fruct.oss.audioguide.NavigationDrawerFragment;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.files.DefaultFileManager;
 import org.fruct.oss.audioguide.files.FileListener;
@@ -37,9 +43,11 @@ public class PointDetailFragment extends Fragment implements FileListener {
 
 	private String pendingUrl;
 	private ImageView imageView;
-	private Bitmap imageBitmap;
+	//private Bitmap imageBitmap;
 
 	private int imageSize;
+	private boolean isStateSaved;
+	private boolean isImageExpanded;
 
 	/**
      * Use this factory method to create a new instance of
@@ -64,15 +72,17 @@ public class PointDetailFragment extends Fragment implements FileListener {
 	@Override
 	public void onStart() {
 		super.onStart();
+		isStateSaved = false;
 
-		initializeBottomPanel();
+		if (point.hasAudio())
+			initializeBottomPanel();
 	}
 
 	private void initializeBottomPanel() {
 		PanelFragment panelFragment = (PanelFragment) getFragmentManager().findFragmentByTag("bottom-panel-fragment");
 
 		if (panelFragment == null) {
-			panelFragment = PanelFragment.newInstance(point, -1);
+			panelFragment = PanelFragment.newInstance(point, -1, null);
 			getFragmentManager().beginTransaction()
 					.setCustomAnimations(R.anim.bottom_up, R.anim.bottom_down)
 					.replace(R.id.panel_container,
@@ -84,9 +94,11 @@ public class PointDetailFragment extends Fragment implements FileListener {
 
 	@Override
 	public void onStop() {
-		PanelFragment panelFragment = (PanelFragment) getFragmentManager().findFragmentByTag("bottom-panel-fragment");
-		if (panelFragment != null) {
-			panelFragment.clearFallbackPoint();
+		if (!isStateSaved) {
+			PanelFragment panelFragment = (PanelFragment) getFragmentManager().findFragmentByTag("bottom-panel-fragment");
+			if (panelFragment != null) {
+				panelFragment.clearFallbackPoint();
+			}
 		}
 
 		super.onStop();
@@ -107,6 +119,12 @@ public class PointDetailFragment extends Fragment implements FileListener {
 
 		fileManager = DefaultFileManager.getInstance();
 		fileManager.addWeakListener(this);
+
+		if (point.hasAudio()) {
+			fileManager.requestAudioDownload(point.getAudioUrl());
+		}
+
+		setHasOptionsMenu(true);
 	}
 
     @Override
@@ -135,7 +153,6 @@ public class PointDetailFragment extends Fragment implements FileListener {
 				view.getViewTreeObserver().removeGlobalOnLayoutListener(this);
 				imageSize = view.getMeasuredWidth();
 				tryUpdateImage(imageSize, imageSize);
-
 			}
 		});
 
@@ -145,13 +162,36 @@ public class PointDetailFragment extends Fragment implements FileListener {
 			view.setOnClickListener(new View.OnClickListener() {
 				@Override
 				public void onClick(View view) {
-					getActivity().getSupportFragmentManager().beginTransaction()
-							.remove(PointDetailFragment.this)
-							.commit();
+					getActivity().getSupportFragmentManager().popBackStack("details-fragment", FragmentManager.POP_BACK_STACK_INCLUSIVE);
 				}
 			});
 		}
 		return view;
+	}
+
+	@Override
+	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+		inflater.inflate(R.menu.point_details_menu, menu);
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		if (item.getItemId() == R.id.action_show_on_map) {
+			showOnMap();
+		}
+
+		return super.onOptionsItemSelected(item);
+	}
+
+	private void showOnMap() {
+		NavigationDrawerFragment frag =
+				(NavigationDrawerFragment)
+						getActivity().getSupportFragmentManager()
+								.findFragmentById(R.id.navigation_drawer);
+
+		Bundle bundle = new Bundle();
+		bundle.putParcelable(MapFragment.ARG_POINT, point);
+		frag.selectItem(1, bundle);
 	}
 
 	private void setupOverlayMode(View view) {
@@ -239,19 +279,24 @@ public class PointDetailFragment extends Fragment implements FileListener {
 
     @Override
     public void onDetach() {
-        super.onDetach();
+		super.onDetach();
 		multiPanel = null;
-    }
+
+		if (!isOverlay) {
+			fileManager.recycleAllBitmaps("point-detail-fragment");
+		} else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
+			if (imageView.getDrawable() instanceof BitmapDrawable) {
+				Bitmap bitmap = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
+				if (bitmap != null && !bitmap.isRecycled())
+					bitmap.recycle();
+			}
+		}
+	}
 
 	@Override
 	public void onDestroyView() {
 		super.onDestroyView();
-
 		pendingUrl = null;
-		//if (imageBitmap != null) {
-		//	imageBitmap.recycle();
-		//	imageBitmap = null;
-		//}
 	}
 
 	@Override
@@ -260,28 +305,28 @@ public class PointDetailFragment extends Fragment implements FileListener {
 
 		outState.putParcelable(STATE_POINT, point);
 		outState.putBoolean(STATE_IS_OVERLAY, isOverlay);
+
+		isStateSaved = true;
 	}
 
 	private void tryUpdateImage(int imageWidth, int imageHeight) {
 		if (point.hasPhoto()) {
 			String remoteUrl = point.getPhotoUrl();
-			Bitmap newBitmap = fileManager.getImageBitmap(remoteUrl, imageWidth, imageHeight, FileManager.ScaleMode.NO_SCALE);
-
-			if (newBitmap == null && pendingUrl == null) {
-				pendingUrl = remoteUrl;
-				return;
-			}
-
 			imageView.setAdjustViewBounds(true);
-			imageView.setMaxWidth(imageSize);
-			imageView.setMaxHeight(imageSize);
-
-			imageView.setImageDrawable(new BitmapDrawable(Resources.getSystem(), newBitmap));
-
-			imageBitmap = newBitmap;
+			fileManager.requestImageBitmap(remoteUrl, imageWidth, imageHeight, FileManager.ScaleMode.NO_SCALE, new FileManager.ImageViewSetter(imageView), "point-detail-fragment");
 			pendingUrl = null;
+		} else {
+			imageView.setVisibility(View.GONE);
 		}
 	}
+
+	/*private void expandImage() {
+
+	}
+
+	private void shrinkImage() {
+
+	}*/
 
 	@Override
 	public void itemLoaded(String url) {
@@ -292,6 +337,9 @@ public class PointDetailFragment extends Fragment implements FileListener {
 
 	@Override
 	public void itemDownloadProgress(String url, int current, int max) {
+	}
 
+	public Point getPoint() {
+		return point;
 	}
 }

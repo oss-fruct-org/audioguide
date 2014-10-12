@@ -45,9 +45,11 @@ public abstract class CursorHolder implements Closeable {
 	synchronized void onCursorReady(Cursor cursor) {
 		this.cursor = cursor;
 
-		Cursor oldCursor = cursorReceiver.swapCursor(cursor);
-		if (oldCursor != null) {
-			oldCursor.close();
+		if (cursorReceiver != null) {
+			Cursor oldCursor = cursorReceiver.swapCursor(cursor);
+			if (oldCursor != null) {
+				oldCursor.close();
+			}
 		}
 
 		if (listener != null) {

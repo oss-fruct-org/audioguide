@@ -21,8 +21,8 @@ public class WebViewDialog extends DialogFragment {
 		void onSuccess();
 	}
 
-	private final String url;
-	private final Predicate<String> urlCloseChecker;
+	private String url;
+	private Predicate<String> urlCloseChecker;
 
 	private boolean isCompleted = false;
 	private Listener listener;
@@ -37,10 +37,14 @@ public class WebViewDialog extends DialogFragment {
 		};
 	}
 
-	// FIXME: newInstance
-	public WebViewDialog(String url, Predicate<String> urlCloseChecker) {
-		this.url = url;
-		this.urlCloseChecker = urlCloseChecker;
+	public static WebViewDialog newInstance(String url, Predicate<String> urlCloseChecker) {
+		Bundle args = new Bundle();
+		args.putString("url", url);
+
+		WebViewDialog dialog = new WebViewDialog();
+		dialog.setArguments(args);
+		dialog.urlCloseChecker = urlCloseChecker;
+		return dialog;
 	}
 
 	public void setListener(Listener listener) {
@@ -49,6 +53,8 @@ public class WebViewDialog extends DialogFragment {
 
 	@Override
 	public Dialog onCreateDialog(Bundle savedInstanceState) {
+		url = getArguments().getString("url");
+
 		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 
 		setRetainInstance(true);

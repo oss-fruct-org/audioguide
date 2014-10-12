@@ -35,6 +35,17 @@ public class CommonFragment extends Fragment {
 	private BroadcastReceiver errorReceiver;
 	private ServiceConnection trackingServiceConnection;
 	private TrackingService trackingService;
+	private boolean isStateSaved;
+
+	private ServiceConnection singletonServiceConnection = new ServiceConnection() {
+		@Override
+		public void onServiceConnected(ComponentName name, IBinder service) {
+		}
+
+		@Override
+		public void onServiceDisconnected(ComponentName name) {
+		}
+	};
 
 	public static CommonFragment newInstance() {
 		return new CommonFragment();
@@ -45,7 +56,7 @@ public class CommonFragment extends Fragment {
 	@Override
 	public void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
-
+		isStateSaved = true;
 		outState.putBoolean("isTrackingActive", isTrackingActive);
 	}
 
@@ -69,12 +80,14 @@ public class CommonFragment extends Fragment {
 		if (savedInstanceState != null) {
 			isTrackingActive = savedInstanceState.getBoolean("isTrackingActive");
 		}
-		getActivity().startService(new Intent(SingletonService.ACTION_START, null, getActivity(), SingletonService.class));
+
+		getActivity().bindService(new Intent(getActivity(), SingletonService.class), singletonServiceConnection, Context.BIND_AUTO_CREATE);
 	}
 
 	@Override
 	public void onStart() {
 		super.onStart();
+		isStateSaved = false;
 
 		getActivity().startService(new Intent(TrackingService.ACTION_FOREGROUND, null,
 				getActivity(), TrackingService.class));
@@ -105,23 +118,23 @@ public class CommonFragment extends Fragment {
 			trackingServiceConnection = null;
 		}
 
-		getActivity().startService(new Intent(TrackingService.ACTION_BACKGROUND,
-				null, getActivity(), TrackingService.class));
+		if (!isStateSaved) {
+			getActivity().startService(new Intent(TrackingService.ACTION_BACKGROUND,
+					null, getActivity(), TrackingService.class));
+		}
 	}
 
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
-		getActivity().startService(new Intent(SingletonService.ACTION_STOP, null, getActivity(), SingletonService.class));
-
 		LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(errorReceiver);
+		getActivity().unbindService(singletonServiceConnection);
 	}
 
 	@Override
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
 		super.onCreateOptionsMenu(menu, inflater);
 		inflater.inflate(R.menu.navigate, menu);
-		inflater.inflate(R.menu.categories_filter, menu);
 
 		navigateAction = menu.findItem(R.id.action_navigate);
 		updateMenuIcon(isTrackingActive);
@@ -156,10 +169,10 @@ public class CommonFragment extends Fragment {
 		if (navigateAction != null) {
 			if (isWatchActive) {
 				navigateAction.setTitle("Unfollow");
-				navigateAction.setIcon(R.drawable.ic_action_volume_muted);
+				navigateAction.setIcon(R.drawable.ic_action_inv_stop);
 			} else {
 				navigateAction.setTitle("Follow");
-				navigateAction.setIcon(R.drawable.ic_action_volume_on);
+				navigateAction.setIcon(R.drawable.ic_action_inv_play);
 			}
 		}
 	}

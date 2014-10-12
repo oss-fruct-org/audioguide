@@ -2,6 +2,7 @@ package org.fruct.oss.audioguide;
 
 import android.app.Application;
 import android.content.Context;
+import android.preference.PreferenceManager;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +18,7 @@ public class App extends Application {
 		log.info("App onCreate");
 
 		context = this.getApplicationContext();
+		PreferenceManager.setDefaultValues(context, R.xml.preferences, false);
 	}
 
 	public static Context getContext() {

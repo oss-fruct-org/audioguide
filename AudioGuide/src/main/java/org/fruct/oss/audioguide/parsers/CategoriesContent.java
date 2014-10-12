@@ -81,13 +81,14 @@ public class CategoriesContent implements IContent {
 		List<Category> matchedCategories = new ArrayList<Category>();
 
 		for (Category category : categories) {
-			Matcher matcher = pattern.matcher(category.getName());
-			if (matcher.matches()) {
-				matchedCategories.add(category);
+			if (category.getName() != null) {
+				Matcher matcher = pattern.matcher(category.getName());
+				if (matcher.matches()) {
+					matchedCategories.add(category);
+				}
 			}
 		}
 
 		return matchedCategories;
 	}
-
 }

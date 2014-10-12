@@ -1,49 +1,62 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               xmlns:tools="http://schemas.android.com/tools"
               android:layout_width="match_parent"
-              android:layout_height="wrap_content"
+              android:layout_height="match_parent"
               android:orientation="vertical"
               android:background="#ffeeeeee"
+              android:padding="8dp"
               tools:context="org.fruct.oss.audioguide.fragments.PointDetailFragment">
 
-    <TextView
-        android:id="@android:id/text1"
-        android:textSize="32sp"
-        android:layout_width="wrap_content"
+    <RelativeLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:textColor="#ff222222" />
+        android:background="#ffffffff"
+        android:layout_marginBottom="4dp"
+        android:padding="4dp"
+        >
+
+        <TextView
+            android:id="@android:id/text1"
+            android:textSize="22sp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@android:id/icon"
+            android:layout_alignParentRight="true"
+            android:padding="4dp"
+            android:textColor="#ff58585B" />
+
+        <ImageView
+            android:id="@android:id/icon"
+            android:layout_width="128dp"
+            android:layout_height="128dp"
+
+            android:layout_alignParentLeft="true"
+            android:background="#ffcccccc"
+            android:padding="2dp"
+
+            android:scaleType="centerInside"/>
+    </RelativeLayout>
 
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="match_parent"
+        android:background="#ffffffff"
+        >
 
         <LinearLayout
             android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-            <ImageView
-                android:id="@android:id/icon"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:scaleType="fitCenter"
-                android:padding="16dp" />
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginBottom="8dp"
-                android:background="#ff777777"/>
-
             <TextView
                 android:id="@android:id/text2"
-                android:textSize="16sp"
+                android:textSize="14sp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:padding="16dp"
-                android:textColor="#ff222222"/>
+                android:textColor="#ff58585B"/>
         </LinearLayout>
     </ScrollView>
+
+
 </LinearLayout>

@@ -26,9 +26,6 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".FileChooserActivity"
-            android:label="File chooser" />
-        <activity
             android:name=".preferences.SettingsActivity"
             android:exported="false"
             android:label="@string/settings" >

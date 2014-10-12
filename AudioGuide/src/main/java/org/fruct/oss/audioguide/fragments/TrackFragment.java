@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.ListFragment;
@@ -26,13 +27,17 @@ import org.fruct.oss.audioguide.MultiPanel;
 import org.fruct.oss.audioguide.NavigationDrawerFragment;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.adapters.TrackCursorAdapter;
+import org.fruct.oss.audioguide.config.Config;
 import org.fruct.oss.audioguide.dialogs.EditTrackDialog;
 import org.fruct.oss.audioguide.track.CursorHolder;
 import org.fruct.oss.audioguide.track.DefaultTrackManager;
+import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.Track;
 import org.fruct.oss.audioguide.track.TrackManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.CountDownLatch;
 
 public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemClickListener, AdapterView.OnItemLongClickListener {
 	private final static Logger log = LoggerFactory.getLogger(TrackFragment.class);
@@ -58,6 +63,7 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 	private MenuItem popupItemSend;
 
 	private Track selectedTrack;
+	private int selectedPosition;
 
 	public static TrackFragment newInstance() {
 		return new TrackFragment();
@@ -87,12 +93,17 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 		}
 	}
 
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+		return inflater.inflate(R.layout.fragment_list_view, container, false);
+	}
 
 	@Override
 	public void onResume() {
 		super.onResume();
 
 		setupSpinner();
+		getListView().setChoiceMode(AbsListView.CHOICE_MODE_SINGLE);
 	}
 
 	@Override
@@ -205,6 +216,8 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 
 	private void showContextualActionBar(int position) {
 		selectedTrack = trackCursorAdapter.getTrack(position);
+		selectedPosition = position;
+		getListView().setItemChecked(position, true);
 		ActionBarActivity activity = ((ActionBarActivity) getActivity());
 		activity.startSupportActionMode(actionModeCallback);
 	}
@@ -228,7 +241,10 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 		super.onCreateOptionsMenu(menu, inflater);
 
 		inflater.inflate(R.menu.refresh, menu);
-		inflater.inflate(R.menu.edit_track_menu, menu);
+		if (!Config.isEditLocked()) {
+			inflater.inflate(R.menu.edit_track_menu, menu);
+		}
+		inflater.inflate(R.menu.categories_filter, menu);
 	}
 
 	@Override
@@ -308,6 +324,12 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 		@Override
 		public boolean onCreateActionMode(ActionMode actionMode, Menu menu) {
 			actionMode.getMenuInflater().inflate(R.menu.track_menu, menu);
+
+			if (!selectedTrack.isLocal()) {
+				menu.findItem(R.id.action_delete).setVisible(false);
+				menu.findItem(R.id.action_start_guide).setVisible(false);
+			}
+
 			return true;
 		}
 
@@ -325,11 +347,14 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 				return true;
 
 			case R.id.action_save:
+				// FIXME: selectedTrack can sometimes be null
 				trackManager.storeTrackLocal(selectedTrack);
+				actionMode.finish();
 				return true;
 
 			case R.id.action_delete:
 				startDeletingTrack(selectedTrack);
+				actionMode.finish();
 				return true;
 
 			default:
@@ -339,28 +364,46 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 
 		@Override
 		public void onDestroyActionMode(ActionMode actionMode) {
-			selectedTrack = null;
+			getListView().setItemChecked(selectedPosition, false);
 		}
 	};
 
 	private void startGuide() {
-		NavigationDrawerFragment frag =
-				(NavigationDrawerFragment)
-						getActivity().getSupportFragmentManager()
-								.findFragmentById(R.id.navigation_drawer);
-		trackManager.activateTrackMode(selectedTrack);
-		frag.selectItem(1, null);
+		final Track selectedTrack = this.selectedTrack;
+		final CursorHolder holder = trackManager.loadPoints(selectedTrack);
+		holder.setListener(new CursorHolder.Listener() {
+			@Override
+			public void onReady(Cursor cursor) {
+				if (cursor.moveToFirst()) {
+					Point firstPoint = new Point(cursor);
+
+					Bundle args = new Bundle();
+					args.putParcelable(MapFragment.ARG_POINT, firstPoint);
+
+					trackManager.activateTrackMode(selectedTrack);
+					NavigationDrawerFragment frag =
+							(NavigationDrawerFragment)
+									getActivity().getSupportFragmentManager()
+											.findFragmentById(R.id.navigation_drawer);
+
+					frag.selectItem(1, args);
+				}
+				holder.close();
+			}
+		});
 	}
 
 	private void startDeletingTrack(final Track track) {
 		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 		builder.setTitle(R.string.delete_track);
-		builder.setPositiveButton(R.string.delete_track_server, new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialogInterface, int i) {
-				trackManager.deleteTrack(track, true);
-			}
-		});
+		if (!Config.isEditLocked() && track.isPrivate()) {
+			builder.setPositiveButton(R.string.delete_track_server, new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialogInterface, int i) {
+					trackManager.deleteTrack(track, true);
+				}
+			});
+		}
 
 		builder.setNeutralButton(R.string.delete_track_local, new DialogInterface.OnClickListener() {
 			@Override

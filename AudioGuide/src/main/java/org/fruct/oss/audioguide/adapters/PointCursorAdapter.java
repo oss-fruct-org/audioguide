@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
+import android.net.Uri;
 import android.support.v4.widget.CursorAdapter;
 import android.view.MotionEvent;
 import android.view.View;
@@ -54,6 +55,8 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 
 	@Override
 	public View newView(Context context, Cursor cursor, ViewGroup viewGroup) {
+		log.debug("newView");
+
 		View view = ((Activity) context).getLayoutInflater().inflate(R.layout.list_point_item, viewGroup, false);
 		assert view != null;
 
@@ -68,6 +71,7 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 
 		holder.positionBottom = (View) view.findViewById(R.id.position_bottom);
 		holder.positionTop = (View) view.findViewById(R.id.position_top);
+		holder.bitmapSetter = new FileManager.ImageViewSetter(holder.icon);
 
 		if (isPlaceSelectable) {
 			view.setOnTouchListener(this);
@@ -80,6 +84,8 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 	@Override
 	public void bindView(View view, Context context, Cursor cursor) {
 		Point point = new Point(cursor);
+		log.debug("bindView " + point.getName());
+
 		PointHolder holder = ((PointHolder) view.getTag());
 
 		holder.point = point;
@@ -92,17 +98,19 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 
 		if (point.hasPhoto()) {
 			String photoUrl = point.getPhotoUrl();
-			if (pendingIconUrls.contains(photoUrl)) {
-				pendingIconUrls.remove(photoUrl);
-			}
+			//if (pendingIconUrls.contains(photoUrl)) {
+			//	pendingIconUrls.remove(photoUrl);
+			//}
 
-			Bitmap iconBitmap = fileManager.getImageBitmap(photoUrl, Utils.getDP(48), Utils.getDP(48), FileManager.ScaleMode.SCALE_FIT);
+			fileManager.requestImageBitmap(photoUrl, Utils.getDP(48), Utils.getDP(48), FileManager.ScaleMode.SCALE_CROP, holder.bitmapSetter, "point-fragment");
+/*
+			Bitmap iconBitmap = fileManager.getImageBitmap(photoUrl, Utils.getDP(48), Utils.getDP(48), FileManager.ScaleMode.SCALE_CROP);
 			if (iconBitmap != null) {
 				holder.icon.setImageDrawable(new BitmapDrawable(context.getResources(), iconBitmap));
 			} else {
 				pendingIconUrls.add(photoUrl);
 				holder.icon.setImageDrawable(null);
-			}
+			}*/
 		}
 
 		if (point.hasAudio()) {
@@ -111,14 +119,13 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 				pendingAudioUrls.remove(audioUrl);
 			}
 
-			/*if (fileManager.isFileLocal(audioUrl)) {
+			if (fileManager.getLocalPath(Uri.parse(audioUrl)) != null) {
 				holder.progressBar.setVisibility(View.GONE);
 			} else {
 				holder.progressBar.setVisibility(View.VISIBLE);
 				holder.progressBar.setProgress(0);
 				pendingAudioUrls.put(audioUrl, holder);
-				fileManager.insertAudioUri(audioUrl);
-			}*/
+			}
 		}
 
 		if (selectedPosition == holder.position) {
@@ -135,7 +142,7 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 		if (highlightedItems.contains(point)) {
 			view.setBackgroundColor(0xffffd700);
 		} else {
-			view.setBackgroundColor(0xffffffff);
+			view.setBackgroundColor(0x00ffffff);
 		}
 	}
 
@@ -217,5 +224,6 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 		View positionTop;
 
 		int position;
+		FileManager.ImageViewSetter bitmapSetter;
 	}
 }

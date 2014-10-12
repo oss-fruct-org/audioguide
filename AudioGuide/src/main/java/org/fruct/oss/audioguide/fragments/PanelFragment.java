@@ -2,12 +2,16 @@ package org.fruct.oss.audioguide.fragments;
 
 
 
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,12 +25,6 @@ import org.fruct.oss.audioguide.track.TrackingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link PanelFragment#newInstance} factory method to
- * create an instance of this fragment.
- *
- */
 public class PanelFragment extends Fragment {
 	private static final Logger log = LoggerFactory.getLogger(PanelFragment.class);
 
@@ -40,12 +38,14 @@ public class PanelFragment extends Fragment {
 	private boolean isStarted;
 
 	private Point fallbackPoint;
+	private Point point;
 
 	private boolean isDragging;
 
 	private int lastProgress;
 	private View playButton;
 	private View pauseButton;
+	private PointDetailFragment detailsFragment;
 
 	/**
      * Use this factory method to create a new instance of
@@ -53,12 +53,13 @@ public class PanelFragment extends Fragment {
      *
      * @return A new instance of fragment PanelFragment.
      */
-    public static PanelFragment newInstance(Point point, int duration) {
+    public static PanelFragment newInstance(Point fallbackPoint, int duration, Point playingPoint) {
         PanelFragment fragment = new PanelFragment();
 
         Bundle args = new Bundle();
 		args.putInt("duration", duration);
-		args.putParcelable("point", point);
+		args.putParcelable("fallbackPoint", fallbackPoint);
+		args.putParcelable("point", playingPoint);
 
 		fragment.setArguments(args);
         return fragment;
@@ -69,6 +70,10 @@ public class PanelFragment extends Fragment {
 
 	public boolean isStarted() {
 		return isStarted;
+	}
+
+	public void setCurrentPoint(Point point) {
+		this.point = point;
 	}
 
 	public void startPlaying(int duration) {
@@ -83,6 +88,7 @@ public class PanelFragment extends Fragment {
 
 	public void stopPlaying() {
 		isStarted = false;
+		duration = -1;
 
 		pauseButton.setVisibility(View.GONE);
 		playButton.setVisibility(View.VISIBLE);
@@ -98,13 +104,20 @@ public class PanelFragment extends Fragment {
 	@Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+		log.trace("onCreate");
 
 		setRetainInstance(true);
 
 		if (getArguments() != null) {
 			duration = getArguments().getInt("duration", -1);
-			fallbackPoint = getArguments().getParcelable("point");
+			fallbackPoint = getArguments().getParcelable("fallbackPoint");
+			point = getArguments().getParcelable("point");
 		}
+	}
+
+	@Override
+	public void onStart() {
+		super.onStart();
 
 		LocalBroadcastManager.getInstance(getActivity()).registerReceiver(positionReceiver = new BroadcastReceiver() {
 			@Override
@@ -118,7 +131,8 @@ public class PanelFragment extends Fragment {
 		LocalBroadcastManager.getInstance(getActivity()).registerReceiver(startReceiver = new BroadcastReceiver() {
 			@Override
 			public void onReceive(Context context, Intent intent) {
-				startPlaying(intent.getIntExtra("duration", -1));
+				if (stopReceiver != null)
+					startPlaying(intent.getIntExtra("duration", -1));
 			}
 		}, new IntentFilter(AudioPlayer.BC_ACTION_START_PLAY));
 
@@ -126,20 +140,45 @@ public class PanelFragment extends Fragment {
 			@Override
 			public void onReceive(Context context, Intent intent) {
 				stopPlaying();
+				PointDetailFragment detailsFragment = (PointDetailFragment) getFragmentManager().findFragmentByTag("details-fragment");
+				if (detailsFragment != null && point != null && point.equals(detailsFragment.getPoint())) {
+					getFragmentManager().popBackStack("details-fragment", FragmentManager.POP_BACK_STACK_INCLUSIVE);
+				}
 			}
 		}, new IntentFilter(AudioPlayer.BC_ACTION_STOP_PLAY));
 	}
 
 	@Override
-	public void onDestroy() {
+	public void onStop() {
+		super.onStop();
+
 		LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(positionReceiver);
 		LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(stopReceiver);
 		LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(startReceiver);
+
 		positionReceiver = null;
 		stopReceiver = null;
 		stopReceiver = null;
 
+
+	}
+
+	@Override
+	public void onDestroy() {
+		log.trace("onDestroy");
 		super.onDestroy();
+	}
+
+	@Override
+	public void onAttach(Activity activity) {
+		super.onAttach(activity);
+		log.trace("onAttach");
+	}
+
+	@Override
+	public void onDetach() {
+		super.onDetach();
+		log.trace("onDetach");
 	}
 
 	@Override
@@ -236,7 +275,8 @@ public class PanelFragment extends Fragment {
 		this.fallbackPoint = null;
 
 		if (!isStarted()) {
-			getActivity().getSupportFragmentManager().beginTransaction()
+			FragmentActivity activity = getActivity();
+			activity.getSupportFragmentManager().beginTransaction()
 					.setCustomAnimations(R.anim.bottom_up, R.anim.bottom_down)
 					.remove(this).commitAllowingStateLoss();
 		}

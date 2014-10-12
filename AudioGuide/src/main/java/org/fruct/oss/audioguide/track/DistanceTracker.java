@@ -18,7 +18,7 @@ import java.util.Set;
 public class DistanceTracker implements LocationReceiver.Listener, CursorReceiver {
 	private final static Logger log = LoggerFactory.getLogger(DistanceTracker.class);
 
-	private Set<Point> pointsInRange = new HashSet<Point>();
+	private final Set<Point> pointsInRange = new HashSet<Point>();
 
 	private TrackManager trackManager;
 	private LocationReceiver locationReceiver;
@@ -75,27 +75,31 @@ public class DistanceTracker implements LocationReceiver.Listener, CursorReceive
 		ArrayList<Point> outRange = new ArrayList<Point>();
 		ArrayList<Point> inRange = new ArrayList<Point>();
 
-		for (Point point : points) {
-			boolean isPointInRange = pointsInRange.contains(point);
+		synchronized (points) {
+			for (Point point : points) {
+				boolean isPointInRange = pointsInRange.contains(point);
 
-			Location pointLocation = point.toLocation();
-			float distanceMeters = pointLocation.distanceTo(location);
+				Location pointLocation = point.toLocation();
+				float distanceMeters = pointLocation.distanceTo(location);
 
-			if (distanceMeters < radius && !isPointInRange) {
-				inRange.add(point);
-			} else if (distanceMeters >= radius && isPointInRange) {
-				outRange.add(point);
+				if (distanceMeters < radius && !isPointInRange) {
+					inRange.add(point);
+				} else if (distanceMeters >= radius && isPointInRange) {
+					outRange.add(point);
+				}
 			}
 		}
 
-		for (Point point : outRange) {
-			pointsInRange.remove(point);
-			notifyPointOutRange(point);
-		}
+		synchronized (pointsInRange) {
+			for (Point point : outRange) {
+				pointsInRange.remove(point);
+				notifyPointOutRange(point);
+			}
 
-		for (Point point : inRange) {
-			pointsInRange.add(point);
-			notifyPointInRange(point);
+			for (Point point : inRange) {
+				pointsInRange.add(point);
+				notifyPointInRange(point);
+			}
 		}
 	}
 
@@ -114,17 +118,21 @@ public class DistanceTracker implements LocationReceiver.Listener, CursorReceive
 	}
 
 	public List<Point> getPointsInRange() {
-		return new ArrayList<Point>(pointsInRange);
+		synchronized (pointsInRange) {
+			return new ArrayList<Point>(pointsInRange);
+		}
 	}
 
 	@Override
 	public Cursor swapCursor(Cursor cursor) {
 		Cursor oldCursor = currentCursor;
 
-		points.clear();
-		while (cursor.moveToNext()) {
-			Point point = new Point(cursor);
-			points.add(point);
+		synchronized (points) {
+			points.clear();
+			while (cursor.moveToNext()) {
+				Point point = new Point(cursor);
+				points.add(point);
+			}
 		}
 
 		return oldCursor;

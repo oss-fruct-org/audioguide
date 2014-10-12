@@ -16,7 +16,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
-public class AudioPlayer implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener {
+public class AudioPlayer implements MediaPlayer.OnPreparedListener,
+		MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener {
 	public static String BC_ACTION_START_PLAY = "org.fruct.oss.audioguide.AudioPlayer.START_PLAY";
 	public static String BC_ACTION_STOP_PLAY = "org.fruct.oss.audioguide.AudioPlayer.STOP_PLAY";
 	public static String BC_ACTION_POSITION = "org.fruct.oss.audioguide.AudioPlayer.POSITION";
@@ -49,8 +50,7 @@ public class AudioPlayer implements MediaPlayer.OnPreparedListener, MediaPlayer.
 			// Try to use cached uri
 			String localPath = fileManager.getLocalPath(uri);
 			if (localPath == null)
-				// Fallback to remote uri
-				player.setDataSource(context, uri);
+				return;
 			else
 				player.setDataSource(context, Uri.parse(localPath));
 

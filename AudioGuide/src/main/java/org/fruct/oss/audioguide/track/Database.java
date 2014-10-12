@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.location.Location;
 
 import org.fruct.oss.audioguide.gets.Category;
 import org.fruct.oss.audioguide.util.Utils;
@@ -206,6 +207,13 @@ public class Database {
 		return cursor;
 	}
 
+	public Cursor loadLocalTracks() {
+		Cursor cursor = db.rawQuery("SELECT track.name, track.description, track.url, track.local, track.categoryId, track.private, track.hname, track.id AS _id " +
+				"FROM track " +
+				"WHERE track.local = 1;", null);
+		return cursor;
+	}
+
 	public Cursor loadUpdatedTracks() {
 		Cursor cursor = db.rawQuery("SELECT track.name, track.description, track.url, track.local, track.categoryId, track.private, track.hname, track.id AS _id " +
 				"FROM track INNER JOIN track_update " +
@@ -215,6 +223,8 @@ public class Database {
 	}
 
 	public Cursor loadUpdatedPoints() {
+		// FIXME: java.lang.IllegalStateException: database /data/data/org.fruct.oss.audioguide/databases/tracksdb2 already closed
+		// From synchronized
 		Cursor cursor = db.rawQuery("SELECT point.name, point.description, point.audioUrl, point.photoUrl, point.lat, point.lon, point.private, point.categoryId, point.time, point.uuid, point.id AS _id " +
 				"FROM point INNER JOIN point_update " +
 				"ON point.id = point_update.pointId " +
@@ -361,6 +371,43 @@ public class Database {
 	public void deleteTrack(Track track) {
 		db.delete("point", "point.id IN (SELECT tp.pointId FROM tp INNER JOIN track ON track.id=tp.trackId WHERE track.name=?);", new String[]{ track.getName() });
 		db.delete("track", "name=?", new String[]{ track.getName() });
+	}
+
+	public void cleanupPoints(Location location, float radius) {
+		db.beginTransaction();
+		Cursor cursor = null;
+		try {
+			cursor = db.rawQuery("SELECT point.lat, point.lon, point.id " +
+					"FROM point " +
+					"LEFT JOIN tp ON tp.pointId = point.id " +
+					"LEFT JOIN track ON tp.trackId = track.id " +
+					"WHERE NOT point.private " +
+					"AND (track.id IS NULL OR NOT track.local);", null);
+
+			float[] dist = new float[1];
+			String[] whereArgs = new String[1];
+			while (cursor.moveToNext()) {
+				double lat = cursor.getDouble(0) / 1e6;
+				double lon = cursor.getDouble(1) / 1e6;
+				int id = cursor.getInt(2);
+
+				Location.distanceBetween(lat, lon, location.getLatitude(), location.getLongitude(), dist);
+				if (dist[0] > radius) {
+					whereArgs[0] = String.valueOf(id);
+					db.delete("point", "id=?", whereArgs);
+				}
+			}
+
+			db.execSQL("DELETE FROM track WHERE track.id NOT IN " +
+					"(SELECT tp.trackId FROM tp INNER JOIN point ON tp.pointId = point.id);");
+
+			db.setTransactionSuccessful();
+		} finally {
+			db.endTransaction();
+			if (cursor != null) {
+				cursor.close();
+			}
+		}
 	}
 
 	private static class Helper extends SQLiteOpenHelper {

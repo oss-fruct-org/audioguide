@@ -10,6 +10,7 @@ import org.fruct.oss.audioguide.parsers.Kml;
 import org.fruct.oss.audioguide.parsers.TracksContent;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.Track;
+import org.fruct.oss.audioguide.util.Utils;
 import org.xmlpull.v1.XmlSerializer;
 
 import java.io.IOException;
@@ -52,7 +53,11 @@ public class LoadPointsRequest extends GetsRequest {
 			}
 
 			serializer.startTag(null, "category_id").text(String.valueOf(cat.getId())).endTag(null, "category_id");
-			serializer.startTag(null, "space").text("all").endTag(null, "space");
+
+			if (!Utils.isNullOrEmpty(gets.getToken())) {
+				serializer.startTag(null, "space").text("all").endTag(null, "space");
+			}
+
 			serializer.endTag(null, "params").endTag(null, "request");
 			serializer.flush();
 

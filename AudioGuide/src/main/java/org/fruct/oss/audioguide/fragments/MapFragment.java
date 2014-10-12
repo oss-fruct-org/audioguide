@@ -19,6 +19,8 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.view.ActionMode;
@@ -36,6 +38,7 @@ import android.widget.Toast;
 
 import org.fruct.oss.audioguide.MultiPanel;
 import org.fruct.oss.audioguide.R;
+import org.fruct.oss.audioguide.config.Config;
 import org.fruct.oss.audioguide.dialogs.EditPointDialog;
 import org.fruct.oss.audioguide.dialogs.InsertPointDialog;
 import org.fruct.oss.audioguide.dialogs.SelectTrackDialog;
@@ -75,6 +78,7 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 	private final static String PREF_LATITUDE = "pref-latitude";
 	private final static String PREF_LONGITUDE = "pref-longitude";
 	private final static String PREF_ZOOM = "pref-zoom";
+	public static final String ARG_POINT = "point";
 
 	private MapView mapView;
 	private TrackManager trackManager;
@@ -85,6 +89,7 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 
 	private MyPositionOverlay myPositionOverlay;
 	private BroadcastReceiver locationReceiver;
+	private BroadcastReceiver pointInRangeReceiver;
 
 	private ViewGroup bottomToolbar;
 	private MultiPanel multiPanel;
@@ -92,7 +97,6 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 	private Point selectedPoint;
 
 	private List<EditOverlay> trackOverlays = new ArrayList<EditOverlay>();
-
 
 	/**
 	 * Use this factory method to create a new instance of
@@ -123,6 +127,11 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
 		super.onCreateOptionsMenu(menu, inflater);
 		inflater.inflate(R.menu.map_menu, menu);
+		inflater.inflate(R.menu.categories_filter, menu);
+
+		if (Config.isEditLocked()) {
+			menu.findItem(R.id.action_add).setVisible(false);
+		}
 	}
 
 	@Override
@@ -154,7 +163,10 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 			} else {
 				SelectTrackDialog dialog = SelectTrackDialog.newInstance();
 				dialog.setListener(activateTrackListener);
-				dialog.show(getFragmentManager(), "select-track-dialog");
+
+				FragmentTransaction trans = getFragmentManager().beginTransaction();
+				trans.addToBackStack("select-track-dialog");
+				dialog.show(trans, "select-track-dialog");
 			}
 			break;
 
@@ -194,11 +206,6 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 
 		createMapView(view);
 
-		createClickHandlerOverlay();
-
-		createCenterOverlay();
-		updatePointsOverlay();
-		createMyPositionOverlay();
 
 		final GeoPoint initialMapCenter;
 		final int initialZoomLevel;
@@ -207,11 +214,20 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 			initialMapCenter = new GeoPoint(savedInstanceState.getInt("map-center-lat"),
 					savedInstanceState.getInt("map-center-lon"));
 			initialZoomLevel = savedInstanceState.getInt("zoom");
+		} else if (getArguments() != null) {
+			Point centerPoint = getArguments().getParcelable(ARG_POINT);
+			initialMapCenter = new GeoPoint(centerPoint.getLatE6(), centerPoint.getLonE6());
+			initialZoomLevel = 17;
 		} else {
 			initialZoomLevel = pref.getInt(PREF_ZOOM, 15);
 			initialMapCenter = new GeoPoint(pref.getFloat(PREF_LATITUDE, 61.7833f),
 					pref.getFloat(PREF_LONGITUDE, 34.35f));
 		}
+
+		createClickHandlerOverlay();
+		createCenterOverlay();
+		updatePointsOverlay();
+		createMyPositionOverlay();
 
 		final ViewTreeObserver vto = view.getViewTreeObserver();
 		vto.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
@@ -244,18 +260,35 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 				}
 			}
 		}, new IntentFilter(TrackingService.BC_ACTION_NEW_LOCATION));
+
+		LocalBroadcastManager.getInstance(getActivity()).registerReceiver(pointInRangeReceiver = new BroadcastReceiver() {
+			@Override
+			public void onReceive(Context context, Intent intent) {
+				final Point point = intent.getParcelableExtra(TrackingService.ARG_POINT);
+
+				PointDetailFragment detailsFragment = (PointDetailFragment) getFragmentManager().findFragmentByTag("details-fragment");
+				if (detailsFragment != null) {
+					getFragmentManager().popBackStack("details-fragment", FragmentManager.POP_BACK_STACK_INCLUSIVE);
+				}
+
+				detailsFragment = PointDetailFragment.newInstance(point, true);
+				getFragmentManager().beginTransaction()
+						.addToBackStack("details-fragment")
+						.add(R.id.panel_details, detailsFragment, "details-fragment")
+						.commit();
+			}
+		}, new IntentFilter(TrackingService.BC_ACTION_POINT_IN_RANGE));
+
 	}
 
 	@Override
 	public void onResume() {
 		super.onResume();
 
-		if (getArguments() != null) {
-			Point point = getArguments().getParcelable("point");
+		/*if (getArguments() != null) {
+			Point point = getArguments().getParcelable(ARG_POINT);
 			centerOn(new GeoPoint(point.getLatE6(), point.getLonE6()), 17);
-		}
-
-
+		}*/
 	}
 
 	@Override
@@ -266,6 +299,8 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 				.putFloat(PREF_LONGITUDE, (float) mapView.getMapCenter().getLongitude()).apply();
 
 		LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(locationReceiver);
+		LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(pointInRangeReceiver);
+
 		getActivity().unbindService(serviceConnection);
 
 		super.onStop();
@@ -282,6 +317,8 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 		for (EditOverlay trackOverlay : trackOverlays) {
 			trackOverlay.close();
 		}
+
+		mapView.getTileProvider().clearTileCache();
 
 		trackManager = null;
 	}
@@ -396,7 +433,7 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 
 		EditOverlay freePointsOverlay = new EditOverlay(getActivity(),
 				activePoints, relations,
-				1);
+				1, mapView);
 
 		freePointsOverlay.setListener(trackOverlayListener);
 		freePointsOverlay.setMarkerIndex(1);
@@ -528,6 +565,7 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 
 			PointDetailFragment detailsFragment = PointDetailFragment.newInstance(point, true);
 			getActivity().getSupportFragmentManager().beginTransaction()
+					.addToBackStack("details-fragment")
 					.replace(R.id.panel_details, detailsFragment, "details-fragment")
 					.commit();
 		}

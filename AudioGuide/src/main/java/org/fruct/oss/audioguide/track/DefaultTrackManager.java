@@ -6,14 +6,17 @@ import android.database.Cursor;
 import android.location.Location;
 import android.net.Uri;
 import android.preference.PreferenceManager;
+import android.widget.Toast;
 
 import org.fruct.oss.audioguide.App;
+import org.fruct.oss.audioguide.config.Config;
 import org.fruct.oss.audioguide.files.DefaultFileManager;
 import org.fruct.oss.audioguide.files.FileManager;
 import org.fruct.oss.audioguide.gets.Category;
 import org.fruct.oss.audioguide.util.Utils;
 
 import java.io.Closeable;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -32,6 +35,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	private final List<CursorHolder> cursorHolders = new ArrayList<CursorHolder>();
 
 	private final SynchronizerThread synchronizer;
+	private final Refresher refresher;
 
 	private Location location = new Location("no-provider");
 	private float radius;
@@ -45,16 +49,32 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 		fileManager = DefaultFileManager.getInstance();
 
 		database = new Database(context);
-		synchronizer = new SynchronizerThread(database, backend);
-		synchronizer.start();
-		synchronizer.initializeHandler();
+		refresher = new Refresher(context, database, this);
+
+		if (!Config.isEditLocked()) {
+			synchronizer = new SynchronizerThread(database, backend);
+			synchronizer.start();
+			synchronizer.initializeHandler();
+		} else {
+			synchronizer = null;
+		}
 	}
 
 	@Override
 	public synchronized void close() {
+		if (synchronizer != null) {
+			synchronizer.interrupt();
+			synchronizer.quit();
+		}
+
+		if (backend instanceof Closeable) {
+			try {
+				((Closeable) backend).close();
+			} catch (IOException ignored) {
+			}
+		}
+
 		database.close();
-		synchronizer.interrupt();
-		synchronizer.quit();
 		instance = null;
 	}
 
@@ -95,6 +115,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 
 					if (point.hasAudio()) {
 						fileManager.insertRemoteFile("no-title", Uri.parse(point.getAudioUrl()));
+						fileManager.requestAudioDownload(point.getAudioUrl());
 					}
 				}
 
@@ -106,6 +127,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 
 	@Override
 	public void requestTracksInRadius() {
+		loadRemoteCategories();
 		backend.loadTracksInRadius((float) location.getLatitude(), (float) location.getLongitude(), radius, activeCategories, new Utils.Callback<List<Track>>() {
 			@Override
 			public void call(List<Track> tracks) {
@@ -127,6 +149,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 				for (Point point : points) {
 					if (point.hasAudio()) {
 						fileManager.insertRemoteFile("no-title", Uri.parse(point.getAudioUrl()));
+						//fileManager.requestAudioDownload(point.getAudioUrl());
 					}
 
 					database.insertPoint(point);
@@ -148,6 +171,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 				for (Point point : points) {
 					if (point.hasAudio()) {
 						fileManager.insertRemoteFile("no-title", Uri.parse(point.getAudioUrl()));
+						//fileManager.requestAudioDownload(point.getAudioUrl());
 					}
 
 					point.setPrivate(track.isPrivate());
@@ -158,6 +182,12 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 				notifyDataChanged();
 			}
 		});
+	}
+
+	@Override
+	public void requestPointsCleanup() {
+		database.cleanupPoints(location, radius);
+		notifyDataChanged();
 	}
 
 	@Override
@@ -198,6 +228,20 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 			@Override
 			protected Cursor doQuery() {
 				return database.loadPrivateTracks();
+			}
+		};
+
+		addCursorHolder(cursorHolder);
+		cursorHolder.queryAsync();
+		return cursorHolder;
+	}
+
+	@Override
+	public CursorHolder loadLocalTracks() {
+		CursorHolder cursorHolder = new CursorHolder() {
+			@Override
+			protected Cursor doQuery() {
+				return database.loadLocalTracks();
 			}
 		};
 
@@ -259,11 +303,13 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	@Override
 	public void updateUserLocation(Location location) {
 		this.location = location;
+		refresher.updateUserLocation(location);
 	}
 
 	@Override
 	public void updateLoadRadius(float radius) {
-		this.radius = radius;
+		this.radius = radius * 1000;
+		refresher.updateLoadRadius(radius * 1000);
 	}
 
 	@Override
@@ -314,7 +360,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 				DefaultTrackManager.this.categories = categories;
 				database.updateCategories(categories);
 				activeCategories = database.getActiveCategories();
-				requestTracksInRadius();
+				//requestTracksInRadius();
 
 			}
 		});

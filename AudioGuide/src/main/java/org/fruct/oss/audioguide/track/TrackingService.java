@@ -5,8 +5,10 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.location.Location;
 import android.net.Uri;
@@ -39,7 +41,7 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 	public static final String BC_ACTION_POINT_OUT_RANGE = "BC_ACTION_POINT_IOUTN_RANGE";
 	public static final String BC_ACTION_NEW_LOCATION = "BC_ACTION_NEW_LOCATION";
 
-	public static final String ARG_POINT = "ARG_POINT";
+	public static final String ARG_POINT = "point";
 	public static final String ARG_LOCATION = "ARG_LOCATION";
 
 	public static final String ACTION_WAKE = "org.fruct.oss.audioguide.TrackingService.ACTION_WAKE";
@@ -76,6 +78,15 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 	private AudioPlayer audioPlayer;
 	private TrackManager trackManager;
 	private Handler monitorHandler;
+	private ServiceConnection singletonServiceConnection = new ServiceConnection() {
+		@Override
+		public void onServiceConnected(ComponentName name, IBinder service) {
+		}
+
+		@Override
+		public void onServiceDisconnected(ComponentName name) {
+		}
+	};
 
 	public TrackingService() {
 	}
@@ -176,6 +187,7 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 
 		locationReceiver = new LocationReceiver(this);
 		trackManager = DefaultTrackManager.getInstance();
+		trackManager.updateLoadRadius(pref.getInt(SettingsActivity.PREF_LOAD_RADIUS, 500));
 
 		updateDistanceTracker();
 
@@ -183,8 +195,9 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 
 		pref.registerOnSharedPreferenceChangeListener(this);
 		//startLocationTrack();
-	}
 
+		bindService(new Intent(this, SingletonService.class), singletonServiceConnection, BIND_AUTO_CREATE);
+	}
 
 	private void updateDistanceTracker() {
 		if (distanceTracker != null) {
@@ -282,6 +295,8 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 		audioPlayer.stopAudioTrack();
 
 		releaseWakeLock();
+
+		unbindService(singletonServiceConnection);
 
 		log.info("TrackingService onDestroy");
 	}
@@ -398,8 +413,8 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 		intent.putExtra(ARG_LOCATION, location);
 
 		LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+
 		DefaultTrackManager.getInstance().updateUserLocation(location);
-		DefaultTrackManager.getInstance().updateLoadRadius(pref.getInt(SettingsActivity.PREF_LOAD_RADIUS, 1000));
 	}
 
 	public void sendLastLocation() {
@@ -423,7 +438,7 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 				}
 			}
 		} else if (s.equals(SettingsActivity.PREF_LOAD_RADIUS)) {
-			int newRadius = sharedPreferences.getInt(s, 1000);
+			int newRadius = sharedPreferences.getInt(s, 500);
 			DefaultTrackManager.getInstance().updateLoadRadius(newRadius);
 		} else if (s.equals(TrackManager.PREF_TRACK_MODE)) {
 			updateDistanceTracker();

@@ -64,7 +64,7 @@ public class NavigationDrawerFragment extends Fragment {
 	private ListView mDrawerListView;
 	private View mFragmentContainerView;
 
-	private int mCurrentSelectedPosition = 0;
+	private int mCurrentSelectedPosition = 1;
 	private boolean mFromSavedInstanceState;
 	private boolean mUserLearnedDrawer;
 
@@ -86,7 +86,9 @@ public class NavigationDrawerFragment extends Fragment {
 		}
 
 		// Select either the default item (0) or the last selected item.
-		selectItem(mCurrentSelectedPosition);
+		if (!mFromSavedInstanceState) {
+			selectItem(mCurrentSelectedPosition);
+		}
 	}
 
 	@Override
@@ -107,10 +109,7 @@ public class NavigationDrawerFragment extends Fragment {
 				if (position == POSITION_HELP)
 					getActivity().startActivity(new Intent(getActivity(), HelpActivity.class));
 				else if (position == POSITION_SETTINGS)
-					getActivity().startActivity(new Intent(getActivity(),
-							Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB
-									? SettingsActivity.class
-									: SettingsActivityCompat.class));
+					getActivity().startActivity(new Intent(getActivity(), SettingsActivity.class));
 				else
 					selectItem(position);
 			}
@@ -292,7 +291,7 @@ public class NavigationDrawerFragment extends Fragment {
 		ActionBar actionBar = getActionBar();
 		actionBar.setDisplayShowTitleEnabled(true);
 		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
-		log.debug("setNavigationMode STANDARD");
+
 		actionBar.setTitle(R.string.app_name);
 	}
 
