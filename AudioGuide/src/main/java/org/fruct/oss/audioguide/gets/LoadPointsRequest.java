@@ -22,6 +22,7 @@ public class LoadPointsRequest extends GetsRequest {
 	private final Location location;
 	private final float radius;
 
+	private Category currentCategory;
 	private List<Category> categories;
 	private List<Point> loadedPoints = new ArrayList<Point>();
 
@@ -36,7 +37,7 @@ public class LoadPointsRequest extends GetsRequest {
 	protected String createRequestString() {
 		try {
 			Category cat = categories.remove(categories.size() - 1);
-
+			currentCategory = cat;
 			XmlSerializer serializer = Xml.newSerializer();
 			StringWriter writer = new StringWriter();
 			serializer.setOutput(writer);
@@ -93,9 +94,15 @@ public class LoadPointsRequest extends GetsRequest {
 
 	@Override
 	protected boolean onPostExecute(GetsResponse response) {
-		if (response.getCode() == 0)
-			loadedPoints.addAll(((Kml) response.getContent()).getPoints());
+		if (response.getCode() == 0) {
+			List<Point> points = ((Kml) response.getContent()).getPoints();
 
+			for (Point point : points) {
+				point.setCategoryId(currentCategory.getId());
+			}
+
+			loadedPoints.addAll(points);
+		}
 		// TODO: ignore only "no category with given id" error
 		return !categories.isEmpty();
 	}

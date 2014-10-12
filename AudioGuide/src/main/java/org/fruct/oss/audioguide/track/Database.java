@@ -173,8 +173,7 @@ public class Database {
 	public Cursor loadPointsCursor(Track track) {
 		Cursor cursor = db.rawQuery(
 				"SELECT point.name, point.description, point.audioUrl, point.photoUrl, point.lat, point.lon, point.private, point.categoryId, point.time, point.uuid, point.id AS _id " +
-						"FROM point INNER JOIN tp " +
-						"ON tp.pointId=point.id " +
+						"FROM point INNER JOIN tp ON tp.pointId=point.id " +
 						"WHERE tp.trackId IN (SELECT track.id FROM track WHERE track.name=?) " +
 						"ORDER BY tp.idx;", Utils.toArray(track.getName())
 		);

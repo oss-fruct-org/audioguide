@@ -175,6 +175,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 					}
 
 					point.setPrivate(track.isPrivate());
+					point.setCategoryId(track.getCategoryId());
 				}
 
 				database.insertPointsToTrack(track, points);
@@ -335,7 +336,8 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 		}
 
 		activeCategories = database.getActiveCategories();
-		requestTracksInRadius();
+
+		notifyDataChanged();
 	}
 
 	@Override
