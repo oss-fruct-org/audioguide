@@ -7,8 +7,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.Uri;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
@@ -16,16 +16,20 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.SeekBar;
 
 import org.fruct.oss.audioguide.R;
+import org.fruct.oss.audioguide.files.DefaultFileManager;
+import org.fruct.oss.audioguide.files.FileListener;
+import org.fruct.oss.audioguide.files.FileManager;
 import org.fruct.oss.audioguide.track.AudioPlayer;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.TrackingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PanelFragment extends Fragment {
+public class PanelFragment extends Fragment implements FileListener {
 	private static final Logger log = LoggerFactory.getLogger(PanelFragment.class);
 
 	private BroadcastReceiver positionReceiver;
@@ -43,9 +47,15 @@ public class PanelFragment extends Fragment {
 	private boolean isDragging;
 
 	private int lastProgress;
+
 	private View playButton;
 	private View pauseButton;
-	private PointDetailFragment detailsFragment;
+	private View stopButton;
+
+	private ProgressBar progressBar;
+
+	private FileManager fileManager;
+	private String loadingUrl;
 
 	/**
      * Use this factory method to create a new instance of
@@ -79,8 +89,7 @@ public class PanelFragment extends Fragment {
 	public void startPlaying(int duration) {
 		this.duration = duration;
 
-		pauseButton.setVisibility(View.VISIBLE);
-		playButton.setVisibility(View.GONE);
+		setPlayingState();
 
 		seekBar.setMax(duration);
 		isStarted = true;
@@ -90,14 +99,15 @@ public class PanelFragment extends Fragment {
 		isStarted = false;
 		duration = -1;
 
-		pauseButton.setVisibility(View.GONE);
-		playButton.setVisibility(View.VISIBLE);
+		setPausedState();
 		seekBar.setProgress(0);
 
 		if (fallbackPoint == null) {
 			getActivity().getSupportFragmentManager().beginTransaction()
 					.setCustomAnimations(R.anim.bottom_up, R.anim.bottom_down)
 					.remove(this).commit();
+		} else {
+			configureFallbackPoint();
 		}
 	}
 
@@ -107,6 +117,8 @@ public class PanelFragment extends Fragment {
 		log.trace("onCreate");
 
 		setRetainInstance(true);
+
+		fileManager = DefaultFileManager.getInstance();
 
 		if (getArguments() != null) {
 			duration = getArguments().getInt("duration", -1);
@@ -159,8 +171,6 @@ public class PanelFragment extends Fragment {
 		positionReceiver = null;
 		stopReceiver = null;
 		stopReceiver = null;
-
-
 	}
 
 	@Override
@@ -194,13 +204,17 @@ public class PanelFragment extends Fragment {
 		});
 
 		seekBar = ((SeekBar) view.findViewById(R.id.seek_bar));
+		stopButton = view.findViewById(R.id.stop_button);
 		playButton = view.findViewById(R.id.play_button);
 		pauseButton = view.findViewById(R.id.pause_button);
+		progressBar = (ProgressBar) view.findViewById(R.id.progress_bar);
 
 		playButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View view) {
 				if (isStarted()) {
+					setPlayingState();
+
 					pauseButton.setVisibility(View.VISIBLE);
 					playButton.setVisibility(View.GONE);
 
@@ -218,8 +232,7 @@ public class PanelFragment extends Fragment {
 		pauseButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View view) {
-				pauseButton.setVisibility(View.GONE);
-				playButton.setVisibility(View.VISIBLE);
+				setPausedState();
 				getActivity().startService(new Intent(TrackingService.ACTION_PAUSE, null,
 						getActivity(), TrackingService.class));
 			}
@@ -247,15 +260,46 @@ public class PanelFragment extends Fragment {
 			}
 		});
 
-
 		if (duration != -1) {
 			startPlaying(duration);
 		} else {
-			playButton.setVisibility(View.VISIBLE);
-			pauseButton.setVisibility(View.GONE);
+			configureFallbackPoint();
 		}
 
 		return view;
+	}
+
+	private void configureFallbackPoint() {
+		if (!isStarted()) {
+			if (fileManager.getLocalPath(Uri.parse(fallbackPoint.getAudioUrl())) == null) {
+				setLoadingState();
+				loadingUrl = fallbackPoint.getAudioUrl();
+				fileManager.addWeakListener(this);
+			} else {
+				setPausedState();
+			}
+		}
+	}
+
+	private void setPlayingState() {
+		pauseButton.setVisibility(View.VISIBLE);
+		playButton.setVisibility(View.GONE);
+		stopButton.setVisibility(View.VISIBLE);
+		progressBar.setVisibility(View.GONE);
+	}
+
+	private void setPausedState() {
+		pauseButton.setVisibility(View.GONE);
+		playButton.setVisibility(View.VISIBLE);
+		stopButton.setVisibility(View.VISIBLE);
+		progressBar.setVisibility(View.GONE);
+	}
+
+	private void setLoadingState() {
+		pauseButton.setVisibility(View.GONE);
+		playButton.setVisibility(View.GONE);
+		stopButton.setVisibility(View.GONE);
+		progressBar.setVisibility(View.VISIBLE);
 	}
 
 	@Override
@@ -269,6 +313,9 @@ public class PanelFragment extends Fragment {
 
 	public void setFallbackPoint(Point point) {
 		this.fallbackPoint = point;
+		if (fileManager != null) {
+			configureFallbackPoint();
+		}
 	}
 
 	public void clearFallbackPoint() {
@@ -279,6 +326,21 @@ public class PanelFragment extends Fragment {
 			activity.getSupportFragmentManager().beginTransaction()
 					.setCustomAnimations(R.anim.bottom_up, R.anim.bottom_down)
 					.remove(this).commitAllowingStateLoss();
+		}
+	}
+
+	@Override
+	public void itemLoaded(String url) {
+		if (loadingUrl.equals(url)) {
+			setPausedState();
+		}
+	}
+
+	@Override
+	public void itemDownloadProgress(String url, int current, int max) {
+		if (loadingUrl.equals(url)) {
+			progressBar.setMax(max);
+			progressBar.setProgress(current);
 		}
 	}
 }

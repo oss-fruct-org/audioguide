@@ -33,6 +33,22 @@
         android:background="@null"
         />
 
+    <ProgressBar
+        android:id="@+id/progress_bar"
+
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_gravity="center_vertical"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+
+        android:background="@drawable/pie_progress_bar_back_light"
+        android:progressDrawable="@drawable/pie_progress_bar"
+
+        android:indeterminate="false"
+        android:visibility="gone"
+        />
 
     <SeekBar
         android:id="@+id/seek_bar"
