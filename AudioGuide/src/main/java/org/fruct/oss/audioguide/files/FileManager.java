@@ -8,6 +8,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.widget.ImageView;
 
+import org.fruct.oss.audioguide.fragments.PanelFragment;
 import org.fruct.oss.audioguide.parsers.GetsException;
 
 import java.io.Closeable;
@@ -35,7 +36,10 @@ public interface FileManager extends Closeable {
 
 	boolean isLocal(Uri uri);
 
-	void addWeakListener(FileListener pointCursorAdapter);
+	void addWeakListener(FileListener fileListener);
+	void removeListener(FileListener fileListener);
+
+
 
 	public static interface BitmapSetter {
 		void bitmapReady(Bitmap bitmap);

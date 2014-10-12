@@ -65,6 +65,8 @@ public class DefaultFileManager implements FileManager, Closeable {
 	private final Map<String, Future<String>> requestedRemoteUrls = new HashMap<String, Future<String>>();
 	private final Map<String, Runnable> requestedBitmaps = new HashMap<String, Runnable>();
 	private final Map<String, List<BitmapSetter>> activeBitmapSetters = new HashMap<String, List<BitmapSetter>>();
+	private String currentDownload;
+	private final Object currentDownloadLock = new Object();
 
 	private boolean isClosed;
 
@@ -72,6 +74,7 @@ public class DefaultFileManager implements FileManager, Closeable {
 		this.context = context;
 
 		executor = Executors.newSingleThreadExecutor();
+
 		scaleExecutor = Executors.newSingleThreadExecutor();
 
 		mainHandler = new Handler(Looper.getMainLooper());
@@ -226,9 +229,6 @@ public class DefaultFileManager implements FileManager, Closeable {
 		if (remoteUri.getScheme().equals("file")) {
 			return remoteUri.getPath();
 		}
-
-		if (requestedRemoteUrls.containsKey(remoteUri.toString()))
-			return null;
 
 		FileRecord fileRecord = findFileRecordByRemoteUrl(remoteUri.toString());
 		if (fileRecord == null) {
@@ -511,6 +511,11 @@ public class DefaultFileManager implements FileManager, Closeable {
 	@Override
 	public void addWeakListener(FileListener pointCursorAdapter) {
 		fileListeners.put(pointCursorAdapter, "null");
+	}
+
+	@Override
+	public void removeListener(FileListener fileListener) {
+		fileListeners.remove(fileListener);
 	}
 
 	private static DefaultFileManager instance;

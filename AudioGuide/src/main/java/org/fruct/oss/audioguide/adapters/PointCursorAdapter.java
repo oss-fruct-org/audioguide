@@ -99,6 +99,11 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 			fileManager.requestImageBitmap(photoUrl, Utils.getDP(48), Utils.getDP(48), FileManager.ScaleMode.SCALE_CROP, holder.bitmapSetter, "point-fragment");
 		}
 
+		if (holder.pendingUrl != null) {
+			pendingAudioUrls.remove(holder.pendingUrl);
+			holder.pendingUrl = null;
+		}
+
 		if (point.hasAudio()) {
 			String audioUrl = point.getAudioUrl();
 			pendingAudioUrls.remove(audioUrl);
@@ -113,10 +118,8 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 				holder.pendingUrl = audioUrl;
 				pendingAudioUrls.put(audioUrl, holder);
 			}
-		} else if (holder.pendingUrl != null) {
-			pendingAudioUrls.remove(holder.pendingUrl);
-			holder.pendingUrl = null;
 		}
+
 
 		if (selectedPosition == holder.position) {
 			holder.positionTop.setVisibility(View.VISIBLE);
@@ -167,7 +170,6 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 	@Override
 	public void itemDownloadProgress(String url, int current, int max) {
 		PointHolder holder = pendingAudioUrls.get(url);
-
 		if (holder != null) {
 			holder.progressBar.setMax(max);
 			holder.progressBar.setProgress(current);

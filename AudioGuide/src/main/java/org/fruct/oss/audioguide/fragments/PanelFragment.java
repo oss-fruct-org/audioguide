@@ -306,7 +306,10 @@ public class PanelFragment extends Fragment implements FileListener {
 	public void onDestroyView() {
 		super.onDestroyView();
 
+		fileManager.removeListener(this);
+
 		seekBar = null;
+		stopButton = null;
 		playButton = null;
 		pauseButton = null;
 	}
