@@ -3,8 +3,6 @@ package org.fruct.oss.audioguide.adapters;
 import android.app.Activity;
 import android.content.Context;
 import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.support.v4.widget.CursorAdapter;
 import android.view.MotionEvent;
@@ -65,7 +63,7 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 
 		holder.text1 = (TextView) view.findViewById(android.R.id.text1);
 		holder.text2 = (TextView) view.findViewById(android.R.id.text2);
-		holder.audioImage = (ImageView) view.findViewById(R.id.audioImage);
+		holder.audioImage = (ImageView) view.findViewById(R.id.audio_image);
 		holder.icon = (ImageView) view.findViewById(android.R.id.icon);
 		holder.progressBar = (ProgressBar) view.findViewById(R.id.progress_bar);
 
@@ -98,19 +96,7 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 
 		if (point.hasPhoto()) {
 			String photoUrl = point.getPhotoUrl();
-			//if (pendingIconUrls.contains(photoUrl)) {
-			//	pendingIconUrls.remove(photoUrl);
-			//}
-
 			fileManager.requestImageBitmap(photoUrl, Utils.getDP(48), Utils.getDP(48), FileManager.ScaleMode.SCALE_CROP, holder.bitmapSetter, "point-fragment");
-/*
-			Bitmap iconBitmap = fileManager.getImageBitmap(photoUrl, Utils.getDP(48), Utils.getDP(48), FileManager.ScaleMode.SCALE_CROP);
-			if (iconBitmap != null) {
-				holder.icon.setImageDrawable(new BitmapDrawable(context.getResources(), iconBitmap));
-			} else {
-				pendingIconUrls.add(photoUrl);
-				holder.icon.setImageDrawable(null);
-			}*/
 		}
 
 		if (point.hasAudio()) {
@@ -121,7 +107,9 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 
 			if (fileManager.getLocalPath(Uri.parse(audioUrl)) != null) {
 				holder.progressBar.setVisibility(View.GONE);
+				holder.audioImage.setVisibility(View.VISIBLE);
 			} else {
+				holder.audioImage.setVisibility(View.GONE);
 				holder.progressBar.setVisibility(View.VISIBLE);
 				holder.progressBar.setProgress(0);
 				pendingAudioUrls.put(audioUrl, holder);
@@ -169,6 +157,7 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 		PointHolder holder = pendingAudioUrls.get(url);
 		if (holder != null) {
 			holder.progressBar.setVisibility(View.GONE);
+			holder.audioImage.setVisibility(View.VISIBLE);
 			pendingAudioUrls.remove(url);
 		}
 	}

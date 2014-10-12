@@ -37,8 +37,6 @@ import org.fruct.oss.audioguide.track.TrackManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.CountDownLatch;
-
 public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemClickListener, AdapterView.OnItemLongClickListener {
 	private final static Logger log = LoggerFactory.getLogger(TrackFragment.class);
 
@@ -323,7 +321,7 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 	private ActionMode.Callback actionModeCallback = new ActionMode.Callback() {
 		@Override
 		public boolean onCreateActionMode(ActionMode actionMode, Menu menu) {
-			actionMode.getMenuInflater().inflate(R.menu.track_menu, menu);
+			actionMode.getMenuInflater().inflate(R.menu.track_action_menu, menu);
 
 			if (!selectedTrack.isLocal()) {
 				menu.findItem(R.id.action_delete).setVisible(false);

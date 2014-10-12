@@ -137,15 +137,10 @@ public class PointFragment extends ListFragment {
 	}
 
 	@Override
-	public void onDestroyView() {
-		super.onDestroyView();
-	}
-
-	@Override
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
 		super.onCreateOptionsMenu(menu, inflater);
 
-		inflater.inflate(R.menu.refresh, menu);
+		inflater.inflate(R.menu.points_menu, menu);
 	}
 
 	@Override
@@ -153,6 +148,10 @@ public class PointFragment extends ListFragment {
 		switch (item.getItemId()) {
 		case R.id.action_refresh:
 			trackManager.requestPointsInTrack(track);
+			break;
+
+		case R.id.action_save:
+			trackManager.storeTrackLocal(track);
 			break;
 		}
 

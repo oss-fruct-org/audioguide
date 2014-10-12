@@ -519,65 +519,6 @@ public class DefaultFileManager implements FileManager, Closeable {
 		return instance;
 	}
 
-	/*@Override
-	public void run() {
-		while (!isClosed) {
-			Cursor cursor;
-			synchronized (db) {
-				if (isClosed)
-					break;
-
-				cursor = db.rawQuery("SELECT title, remoteUrl FROM file " +
-						"WHERE cacheUrl IS NULL;", null);
-
-				if (!cursor.moveToFirst()) {
-					try {
-						db.wait();
-						Thread.sleep(1000);
-					} catch (InterruptedException ignored) {
-					}
-					cursor.close();
-					continue;
-				}
-			}
-
-			do {
-				final String remoteUrl = cursor.getString(1);
-				final String title = cursor.getString(0);
-				final File cacheFile = new File(cacheDir, UUID.randomUUID().toString());
-
-				try {
-					downloadUrl(remoteUrl, cacheFile);
-
-					synchronized (db) {
-						if (isClosed)
-							return;
-
-						db.execSQL("UPDATE file SET cacheUrl=? WHERE remoteUrl=?",
-								Utils.toArray(Uri.fromFile(cacheFile), remoteUrl));
-					}
-
-					mainHandler.post(new Runnable() {
-						@Override
-						public void run() {
-							for (FileListener listener : fileListeners.keySet()) {
-								listener.itemLoaded(remoteUrl);
-							}
-						}
-					});
-				} catch (IOException ex) {
-					log.error("Error downloading file: {}", remoteUrl);
-					cacheFile.delete();
-				}
-
-				if (isClosed)
-					return;
-			} while (cursor.moveToNext());
-
-			cursor.close();
-		}
-	}*/
-
 	private void downloadUrl(final String uri, File localFile) throws IOException {
 		URL url = new URL(uri);
 
