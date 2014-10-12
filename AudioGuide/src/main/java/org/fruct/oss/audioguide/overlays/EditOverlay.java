@@ -492,10 +492,14 @@ private void checkDistance(MapView mapView, android.graphics.Point p) {
 		private Object tag;
 
 		@Override
-		public void bitmapReady(final Bitmap newBitmap) {
+		public void bitmapReady(final Bitmap newBitmap, final Object checkTag) {
 			handler.post(new Runnable() {
 				@Override
 				public void run() {
+					if (!checkTag.equals(tag)) {
+						return;
+					}
+
 					item.iconBitmap = newBitmap;
 					recycle();
 					bitmap = newBitmap;

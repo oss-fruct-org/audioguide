@@ -90,13 +90,14 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 
 		holder.text1.setText(point.getName());
 		holder.text2.setText(point.getDescription());
-		holder.audioImage.setVisibility(point.hasAudio() ? View.VISIBLE : View.GONE);
 		holder.icon.setImageDrawable(null);
 		holder.position = cursor.getPosition();
 
 		if (point.hasPhoto()) {
 			String photoUrl = point.getPhotoUrl();
 			fileManager.requestImageBitmap(photoUrl, Utils.getDP(48), Utils.getDP(48), FileManager.ScaleMode.SCALE_CROP, holder.bitmapSetter, "point-fragment");
+		} else {
+			holder.bitmapSetter.setTag(null);
 		}
 
 		if (holder.pendingUrl != null) {
@@ -118,8 +119,10 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 				holder.pendingUrl = audioUrl;
 				pendingAudioUrls.put(audioUrl, holder);
 			}
+		} else {
+			holder.progressBar.setVisibility(View.GONE);
+			holder.audioImage.setVisibility(View.GONE);
 		}
-
 
 		if (selectedPosition == holder.position) {
 			holder.positionTop.setVisibility(View.VISIBLE);

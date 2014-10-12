@@ -42,7 +42,7 @@ public interface FileManager extends Closeable {
 
 
 	public static interface BitmapSetter {
-		void bitmapReady(Bitmap bitmap);
+		void bitmapReady(Bitmap bitmap, Object checkTag);
 		void recycle();
 
 		void setTag(Object tag);
@@ -60,11 +60,15 @@ public interface FileManager extends Closeable {
 		}
 
 		@Override
-		public void bitmapReady(final Bitmap newBitmap) {
+		public void bitmapReady(final Bitmap newBitmap, final Object checkTag) {
 			handler.post(new Runnable() {
 				@Override
 				public void run() {
-					imageView.setImageDrawable(new AsyncDrawable(Resources.getSystem(), newBitmap));
+					if (!checkTag.equals(tag)) {
+						return;
+					}
+
+					imageView.setImageDrawable(new BitmapDrawable(Resources.getSystem(), newBitmap));
 					if (bitmap != null && !bitmap.isRecycled()) {
 						bitmap.recycle();
 					}
@@ -89,12 +93,6 @@ public interface FileManager extends Closeable {
 		@Override
 		public Object getTag() {
 			return tag;
-		}
-	}
-
-	static class AsyncDrawable extends BitmapDrawable {
-		public AsyncDrawable(Resources res, Bitmap bitmap) {
-			super(res, bitmap);
 		}
 	}
 }

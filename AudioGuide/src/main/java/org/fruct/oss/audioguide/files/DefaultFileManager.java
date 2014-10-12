@@ -320,7 +320,7 @@ public class DefaultFileManager implements FileManager, Closeable {
 			@Override
 			public void run() {
 				try {
-					if (bitmapSetter.getTag() != this)
+					if (!bitmapSetter.getTag().equals(this))
 						return;
 
 					String cachedPath = getLocalPath(Uri.parse(remoteUrl));
@@ -353,7 +353,7 @@ public class DefaultFileManager implements FileManager, Closeable {
 						oldBitmap.recycle();
 					}
 
-					bitmapSetter.bitmapReady(bitmap);
+					bitmapSetter.bitmapReady(bitmap, this);
 				} finally {
 					synchronized (scaleExecutor) {
 						requestedBitmaps.remove(remoteUrl);

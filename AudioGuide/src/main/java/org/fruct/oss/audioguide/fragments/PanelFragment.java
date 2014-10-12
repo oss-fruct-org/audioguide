@@ -316,7 +316,7 @@ public class PanelFragment extends Fragment implements FileListener {
 
 	public void setFallbackPoint(Point point) {
 		this.fallbackPoint = point;
-		if (fileManager != null) {
+		if (fileManager != null && pauseButton != null) {
 			configureFallbackPoint();
 		}
 	}
