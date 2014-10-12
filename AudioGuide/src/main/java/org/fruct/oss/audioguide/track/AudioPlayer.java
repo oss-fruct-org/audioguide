@@ -49,9 +49,11 @@ public class AudioPlayer implements MediaPlayer.OnPreparedListener,
 		try {
 			// Try to use cached uri
 			String localPath = fileManager.getLocalPath(uri);
-			if (localPath == null)
+			if (localPath == null) {
+				player.release();
+				player = null;
 				return;
-			else
+			} else
 				player.setDataSource(context, Uri.parse(localPath));
 
 		} catch (IOException e) {
