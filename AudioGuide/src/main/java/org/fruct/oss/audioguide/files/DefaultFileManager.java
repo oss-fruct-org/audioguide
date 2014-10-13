@@ -65,6 +65,7 @@ public class DefaultFileManager implements FileManager, Closeable {
 	private final Map<String, Future<String>> requestedRemoteUrls = new HashMap<String, Future<String>>();
 	private final Map<String, Runnable> requestedBitmaps = new HashMap<String, Runnable>();
 	private final Map<String, List<BitmapSetter>> activeBitmapSetters = new HashMap<String, List<BitmapSetter>>();
+
 	private String currentDownload;
 	private final Object currentDownloadLock = new Object();
 
