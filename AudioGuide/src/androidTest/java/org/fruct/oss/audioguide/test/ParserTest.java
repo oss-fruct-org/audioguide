@@ -2,7 +2,6 @@ package org.fruct.oss.audioguide.test;
 
 
 import android.content.Context;
-import android.test.AndroidTestCase;
 
 import org.fruct.oss.audioguide.parsers.AuthRedirectResponse;
 import org.fruct.oss.audioguide.parsers.FileContent;
@@ -15,37 +14,42 @@ import org.fruct.oss.audioguide.parsers.TracksContent;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.Track;
 import org.fruct.oss.audioguide.util.Utils;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.Robolectric;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 
 import java.io.InputStream;
 import java.util.List;
+import static org.junit.Assert.*;
 
-public class ParserTest extends AndroidTestCase{
+@Config(emulateSdk = 18)
+@RunWith(RobolectricTestRunner.class)
+public class ParserTest {
 	private Context testContext;
 	private InputStream stream;
 
-	@Override
-	protected void setUp() throws Exception {
-		super.setUp();
-
+	@Before
+	public void setUp() throws Exception {
         if (testContext == null) {
-			assert getContext() != null;
-            testContext = getContext().createPackageContext(
-                    "org.fruct.oss.audioguide.test", Context.CONTEXT_IGNORE_SECURITY);
+			testContext = Robolectric.application;
         }
 	}
 
-	@Override
-	protected void tearDown() throws Exception {
+	@After
+	public void tearDown() throws Exception {
 		if (stream != null) {
 			stream.close();
 			stream = null;
 		}
-
-		super.tearDown();
 	}
 
+	@Test
 	public void testErrorResponse() throws Exception {
-		InputStream stream = testContext.getAssets().open("error-response.xml");
+		InputStream stream = testContext.getAssets().open("test/error-response.xml");
 
 		GetsResponse resp = GetsResponse.parse(Utils.inputStreamToString(stream), IContent.class);
 		assertEquals(1, resp.getCode());
@@ -53,8 +57,9 @@ public class ParserTest extends AndroidTestCase{
 		assertNull(resp.getContent());
 	}
 
+	@Test
 	public void testLoadTracksResponse() throws Exception {
-		InputStream stream = testContext.getAssets().open("load-tracks-response.xml");
+		InputStream stream = testContext.getAssets().open("test/load-tracks-response.xml");
 
 		GetsResponse resp = GetsResponse.parse(Utils.inputStreamToString(stream), TracksContent.class);
 		assertEquals(0, resp.getCode());
@@ -70,8 +75,9 @@ public class ParserTest extends AndroidTestCase{
 		assertEquals("Private track 2", tracks.get(1).getDescription());
 	}
 
+	@Test
 	public void testLoadTrackResponse() throws Exception {
-		InputStream stream = testContext.getAssets().open("load-track-response.xml");
+		InputStream stream = testContext.getAssets().open("test/load-track-response.xml");
 		GetsResponse resp = GetsResponse.parse(Utils.inputStreamToString(stream), Kml.class);
 
 		assertEquals(0, resp.getCode());
@@ -88,8 +94,9 @@ public class ParserTest extends AndroidTestCase{
 		assertEquals("asd", tracks.get(1).getDescription());
 	}
 
+	@Test
 	public void testAuth1() throws Exception {
-		InputStream stream = testContext.getAssets().open("google-auth-stage1.xml");
+		InputStream stream = testContext.getAssets().open("test/google-auth-stage1.xml");
 
 		GetsResponse resp = GetsResponse.parse(Utils.inputStreamToString(stream), AuthRedirectResponse.class);
 		assertEquals(2, resp.getCode());
@@ -100,8 +107,9 @@ public class ParserTest extends AndroidTestCase{
 		assertEquals("http://example.com/authentication.php", content.getRedirectUrl());
 	}
 
+	@Test
 	public void testAuth2() throws Exception {
-		InputStream stream = testContext.getAssets().open("auth-token.xml");
+		InputStream stream = testContext.getAssets().open("test/auth-token.xml");
 
 		GetsResponse resp = GetsResponse.parse(Utils.inputStreamToString(stream), TokenContent.class);
 		assertEquals(0, resp.getCode());
@@ -111,8 +119,9 @@ public class ParserTest extends AndroidTestCase{
 		assertEquals("74a89174426b40307102e165374ab8ab", content.getAccessToken());
 	}
 
+	@Test
 	public void testFiles() throws Exception {
-		InputStream stream = testContext.getAssets().open("files.xml");
+		InputStream stream = testContext.getAssets().open("test/files.xml");
 
 		GetsResponse resp = GetsResponse.parse(Utils.inputStreamToString(stream), FilesContent.class);
 		assertEquals(0, resp.getCode());
@@ -138,8 +147,9 @@ public class ParserTest extends AndroidTestCase{
 		assertEquals(file3.getUrl(), "https://docs.google.com/uc?id=0B99FJDhx6L84bEZVVDZpR1duQTQ&export=download");
 	}
 
+	@Test
 	public void testFile() throws Exception {
-		InputStream stream = testContext.getAssets().open("file.xml");
+		InputStream stream = testContext.getAssets().open("test/file.xml");
 
 		GetsResponse resp = GetsResponse.parse(Utils.inputStreamToString(stream), FileContent.class);
 		assertEquals(0, resp.getCode());
@@ -150,6 +160,5 @@ public class ParserTest extends AndroidTestCase{
 		assertEquals(content.getTitle(), "qwerty");
 		assertEquals(content.getMimeType(), "image/png");
 		assertEquals(content.getUrl(), "https://docs.google.com/uc?id=0B99FJDhx6L84dmNnMlNOLU9JcXM&export=download");
-
 	}
 }

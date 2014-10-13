@@ -3,7 +3,6 @@ package org.fruct.oss.audioguide.track;
 import android.location.Location;
 
 import org.fruct.oss.audioguide.gets.Category;
-import org.fruct.oss.audioguide.models.Model;
 
 import java.io.Closeable;
 import java.util.List;

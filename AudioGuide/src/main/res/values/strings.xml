@@ -30,6 +30,9 @@
         <item>Active</item>
     </string-array>
 
+    <string name="pref_seek_bar_summary_stub">Play sound if point nearer than meters</string>
+    <string name="pref_load_radius_summary_stub">Load points nearer than kilometers</string>
+
     <plurals name="pref_seek_bar_summary">
         <item quantity="one">Play sound if point nearer than %d meter</item>
         <item quantity="other">Play sound if point nearer than %d meters</item>

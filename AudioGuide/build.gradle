@@ -1,4 +1,5 @@
 apply plugin: 'com.android.application'
+apply plugin: 'robolectric'
 
 android {
     compileSdkVersion 20
@@ -14,8 +15,14 @@ android {
 
     sourceSets {
         androidTest {
-            java.srcDirs = ['src/androidTest/java']
+            setRoot('src/androidTest')
+            assets.srcDir file( 'src/androidTest/assets' )
         }
+    }
+
+
+    robolectric {
+        include '**/*Test.class'
     }
 
     buildTypes {
@@ -33,9 +40,27 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
-    androidTestCompile 'com.jayway.android.robotium:robotium-solo:5.0.1'
     compile 'com.android.support:support-v4:20.+'
     compile 'com.android.support:appcompat-v7:20.+'
     compile 'org.osmdroid:osmdroid-android:4.2'
     compile 'org.slf4j:slf4j-android:1.6.1-RC1'
+
+    androidTestCompile('junit:junit:4.11')
+    androidTestCompile('org.robolectric:robolectric:2.3') {
+        exclude module: 'classworlds'
+        exclude module: 'commons-logging'
+        exclude module: 'httpclient'
+        exclude module: 'maven-artifact'
+        exclude module: 'maven-artifact-manager'
+        exclude module: 'maven-error-diagnostics'
+        exclude module: 'maven-model'
+        exclude module: 'maven-project'
+        exclude module: 'maven-settings'
+        exclude module: 'plexus-container-default'
+        exclude module: 'plexus-interpolation'
+        exclude module: 'plexus-utils'
+        exclude module: 'wagon-file'
+        exclude module: 'wagon-http-lightweight'
+        exclude module: 'wagon-provider-api'
+    }
 }
