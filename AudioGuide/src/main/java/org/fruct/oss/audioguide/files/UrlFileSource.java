@@ -14,19 +14,13 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 public class UrlFileSource implements FileSource {
-	private final String url;
-
-	public UrlFileSource(String url) {
-		this.url = url;
-	}
-
 	@Override
-	public InputStream getInputStream(Variant variant) throws IOException {
-		URL url2 = new URL(getUrl(variant));
+	public InputStream getInputStream(String fileUrl, Variant variant) throws IOException {
+		URL url = new URL(fileUrl);
 
 		HttpURLConnection conn = null;
 		try {
-			conn = (HttpURLConnection) url2.openConnection();
+			conn = (HttpURLConnection) url.openConnection();
 			conn.setDoInput(true);
 			conn.setConnectTimeout(5000);
 			conn.setReadTimeout(15000);
@@ -41,10 +35,6 @@ public class UrlFileSource implements FileSource {
 		}
 	}
 
-	@Override
-	public String getUrl(Variant variant) {
-		return url;
-	}
 
 	private static class HttpInputStream extends FilterInputStream {
 		private final HttpURLConnection conn;

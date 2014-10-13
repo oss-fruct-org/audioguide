@@ -2,6 +2,6 @@ package org.fruct.oss.audioguide.files;
 
 
 public interface FileListener {
-	void itemLoaded(String url);
-	void itemDownloadProgress(String url, int current, int max);
+	void itemLoaded(String fileUrl);
+	void itemDownloadProgress(String fileUrl, int current, int max);
 }

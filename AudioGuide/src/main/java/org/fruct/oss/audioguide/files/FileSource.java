@@ -9,6 +9,5 @@ public interface FileSource {
 		PREVIEW, FULL
 	}
 
-	InputStream getInputStream(Variant variant) throws IOException;
-	String getUrl(Variant variant);
+	InputStream getInputStream(String fileUrl, Variant variant) throws IOException;
 }
