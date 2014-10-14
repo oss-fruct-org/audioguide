@@ -3,6 +3,7 @@ package org.fruct.oss.audioguide.files;
 import org.fruct.oss.audioguide.util.Utils;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,6 +15,7 @@ import java.util.concurrent.Executor;
 public class DirectoryFileStorage implements FileStorage {
 	private File directory;
 	private Set<String> currentStoringFiles = Collections.synchronizedSet(new HashSet<String>());
+	private Mode mode = Mode.FALLBACK;
 
 	public DirectoryFileStorage(String directoryPath, Executor executor) throws IOException{
 		this.directory = new File(directoryPath);
@@ -29,6 +31,15 @@ public class DirectoryFileStorage implements FileStorage {
 				initialize();
 			}
 		});
+	}
+
+	public DirectoryFileStorage(String directoryPath, Executor executor, Mode mode) throws IOException {
+		this(directoryPath, executor);
+		this.mode = mode;
+	}
+
+	public void setMode(Mode mode) {
+		this.mode = mode;
 	}
 
 	private void initialize() {
@@ -76,5 +87,51 @@ public class DirectoryFileStorage implements FileStorage {
 		} else {
 			return null;
 		}
+	}
+
+	@Override
+	public void pullFile(FileStorage otherStorage, String fileUrl, FileSource.Variant variant) throws IOException {
+		String otherLocalFilePath = otherStorage.getFile(fileUrl, variant);
+
+		File otherLocalFile = new File(otherLocalFilePath);
+		File newLocalFile = new File(directory, toFileName(fileUrl, variant));
+
+		if (newLocalFile.exists())
+			return;
+
+		if (mode != Mode.COPY) {
+			if (otherLocalFile.renameTo(newLocalFile)) {
+				return;
+			}
+		}
+
+		if (mode == Mode.RENAME)
+			throw new IOException("Can't rename file " + otherLocalFilePath + " to " + newLocalFile);
+
+		FileInputStream input = null;
+		FileOutputStream output = null;
+		try {
+			input = new FileInputStream(otherLocalFile);
+			output = new FileOutputStream(newLocalFile);
+
+			Utils.copyStream(input, output);
+
+			otherLocalFile.delete();
+		} catch (IOException ex) {
+			newLocalFile.delete();
+		} finally {
+			if (input != null)
+				input.close();
+
+			if (output != null)
+				output.close();
+
+		}
+	}
+
+	public enum Mode {
+		FALLBACK,
+		RENAME,
+		COPY
 	}
 }

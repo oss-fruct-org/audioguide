@@ -34,16 +34,26 @@ public class DirectoryFileStorageTest extends AndroidTestCase {
 
 	private RenamingDelegatingContext context;
 	private File dir;
+	private File dir2;
+
 	private ExecutorService executor;
+
 	private DirectoryFileStorage fileStorage;
+	private DirectoryFileStorage fileStorage2;
 
 	public void setUp() throws Exception {
 		super.setUp();
 
 		context = new RenamingDelegatingContext(getContext(), "test-prefix-");
+
 		dir = context.getDir("test", Context.MODE_PRIVATE);
 		executor = Executors.newSingleThreadExecutor();
 		fileStorage = new DirectoryFileStorage(dir.getPath(), executor);
+
+		dir2 = context.getDir("test2", Context.MODE_PRIVATE);
+		executor = Executors.newSingleThreadExecutor();
+		fileStorage2 = new DirectoryFileStorage(dir2.getPath(), executor);
+
 		waitExecutor(executor);
 	}
 
@@ -52,6 +62,12 @@ public class DirectoryFileStorageTest extends AndroidTestCase {
 			file.delete();
 		}
 		dir.delete();
+
+		for (File file : dir2.listFiles()) {
+			file.delete();
+		}
+		dir2.delete();
+
 		executor.shutdownNow();
 	}
 
@@ -94,6 +110,28 @@ public class DirectoryFileStorageTest extends AndroidTestCase {
 
 		assertNull(fileStorage.getFile(URL1, FileSource.Variant.FULL));
 		latch.countDown();
+	}
+
+	public void testFilePulling() throws Exception {
+		fileStorage2.setMode(DirectoryFileStorage.Mode.COPY);
+
+		fileStorage.storeFile(URL1, FileSource.Variant.FULL, createStream("qwe"));
+		fileStorage2.pullFile(fileStorage, URL1, FileSource.Variant.FULL);
+		String file = fileStorage2.getFile(URL1, FileSource.Variant.FULL);
+		assertNotNull(file);
+		assertNull(fileStorage.getFile(URL1, FileSource.Variant.FULL));
+		assertEquals("qwe", getFirstLine(file));
+	}
+
+	public void testFilePullingRename() throws Exception {
+		fileStorage2.setMode(DirectoryFileStorage.Mode.RENAME);
+
+		fileStorage.storeFile(URL1, FileSource.Variant.FULL, createStream("qwe"));
+		fileStorage2.pullFile(fileStorage, URL1, FileSource.Variant.FULL);
+		String file = fileStorage2.getFile(URL1, FileSource.Variant.FULL);
+		assertNotNull(file);
+		assertNull(fileStorage.getFile(URL1, FileSource.Variant.FULL));
+		assertEquals("qwe", getFirstLine(file));
 	}
 
 	private String getFirstLine(String file) throws Exception {

@@ -188,6 +188,15 @@ public class FileManager implements Closeable {
 	}
 
 	/**
+	 * Request file transfer from cache storage to persistent storage
+	 * @param fileUrl source file url
+	 * @param variant file variant
+	 */
+	public synchronized void requestTransfer(String fileUrl, FileSource.Variant variant) {
+
+	}
+
+	/**
 	 * Add file listener
 	 * @param listener listener
 	 */

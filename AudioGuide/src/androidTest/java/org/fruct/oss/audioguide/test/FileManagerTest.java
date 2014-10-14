@@ -263,6 +263,11 @@ public class FileManagerTest extends AndroidTestCase {
 		public String getFile(String fileUrl, FileSource.Variant variant) {
 			return files.get(fileUrl + variant.toString());
 		}
+
+		@Override
+		public void pullFile(FileStorage otherStorage, String fileUrl, FileSource.Variant variant) {
+			files.put(fileUrl + variant.toString(), fileUrl.substring(6));
+		}
 	}
 
 	private class CountPostProcessor implements PostProcessor<Integer> {
