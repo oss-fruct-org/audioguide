@@ -4,6 +4,7 @@ import android.content.Context;
 import android.test.AndroidTestCase;
 import android.test.RenamingDelegatingContext;
 
+import junit.framework.AssertionFailedError;
 import junit.framework.TestCase;
 
 import org.fruct.oss.audioguide.files.DirectoryFileStorage;
@@ -14,8 +15,11 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FilterInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
@@ -70,6 +74,28 @@ public class DirectoryFileStorageTest extends AndroidTestCase {
 		assertEquals("qwe", getFirstLine(file));
 	}
 
+	public void testStoringFile() throws Exception {
+		final CountDownLatch latch = new CountDownLatch(1);
+		final CountDownLatch latch2 = new CountDownLatch(1);
+
+		executor.execute(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					fileStorage.storeFile(URL1, FileSource.Variant.FULL, createBlockedStream("qwe", latch ,latch2));
+				} catch (IOException e) {
+				}
+			}
+		});
+
+		if (!latch2.await(100, TimeUnit.MILLISECONDS)) {
+			throw new AssertionFailedError("BlockingStream didn't called");
+		}
+
+		assertNull(fileStorage.getFile(URL1, FileSource.Variant.FULL));
+		latch.countDown();
+	}
+
 	private String getFirstLine(String file) throws Exception {
 		BufferedReader reader = null;
 		try {
@@ -84,6 +110,14 @@ public class DirectoryFileStorageTest extends AndroidTestCase {
 	private InputStream createStream(String str) {
 		try {
 			return new ByteArrayInputStream(str.getBytes("UTF-8"));
+		} catch (UnsupportedEncodingException e) {
+			throw new RuntimeException("Android doesn't support UTF-8");
+		}
+	}
+
+	private InputStream createBlockedStream(String str, CountDownLatch latch, CountDownLatch latch2) {
+		try {
+			return new BlockedStream(new ByteArrayInputStream(str.getBytes("UTF-8")), latch, latch2);
 		} catch (UnsupportedEncodingException e) {
 			throw new RuntimeException("Android doesn't support UTF-8");
 		}
@@ -104,6 +138,37 @@ public class DirectoryFileStorageTest extends AndroidTestCase {
 			throw new RuntimeException("Executor wait failed");
 		} catch (TimeoutException e) {
 			throw new RuntimeException("Executor wait timeout");
+		}
+	}
+
+	private class BlockedStream extends FilterInputStream {
+		private final CountDownLatch latch;
+		private final CountDownLatch latch2;
+
+		protected BlockedStream(InputStream in, CountDownLatch latch, CountDownLatch latch2) {
+			super(in);
+			this.latch = latch;
+			this.latch2 = latch2;
+		}
+
+		@Override
+		public int read() throws IOException {
+			latch2.countDown();
+			try {
+				latch.await(100, TimeUnit.MILLISECONDS);
+			} catch (InterruptedException e) {
+			}
+			return super.read();
+		}
+
+		@Override
+		public int read(byte[] buffer, int byteOffset, int byteCount) throws IOException {
+			latch2.countDown();
+			try {
+				latch.await(100, TimeUnit.MILLISECONDS);
+			} catch (InterruptedException e) {
+			}
+			return super.read(buffer, byteOffset, byteCount);
 		}
 	}
 }

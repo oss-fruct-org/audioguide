@@ -302,6 +302,7 @@ public class PointDetailFragment extends Fragment implements FileListener {
 	@Override
 	public void onDestroyView() {
 		super.onDestroyView();
+		fileManager.removeListener(this);
 		pendingUrl = null;
 	}
 

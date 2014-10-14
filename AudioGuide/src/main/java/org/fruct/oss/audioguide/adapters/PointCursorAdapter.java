@@ -38,8 +38,8 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 	private boolean isPlaceSelectable;
 	private Set<Point> highlightedItems = new HashSet<Point>();
 
-	//private Set<String> pendingIconUrls = new HashSet<String>();
 	private HashMap<String, PointHolder> pendingAudioUrls = new HashMap<String, PointHolder>();
+
 	private List<BitmapProcessor> bitmapProcessors = new ArrayList<BitmapProcessor>();
 
 	private int selectedPosition = -1;
@@ -58,6 +58,7 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 		for (BitmapProcessor proc : bitmapProcessors) {
 			proc.recycle();
 		}
+		this.fileManager.removeListener(this);
 	}
 
 	@Override
@@ -111,10 +112,11 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 			holder.bitmapSetter.setTag(null);
 		}
 
-		if (holder.pendingUrl != null) {
+		/*if (holder.pendingUrl != null) {
+			log.debug("Removing url");
 			pendingAudioUrls.remove(holder.pendingUrl);
 			holder.pendingUrl = null;
-		}
+		}*/
 
 		if (point.hasAudio()) {
 			String audioUrl = point.getAudioUrl();
@@ -123,6 +125,7 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 			if (fileManager.getLocalFile(audioUrl, FileSource.Variant.FULL) != null) {
 				holder.progressBar.setVisibility(View.GONE);
 				holder.audioImage.setVisibility(View.VISIBLE);
+				holder.pendingUrl = null;
 			} else {
 				holder.audioImage.setVisibility(View.GONE);
 				holder.progressBar.setVisibility(View.VISIBLE);
@@ -133,6 +136,7 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 		} else {
 			holder.progressBar.setVisibility(View.GONE);
 			holder.audioImage.setVisibility(View.GONE);
+			holder.pendingUrl = null;
 		}
 
 		if (selectedPosition == holder.position) {
@@ -170,11 +174,8 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 
 	@Override
 	public void itemLoaded(final String url) {
-		//if (pendingIconUrls.contains(url))
-		//	notifyDataSetChanged();
-
 		PointHolder holder = pendingAudioUrls.get(url);
-		if (holder != null) {
+		if (holder != null && url.equals(holder.pendingUrl)) {
 			holder.progressBar.setVisibility(View.GONE);
 			holder.audioImage.setVisibility(View.VISIBLE);
 			pendingAudioUrls.remove(url);
@@ -184,7 +185,7 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 	@Override
 	public void itemDownloadProgress(String url, int current, int max) {
 		PointHolder holder = pendingAudioUrls.get(url);
-		if (holder != null) {
+		if (holder != null && url.equals(holder.pendingUrl)) {
 			holder.progressBar.setMax(max);
 			holder.progressBar.setProgress(current);
 		}

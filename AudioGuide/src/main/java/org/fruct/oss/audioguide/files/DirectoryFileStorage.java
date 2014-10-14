@@ -6,10 +6,14 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.Executor;
 
 public class DirectoryFileStorage implements FileStorage {
 	private File directory;
+	private Set<String> currentStoringFiles = Collections.synchronizedSet(new HashSet<String>());
 
 	public DirectoryFileStorage(String directoryPath, Executor executor) throws IOException{
 		this.directory = new File(directoryPath);
@@ -37,17 +41,35 @@ public class DirectoryFileStorage implements FileStorage {
 
 	@Override
 	public String storeFile(String fileUrl, FileSource.Variant variant, InputStream inputStream) throws IOException {
-		File file = new File(directory, toFileName(fileUrl, variant));
+		String name = toFileName(fileUrl, variant);
 
-		FileOutputStream output = new FileOutputStream(file);
-		Utils.copyStream(inputStream, output);
+		currentStoringFiles.add(name);
 
-		return file.getPath();
+		try {
+			File file = new File(directory, name);
+
+			FileOutputStream output = new FileOutputStream(file);
+
+			try {
+				Utils.copyStream(inputStream, output);
+			} catch (IOException ex) {
+				file.delete();
+				throw ex;
+			}
+			return file.getPath();
+		} finally {
+			currentStoringFiles.remove(name);
+		}
 	}
 
 	@Override
 	public String getFile(String fileUrl, FileSource.Variant variant) {
-		File file = new File(directory, toFileName(fileUrl, variant));
+		String name = toFileName(fileUrl, variant);
+
+		if (currentStoringFiles.contains(name))
+			return null;
+
+		File file = new File(directory, name);
 
 		if (file.exists() && file.canRead()) {
 			return file.getPath();

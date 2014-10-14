@@ -5,6 +5,7 @@ import android.os.Handler;
 import android.os.Looper;
 
 import org.fruct.oss.audioguide.App;
+import org.fruct.oss.audioguide.util.ProgressInputStream;
 import org.fruct.oss.audioguide.util.Utils;
 
 import java.io.Closeable;
@@ -97,7 +98,23 @@ public class FileManager implements Closeable {
 				FileStorage storage = storageType == Storage.CACHE ? cacheStorage : persistentStorage;
 
 				InputStream inputStream = remoteFileSource.getInputStream(fileUrl, variant);
-				String localFile = storage.storeFile(fileUrl, variant, inputStream);
+				ProgressInputStream progressInputStream
+						= new ProgressInputStream(inputStream,
+							inputStream.available(), 100000, new ProgressInputStream.ProgressListener() {
+					@Override
+					public void update(final int current, final int max) {
+						listenerHandler.apply(new Runnable() {
+							@Override
+							public void run() {
+								for (FileListener listener : listeners) {
+									listener.itemDownloadProgress(fileUrl, current, max);
+								}
+							}
+						});
+					}
+				});
+
+				String localFile = storage.storeFile(fileUrl, variant, progressInputStream);
 				inputStream.close();
 
 				synchronized (FileManager.this) {
