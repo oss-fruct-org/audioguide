@@ -3,6 +3,7 @@ package org.fruct.oss.audioguide.adapters;
 import android.app.Activity;
 import android.content.Context;
 import android.database.Cursor;
+import android.graphics.PorterDuff;
 import android.support.v4.widget.CursorAdapter;
 import android.view.MotionEvent;
 import android.view.View;
@@ -122,9 +123,17 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 			String audioUrl = point.getAudioUrl();
 			pendingAudioUrls.remove(audioUrl);
 
-			if (fileManager.getLocalFile(audioUrl, FileSource.Variant.FULL) != null) {
+			FileManager.Storage storageType = fileManager.getStorageType(audioUrl, FileSource.Variant.FULL);
+			if (storageType != null) {
 				holder.progressBar.setVisibility(View.GONE);
 				holder.audioImage.setVisibility(View.VISIBLE);
+
+				if (storageType == FileManager.Storage.PERSISTENT) {
+					holder.audioImage.setColorFilter(0xff3983CC, PorterDuff.Mode.SRC_ATOP);
+				} else {
+					holder.audioImage.clearColorFilter();
+				}
+
 				holder.pendingUrl = null;
 			} else {
 				holder.audioImage.setVisibility(View.GONE);
@@ -180,6 +189,8 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 			holder.audioImage.setVisibility(View.VISIBLE);
 			pendingAudioUrls.remove(url);
 		}
+
+		notifyDataSetChanged();
 	}
 
 	@Override

@@ -112,7 +112,8 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 						point.setCategoryId(track.getCategoryId());
 
 					if (point.hasAudio()) {
-						fileManager.requestDownload(point.getAudioUrl(), FileSource.Variant.FULL, FileManager.Storage.CACHE);
+						fileManager.requestTransfer(point.getAudioUrl(), FileSource.Variant.FULL);
+						fileManager.requestDownload(point.getAudioUrl(), FileSource.Variant.FULL, FileManager.Storage.PERSISTENT);
 					}
 				}
 

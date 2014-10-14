@@ -81,6 +81,22 @@ public class FileManager implements Closeable {
 	}
 
 	/**
+	 * Return type of storage that contains file
+	 * @param fileUrl source url
+	 * @param variant variant
+	 * @return storage type
+	 */
+	public Storage getStorageType(String fileUrl, FileSource.Variant variant) {
+		if (persistentStorage.getFile(fileUrl, variant) != null) {
+			return Storage.PERSISTENT;
+		} else if (cacheStorage.getFile(fileUrl, variant) != null) {
+			return Storage.CACHE;
+		} else {
+			return null;
+		}
+	}
+
+	/**
 	 * Request asynchronous download of file with url
 	 * @param fileUrl source url
 	 * @param variant variant (PREVIEW, FULL)
@@ -192,8 +208,20 @@ public class FileManager implements Closeable {
 	 * @param fileUrl source file url
 	 * @param variant file variant
 	 */
-	public synchronized void requestTransfer(String fileUrl, FileSource.Variant variant) {
+	public synchronized void requestTransfer(final String fileUrl, final FileSource.Variant variant) {
+		if (cacheStorage.getFile(fileUrl, variant) == null)
+			return;
 
+		executor.execute(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					persistentStorage.pullFile(cacheStorage, fileUrl, variant);
+				} catch (IOException e) {
+
+				}
+			}
+		});
 	}
 
 	/**
