@@ -345,4 +345,9 @@ public class PanelFragment extends Fragment implements FileListener {
 			progressBar.setProgress(current);
 		}
 	}
+
+	@Override
+	public void itemDownloadError(String fileUrl) {
+
+	}
 }

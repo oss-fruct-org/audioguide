@@ -347,6 +347,11 @@ public class PointDetailFragment extends Fragment implements FileListener {
 	public void itemDownloadProgress(String url, int current, int max) {
 	}
 
+	@Override
+	public void itemDownloadError(String fileUrl) {
+
+	}
+
 	public Point getPoint() {
 		return point;
 	}

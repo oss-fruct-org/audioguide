@@ -46,6 +46,7 @@ public class FileManagerTest extends AndroidTestCase {
 	private UrlResolver urlResolver;
 
 	private CountDownLatch latch;
+	private CountDownLatch errorLatch;
 	private String itemLoaded;
 	private TestListener listener;
 
@@ -69,6 +70,8 @@ public class FileManagerTest extends AndroidTestCase {
 				executor1, executor2, new DirectListenerHandler());
 
 		latch = new CountDownLatch(1);
+		errorLatch = new CountDownLatch(1);
+
 		itemLoaded = null;
 		listener = new TestListener();
 		fileManager.addListener(listener);
@@ -171,6 +174,29 @@ public class FileManagerTest extends AndroidTestCase {
 		assertEquals("data:data2!", cacheStorage.storeFile("file.txt", FileSource.Variant.PREVIEW, createStream("data2")));
 	}
 
+	public void testNetworkError() throws Exception {
+		//noinspection unchecked
+		when(remoteFileSource.getInputStream(URL1, FileSource.Variant.FULL)).thenThrow(IOException.class);
+
+		fileManager.requestDownload(URL1, FileSource.Variant.FULL, FileManager.Storage.CACHE);
+		waitLatch(errorLatch);
+		assertNull(fileManager.getLocalFile(URL1, FileSource.Variant.FULL));
+	}
+
+	public void testNetworkErrorRestore() throws Exception {
+		//noinspection unchecked
+		when(remoteFileSource.getInputStream(URL1, FileSource.Variant.FULL))
+				.thenThrow(IOException.class)
+				.thenReturn(createStream("qwe"));
+		fileManager.requestDownload(URL1, FileSource.Variant.FULL, FileManager.Storage.CACHE);
+		waitLatch(errorLatch);
+
+		fileManager.requestDownload(URL1, FileSource.Variant.FULL, FileManager.Storage.CACHE);
+		waitLatch(latch);
+		assertNotNull(fileManager.getLocalFile(URL1, FileSource.Variant.FULL));
+	}
+
+
 	private InputStream createStream(String str) {
 		try {
 			return new ByteArrayInputStream(str.getBytes("UTF-8"));
@@ -245,6 +271,11 @@ public class FileManagerTest extends AndroidTestCase {
 		@Override
 		public void itemDownloadProgress(String url, int current, int max) {
 
+		}
+
+		@Override
+		public void itemDownloadError(String fileUrl) {
+			errorLatch.countDown();
 		}
 	}
 

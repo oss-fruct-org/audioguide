@@ -104,7 +104,9 @@ public class FileManager implements Closeable {
 	 */
 	public synchronized void requestDownload(final String fileUrl, final FileSource.Variant variant, final Storage storageType) {
 		final DownloadTaskParameters parm = new DownloadTaskParameters(fileUrl, variant);
-		if (downloadTasks.containsKey(parm) || getLocalFile(fileUrl, variant) != null) {
+		DownloadTask task = downloadTasks.get(parm);
+
+		if ((task != null && !Utils.isFutureError(task.future)) || getLocalFile(fileUrl, variant) != null) {
 			return;
 		}
 
@@ -113,25 +115,41 @@ public class FileManager implements Closeable {
 			public String call() throws Exception {
 				FileStorage storage = storageType == Storage.CACHE ? cacheStorage : persistentStorage;
 
-				InputStream inputStream = remoteFileSource.getInputStream(fileUrl, variant);
-				ProgressInputStream progressInputStream
-						= new ProgressInputStream(inputStream,
+				String localFile = null;
+				InputStream inputStream = null;
+				try {
+					inputStream = remoteFileSource.getInputStream(fileUrl, variant);
+					ProgressInputStream progressInputStream
+							= new ProgressInputStream(inputStream,
 							inputStream.available(), 100000, new ProgressInputStream.ProgressListener() {
-					@Override
-					public void update(final int current, final int max) {
-						listenerHandler.apply(new Runnable() {
-							@Override
-							public void run() {
-								for (FileListener listener : listeners) {
-									listener.itemDownloadProgress(fileUrl, current, max);
+						@Override
+						public void update(final int current, final int max) {
+							listenerHandler.apply(new Runnable() {
+								@Override
+								public void run() {
+									for (FileListener listener : listeners) {
+										listener.itemDownloadProgress(fileUrl, current, max);
+									}
 								}
-							}
-						});
-					}
-				});
+							});
+						}
+					});
 
-				String localFile = storage.storeFile(fileUrl, variant, progressInputStream);
-				inputStream.close();
+					localFile = storage.storeFile(fileUrl, variant, progressInputStream);
+				} catch (IOException ex) {
+					listenerHandler.apply(new Runnable() {
+						@Override
+						public void run() {
+							for (FileListener listener : listeners) {
+								listener.itemDownloadError(fileUrl);
+							}
+						}
+					});
+					throw ex;
+				} finally {
+					if (inputStream != null)
+						inputStream.close();
+				}
 
 				synchronized (FileManager.this) {
 					listenerHandler.apply(new Runnable() {
@@ -192,7 +210,7 @@ public class FileManager implements Closeable {
 		});
 
 		DownloadTask downloadTask = downloadTasks.get(parm);
-		if (downloadTask == null) {
+		if (downloadTask == null || Utils.isFutureError(downloadTask.future)) {
 			requestDownload(fileUrl, variant, storageType);
 			downloadTask = downloadTasks.get(parm);
 		}

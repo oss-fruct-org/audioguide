@@ -202,6 +202,11 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 		}
 	}
 
+	@Override
+	public void itemDownloadError(String fileUrl) {
+
+	}
+
 	public Point getPoint(int position) {
 		Cursor cursor = (Cursor) getItem(position);
 		return new Point(cursor);

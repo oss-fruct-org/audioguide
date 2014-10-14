@@ -30,6 +30,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 @SuppressWarnings("unused")
 public class Utils {
@@ -449,5 +451,18 @@ public class Utils {
 			map.put(key, list = new ArrayList<V>());
 		}
 		return list;
+	}
+
+	public static boolean isFutureError(Future<?> future) {
+		try {
+			if (future.isDone())
+				future.get();
+		} catch (InterruptedException e) {
+			return true;
+		} catch (ExecutionException e) {
+			return true;
+		}
+
+		return false;
 	}
 }
