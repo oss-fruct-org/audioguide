@@ -27,7 +27,7 @@ public class FileManager2 implements Closeable {
 
 	private final List<FileListener> listeners = new CopyOnWriteArrayList<FileListener>();
 
-	private final HashMap<String, DownloadTask> downloadTasks = new HashMap<String, DownloadTask>();
+	private final HashMap<DownloadTaskParameters, DownloadTask> downloadTasks = new HashMap<DownloadTaskParameters, DownloadTask>();
 
 	public FileManager2(FileSource remoteFileSource, FileSource localFileSource, UrlResolver urlResolver,
 						FileStorage cacheStorage, FileStorage persistentStorage, ExecutorService executor, ExecutorService processorExecutor) {
@@ -58,12 +58,12 @@ public class FileManager2 implements Closeable {
 	 * @return local cached path
 	 */
 	public String getLocalFile(String fileUrl, FileSource.Variant variant) {
-		String localPath = cacheStorage.getFile(fileUrl);
+		String localPath = cacheStorage.getFile(fileUrl, variant);
 		if (localPath != null) {
 			return localPath;
 		}
 
-		return persistentStorage.getFile(fileUrl);
+		return persistentStorage.getFile(fileUrl, variant);
 	}
 
 	/**
@@ -73,7 +73,8 @@ public class FileManager2 implements Closeable {
 	 * @param storageType storage type
 	 */
 	public synchronized void requestDownload(final String fileUrl, final FileSource.Variant variant, final Storage storageType) {
-		if (downloadTasks.containsKey(fileUrl) || getLocalFile(fileUrl, variant) != null) {
+		final DownloadTaskParameters parm = new DownloadTaskParameters(fileUrl, variant);
+		if (downloadTasks.containsKey(parm) || getLocalFile(fileUrl, variant) != null) {
 			return;
 		}
 
@@ -81,14 +82,14 @@ public class FileManager2 implements Closeable {
 			@Override
 			public String call() throws Exception {
 				FileStorage storage = storageType == Storage.CACHE ? cacheStorage : persistentStorage;
-				String localFile = storage.storeFile(fileUrl, remoteFileSource.getInputStream(fileUrl, variant));
+				String localFile = storage.storeFile(fileUrl, variant, remoteFileSource.getInputStream(fileUrl, variant));
 
 				synchronized (FileManager2.this) {
 					for (FileListener listener : listeners) {
 						listener.itemLoaded(fileUrl);
 					}
 
-					DownloadTask downloadTask = downloadTasks.get(fileUrl);
+					DownloadTask downloadTask = downloadTasks.get(parm);
 
 					assert downloadTask != null;
 
@@ -101,7 +102,7 @@ public class FileManager2 implements Closeable {
 			}
 		});
 
-		downloadTasks.put(fileUrl, new DownloadTask(future));
+		downloadTasks.put(parm, new DownloadTask(future));
 	}
 
 	/**
@@ -114,7 +115,7 @@ public class FileManager2 implements Closeable {
 	 */
 	public synchronized  <T> Future<T> postDownload(final String fileUrl, final FileSource.Variant variant, Storage storageType, final PostProcessor<T> postProcessor) {
 		final String localFile = getLocalFile(fileUrl, variant);
-
+		final DownloadTaskParameters parm = new DownloadTaskParameters(fileUrl, variant);
 
 		if (localFile != null) {
 			FutureTask<T> processorFuture = new FutureTask<T>(new Callable<T>() {
@@ -136,10 +137,10 @@ public class FileManager2 implements Closeable {
 			}
 		});
 
-		DownloadTask downloadTask = downloadTasks.get(fileUrl);
+		DownloadTask downloadTask = downloadTasks.get(parm);
 		if (downloadTask == null) {
 			requestDownload(fileUrl, variant, storageType);
-			downloadTask = downloadTasks.get(fileUrl);
+			downloadTask = downloadTasks.get(parm);
 		}
 
 		downloadTask.postProcessors.add(postProcessor);
@@ -180,5 +181,34 @@ public class FileManager2 implements Closeable {
 		// Parallel arrays of post processors and corresponding futures
 		final List<PostProcessor<?>> postProcessors;
 		final List<FutureTask<?>> postProcessorFutures;
+	}
+
+	private class DownloadTaskParameters {
+		private DownloadTaskParameters(String url, FileSource.Variant variant) {
+			this.url = url;
+			this.variant = variant;
+		}
+
+		private String url;
+		private FileSource.Variant variant;
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) return true;
+			if (o == null || getClass() != o.getClass()) return false;
+
+			DownloadTaskParameters that = (DownloadTaskParameters) o;
+
+			if (!url.equals(that.url)) return false;
+			return variant == that.variant;
+
+		}
+
+		@Override
+		public int hashCode() {
+			int result = url.hashCode();
+			result = 31 * result + variant.hashCode();
+			return result;
+		}
 	}
 }

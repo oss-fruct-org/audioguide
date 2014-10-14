@@ -1,6 +1,5 @@
 package org.fruct.oss.audioguide.test;
 
-import android.os.CountDownTimer;
 import android.test.AndroidTestCase;
 
 import junit.framework.AssertionFailedError;
@@ -17,10 +16,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
-import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -84,7 +81,7 @@ public class FileManagerTest extends AndroidTestCase {
 	}
 
 	public void testUrlFileStorage() throws Exception {
-		assertEquals("data:data2", cacheStorage.storeFile("file.txt", createStream("data2")));
+		assertEquals("data:data2", cacheStorage.storeFile("file.txt", FileSource.Variant.FULL, createStream("data2")));
 	}
 
 	public void testInitialNoFiles() {
@@ -152,6 +149,25 @@ public class FileManagerTest extends AndroidTestCase {
 
 		waitExecutor(executor2);
 		assertTrue(postProcessor.isInterrupted());
+	}
+
+	public void testVariant() throws Exception {
+		when(remoteFileSource.getInputStream(URL1, FileSource.Variant.FULL)).thenReturn(createStream("TESTTEST"));
+		when(remoteFileSource.getInputStream(URL1, FileSource.Variant.PREVIEW)).thenReturn(createStream("test"));
+
+		fileManager.requestDownload(URL1, FileSource.Variant.PREVIEW, FileManager2.Storage.CACHE);
+		waitListener();
+
+		String localFile = fileManager.getLocalFile(URL1, FileSource.Variant.PREVIEW);
+		assertNotNull(localFile);
+		assertEquals("data:test!", localFile);
+
+		localFile = fileManager.getLocalFile(URL1, FileSource.Variant.FULL);
+		assertNull(localFile);
+	}
+
+	public void testStoreVariant() throws Exception {
+		assertEquals("data:data2!", cacheStorage.storeFile("file.txt", FileSource.Variant.PREVIEW, createStream("data2")));
 	}
 
 	private InputStream createStream(String str) {
@@ -235,21 +251,16 @@ public class FileManagerTest extends AndroidTestCase {
 		private HashMap<String, String> files = new HashMap<String, String>();
 
 		@Override
-		public String storeFile(String fileUrl, InputStream inputStream) throws IOException {
+		public String storeFile(String fileUrl, FileSource.Variant variant, InputStream inputStream) throws IOException {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-			String str = "data:" + reader.readLine();
-			files.put(fileUrl, str);
+			String str = "data:" + reader.readLine() + (variant == FileSource.Variant.FULL ? "" : "!");
+			files.put(fileUrl + variant.toString(), str);
 			return str;
 		}
 
 		@Override
-		public String getFile(String fileUrl) {
-			return files.get(fileUrl);
-		}
-
-		@Override
-		public String[] getFiles() {
-			return files.values().toArray(new String[files.size()]);
+		public String getFile(String fileUrl, FileSource.Variant variant) {
+			return files.get(fileUrl + variant.toString());
 		}
 	}
 

@@ -35,7 +35,6 @@ public class UrlFileSource implements FileSource {
 		}
 	}
 
-
 	private static class HttpInputStream extends FilterInputStream {
 		private final HttpURLConnection conn;
 		private int fileSize;
