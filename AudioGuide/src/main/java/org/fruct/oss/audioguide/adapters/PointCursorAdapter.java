@@ -14,7 +14,7 @@ import android.widget.TextView;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.files.BitmapProcessor;
 import org.fruct.oss.audioguide.files.FileListener;
-import org.fruct.oss.audioguide.files.FileManager2;
+import org.fruct.oss.audioguide.files.FileManager;
 import org.fruct.oss.audioguide.files.FileSource;
 import org.fruct.oss.audioguide.files.ImageViewSetter;
 import org.fruct.oss.audioguide.track.Point;
@@ -31,7 +31,7 @@ import java.util.Set;
 public class PointCursorAdapter extends CursorAdapter implements FileListener, View.OnClickListener, View.OnTouchListener {
 	private final static Logger log = LoggerFactory.getLogger(PointCursorAdapter.class);
 
-	private final FileManager2 fileManager;
+	private final FileManager fileManager;
 
 	private final Context context;
 
@@ -50,7 +50,7 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 		this.context = context;
 		this.isPlaceSelectable = isPlaceSelectable;
 
-		this.fileManager = FileManager2.getInstance();
+		this.fileManager = FileManager.getInstance();
 		this.fileManager.addListener(this);
 	}
 
@@ -105,7 +105,7 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 		if (point.hasPhoto()) {
 			String photoUrl = point.getPhotoUrl();
 
-			BitmapProcessor processor = BitmapProcessor.requestBitmap(fileManager, photoUrl, FileSource.Variant.FULL, Utils.getDP(48), Utils.getDP(48), FileManager2.ScaleMode.SCALE_CROP, holder.bitmapSetter);
+			BitmapProcessor processor = BitmapProcessor.requestBitmap(fileManager, photoUrl, FileSource.Variant.FULL, Utils.getDP(48), Utils.getDP(48), FileManager.ScaleMode.SCALE_CROP, holder.bitmapSetter);
 			bitmapProcessors.add(processor);
 		} else {
 			holder.bitmapSetter.setTag(null);

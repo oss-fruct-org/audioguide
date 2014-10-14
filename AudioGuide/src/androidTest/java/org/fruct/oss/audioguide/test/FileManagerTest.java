@@ -5,7 +5,7 @@ import android.test.AndroidTestCase;
 import junit.framework.AssertionFailedError;
 
 import org.fruct.oss.audioguide.files.FileListener;
-import org.fruct.oss.audioguide.files.FileManager2;
+import org.fruct.oss.audioguide.files.FileManager;
 import org.fruct.oss.audioguide.files.FileSource;
 import org.fruct.oss.audioguide.files.FileStorage;
 import org.fruct.oss.audioguide.files.PostProcessor;
@@ -32,7 +32,7 @@ import static org.mockito.Mockito.*;
 public class FileManagerTest extends AndroidTestCase {
 	public static final String URL1 = "http://example.com/file.xml";
 
-	private FileManager2 fileManager;
+	private FileManager fileManager;
 
 	private FileSource remoteFileSource;
 	private FileSource localFileSource;
@@ -64,7 +64,7 @@ public class FileManagerTest extends AndroidTestCase {
 		executor1 = Executors.newSingleThreadExecutor();
 		executor2 = Executors.newSingleThreadExecutor();
 
-		fileManager = new FileManager2(remoteFileSource, localFileSource,
+		fileManager = new FileManager(remoteFileSource, localFileSource,
 				urlResolver, cacheStorage, persistentStorage,
 				executor1, executor2, new DirectListenerHandler());
 
@@ -92,7 +92,7 @@ public class FileManagerTest extends AndroidTestCase {
 	public void testFileDownload() throws Exception {
 		when(remoteFileSource.getInputStream(URL1, FileSource.Variant.FULL)).thenReturn(createStream("test"));
 
-		fileManager.requestDownload(URL1, FileSource.Variant.FULL, FileManager2.Storage.CACHE);
+		fileManager.requestDownload(URL1, FileSource.Variant.FULL, FileManager.Storage.CACHE);
 		waitListener();
 
 		assertNotNull(itemLoaded);
@@ -104,7 +104,7 @@ public class FileManagerTest extends AndroidTestCase {
 	public void testProcessing() throws Exception {
 		when(remoteFileSource.getInputStream(URL1, FileSource.Variant.FULL)).thenReturn(createStream("test"));
 
-		Future<Integer> future = fileManager.postDownload(URL1, FileSource.Variant.FULL, FileManager2.Storage.CACHE, new CountPostProcessor());
+		Future<Integer> future = fileManager.postDownload(URL1, FileSource.Variant.FULL, FileManager.Storage.CACHE, new CountPostProcessor());
 		waitFuture(future);
 
 		assertEquals(9, (int) future.get());
@@ -113,8 +113,8 @@ public class FileManagerTest extends AndroidTestCase {
 	public void testProcessingReady() throws Exception {
 		when(remoteFileSource.getInputStream(URL1, FileSource.Variant.FULL)).thenReturn(createStream("test"));
 
-		fileManager.requestDownload(URL1, FileSource.Variant.FULL, FileManager2.Storage.CACHE);
-		Future<Integer> future = fileManager.postDownload(URL1, FileSource.Variant.FULL, FileManager2.Storage.CACHE, new CountPostProcessor());
+		fileManager.requestDownload(URL1, FileSource.Variant.FULL, FileManager.Storage.CACHE);
+		Future<Integer> future = fileManager.postDownload(URL1, FileSource.Variant.FULL, FileManager.Storage.CACHE, new CountPostProcessor());
 		waitFuture(future);
 		assertEquals(9, (int) future.get());
 	}
@@ -125,8 +125,8 @@ public class FileManagerTest extends AndroidTestCase {
 		CountDownLatch latch1 = new CountDownLatch(1);
 		CountDownLatch latch2 = new CountDownLatch(1);
 
-		Future<Integer> future1 = fileManager.postDownload(URL1, FileSource.Variant.FULL, FileManager2.Storage.CACHE, new CountDelayPostProcessor(latch1));
-		Future<Integer> future2 = fileManager.postDownload(URL1, FileSource.Variant.FULL, FileManager2.Storage.CACHE, new CountDelayPostProcessor(latch2));
+		Future<Integer> future1 = fileManager.postDownload(URL1, FileSource.Variant.FULL, FileManager.Storage.CACHE, new CountDelayPostProcessor(latch1));
+		Future<Integer> future2 = fileManager.postDownload(URL1, FileSource.Variant.FULL, FileManager.Storage.CACHE, new CountDelayPostProcessor(latch2));
 		latch1.countDown();
 		latch2.countDown();
 		waitFuture(future1);
@@ -142,7 +142,7 @@ public class FileManagerTest extends AndroidTestCase {
 		CountDownLatch latch1 = new CountDownLatch(1);
 		CountDownLatch latch2 = new CountDownLatch(1);
 		CountMonitorPostProcessor postProcessor = new CountMonitorPostProcessor(latch1, latch2);
-		Future<Integer> future1 = fileManager.postDownload(URL1, FileSource.Variant.FULL, FileManager2.Storage.CACHE, postProcessor);
+		Future<Integer> future1 = fileManager.postDownload(URL1, FileSource.Variant.FULL, FileManager.Storage.CACHE, postProcessor);
 
 		waitLatch(latch1);
 		future1.cancel(true);
@@ -156,7 +156,7 @@ public class FileManagerTest extends AndroidTestCase {
 		when(remoteFileSource.getInputStream(URL1, FileSource.Variant.FULL)).thenReturn(createStream("TESTTEST"));
 		when(remoteFileSource.getInputStream(URL1, FileSource.Variant.PREVIEW)).thenReturn(createStream("test"));
 
-		fileManager.requestDownload(URL1, FileSource.Variant.PREVIEW, FileManager2.Storage.CACHE);
+		fileManager.requestDownload(URL1, FileSource.Variant.PREVIEW, FileManager.Storage.CACHE);
 		waitListener();
 
 		String localFile = fileManager.getLocalFile(URL1, FileSource.Variant.PREVIEW);

@@ -15,7 +15,7 @@ import android.view.MotionEvent;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.files.BitmapProcessor;
 import org.fruct.oss.audioguide.files.BitmapSetter;
-import org.fruct.oss.audioguide.files.FileManager2;
+import org.fruct.oss.audioguide.files.FileManager;
 import org.fruct.oss.audioguide.files.FileSource;
 import org.fruct.oss.audioguide.track.CursorHolder;
 import org.fruct.oss.audioguide.track.CursorReceiver;
@@ -58,7 +58,7 @@ public class EditOverlay extends Overlay implements Closeable {
 	private final Paint itemBackgroundDragPaint;
 	private final Paint itemBackgroundPaint;
 
-	private final FileManager2 fileManager;
+	private final FileManager fileManager;
 	private List<BitmapProcessor> processors = new ArrayList<BitmapProcessor>();
 
 	private Rect clipRect = new Rect();
@@ -129,7 +129,7 @@ public class EditOverlay extends Overlay implements Closeable {
 		itemBackgroundPaint.setAntiAlias(true);
 		itemBackgroundPaint.setTextAlign(Paint.Align.CENTER);
 
-		fileManager = FileManager2.getInstance();
+		fileManager = FileManager.getInstance();
 	}
 
 	@Override
@@ -250,7 +250,7 @@ public class EditOverlay extends Overlay implements Closeable {
 			log.trace("Requesting icon of point that in screen...");
 			item.iconRequested = true;
 			BitmapProcessor proc = BitmapProcessor.requestBitmap(fileManager, item.data.getPhotoUrl(), FileSource.Variant.FULL,
-					itemSize * 2, itemSize * 2, FileManager2.ScaleMode.SCALE_CROP, new EditOverlayBitmapSetter(item));
+					itemSize * 2, itemSize * 2, FileManager.ScaleMode.SCALE_CROP, new EditOverlayBitmapSetter(item));
 			processors.add(proc);
 		}
 

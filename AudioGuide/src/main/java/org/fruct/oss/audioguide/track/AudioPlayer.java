@@ -9,7 +9,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.support.v4.content.LocalBroadcastManager;
 
-import org.fruct.oss.audioguide.files.FileManager2;
+import org.fruct.oss.audioguide.files.FileManager;
 import org.fruct.oss.audioguide.files.FileSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,12 +29,12 @@ public class AudioPlayer implements MediaPlayer.OnPreparedListener,
 	private Uri currentUri;
 	private Point currentPoint;
 
-	private FileManager2 fileManager;
+	private FileManager fileManager;
 
 	AudioPlayer(Context context) {
 		this.context = context;
 
-		fileManager = FileManager2.getInstance();
+		fileManager = FileManager.getInstance();
 	}
 
 	public void startAudioTrack(Point point) {

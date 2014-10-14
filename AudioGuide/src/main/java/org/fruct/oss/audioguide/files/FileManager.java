@@ -16,16 +16,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
-import java.util.concurrent.PriorityBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
-public class FileManager2 implements Closeable {
+public class FileManager implements Closeable {
 	private final FileSource remoteFileSource;
 	private final FileSource localFileSource;
 
@@ -43,10 +39,10 @@ public class FileManager2 implements Closeable {
 
 	private boolean isClosed;
 
-	public FileManager2(FileSource remoteFileSource, FileSource localFileSource, UrlResolver urlResolver,
-						FileStorage cacheStorage, FileStorage persistentStorage,
-						ExecutorService executor, ExecutorService processorExecutor,
-						Utils.Function<Void, Runnable> listenerHandler) {
+	public FileManager(FileSource remoteFileSource, FileSource localFileSource, UrlResolver urlResolver,
+					   FileStorage cacheStorage, FileStorage persistentStorage,
+					   ExecutorService executor, ExecutorService processorExecutor,
+					   Utils.Function<Void, Runnable> listenerHandler) {
 		this.listenerHandler = listenerHandler;
 		this.remoteFileSource = remoteFileSource;
 		this.localFileSource = localFileSource;
@@ -104,7 +100,7 @@ public class FileManager2 implements Closeable {
 				String localFile = storage.storeFile(fileUrl, variant, inputStream);
 				inputStream.close();
 
-				synchronized (FileManager2.this) {
+				synchronized (FileManager.this) {
 					listenerHandler.apply(new Runnable() {
 						@Override
 						public void run() {
@@ -241,8 +237,8 @@ public class FileManager2 implements Closeable {
 		}
 	}
 
-	private static FileManager2 instance;
-	public static synchronized FileManager2 getInstance() {
+	private static FileManager instance;
+	public static synchronized FileManager getInstance() {
 		if (instance == null || instance.isClosed) {
 			Context context = App.getContext();
 			UrlFileSource remoteFileSource = new UrlFileSource();
@@ -264,7 +260,7 @@ public class FileManager2 implements Closeable {
 			}
 
 			final Handler handler = new Handler(Looper.getMainLooper());
-			instance = new FileManager2(remoteFileSource, null, null,
+			instance = new FileManager(remoteFileSource, null, null,
 					cacheStorage, persistentStorage, downloadExecutor,  processExecutor,
 					new Utils.Function<Void, Runnable>() {
 						@Override

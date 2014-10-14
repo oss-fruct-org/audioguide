@@ -20,7 +20,7 @@ import android.widget.SeekBar;
 
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.files.FileListener;
-import org.fruct.oss.audioguide.files.FileManager2;
+import org.fruct.oss.audioguide.files.FileManager;
 import org.fruct.oss.audioguide.files.FileSource;
 import org.fruct.oss.audioguide.track.AudioPlayer;
 import org.fruct.oss.audioguide.track.Point;
@@ -53,7 +53,7 @@ public class PanelFragment extends Fragment implements FileListener {
 
 	private ProgressBar progressBar;
 
-	private FileManager2 fileManager;
+	private FileManager fileManager;
 	private String loadingUrl;
 
 	/**
@@ -117,7 +117,7 @@ public class PanelFragment extends Fragment implements FileListener {
 
 		setRetainInstance(true);
 
-		fileManager = FileManager2.getInstance();
+		fileManager = FileManager.getInstance();
 
 		if (getArguments() != null) {
 			duration = getArguments().getInt("duration", -1);

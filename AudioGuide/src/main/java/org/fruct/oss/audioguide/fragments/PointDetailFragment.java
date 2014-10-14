@@ -24,7 +24,7 @@ import org.fruct.oss.audioguide.NavigationDrawerFragment;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.files.BitmapProcessor;
 import org.fruct.oss.audioguide.files.FileListener;
-import org.fruct.oss.audioguide.files.FileManager2;
+import org.fruct.oss.audioguide.files.FileManager;
 import org.fruct.oss.audioguide.files.FileSource;
 import org.fruct.oss.audioguide.files.ImageViewSetter;
 import org.fruct.oss.audioguide.track.Point;
@@ -40,7 +40,7 @@ public class PointDetailFragment extends Fragment implements FileListener {
 	private boolean isOverlay;
 
 	private MultiPanel multiPanel;
-	private FileManager2 fileManager;
+	private FileManager fileManager;
 
 	private String pendingUrl;
 
@@ -121,11 +121,11 @@ public class PointDetailFragment extends Fragment implements FileListener {
 			isOverlay = savedInstanceState.getBoolean(STATE_IS_OVERLAY);
 		}
 
-		fileManager = FileManager2.getInstance();
+		fileManager = FileManager.getInstance();
 		fileManager.addListener(this);
 
 		if (point.hasAudio()) {
-			fileManager.requestDownload(point.getAudioUrl(), FileSource.Variant.FULL, FileManager2.Storage.CACHE);
+			fileManager.requestDownload(point.getAudioUrl(), FileSource.Variant.FULL, FileManager.Storage.CACHE);
 		}
 
 		setHasOptionsMenu(true);
@@ -320,7 +320,7 @@ public class PointDetailFragment extends Fragment implements FileListener {
 			String remoteUrl = point.getPhotoUrl();
 			imageView.setAdjustViewBounds(true);
 
-			bitmapProcessor = BitmapProcessor.requestBitmap(fileManager, remoteUrl, FileSource.Variant.FULL, imageWidth, imageHeight, FileManager2.ScaleMode.NO_SCALE, new ImageViewSetter(imageView));
+			bitmapProcessor = BitmapProcessor.requestBitmap(fileManager, remoteUrl, FileSource.Variant.FULL, imageWidth, imageHeight, FileManager.ScaleMode.NO_SCALE, new ImageViewSetter(imageView));
 			pendingUrl = null;
 		} else {
 			imageView.setVisibility(View.GONE);

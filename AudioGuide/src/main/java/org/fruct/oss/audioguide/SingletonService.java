@@ -5,7 +5,7 @@ import android.content.Intent;
 import android.os.Handler;
 import android.os.IBinder;
 
-import org.fruct.oss.audioguide.files.FileManager2;
+import org.fruct.oss.audioguide.files.FileManager;
 import org.fruct.oss.audioguide.track.DefaultTrackManager;
 import org.fruct.oss.audioguide.track.TrackManager;
 import org.slf4j.Logger;
@@ -16,7 +16,7 @@ public class SingletonService extends Service {
 
 	public static final int STOP_DELAY = 10000;
 	private TrackManager trackManager;
-	private FileManager2 fileManager2;
+	private FileManager fileManager;
 
 	private Handler handler;
 
@@ -29,7 +29,7 @@ public class SingletonService extends Service {
 		log.trace("onCreate");
 
 		trackManager = DefaultTrackManager.getInstance();
-		fileManager2 = FileManager2.getInstance();
+		fileManager = FileManager.getInstance();
 
 		handler = new Handler();
 	}
@@ -40,7 +40,7 @@ public class SingletonService extends Service {
 		log.trace("onDestroy");
 
 		trackManager.close();
-		fileManager2.close();
+		fileManager.close();
 	}
 
 	@Override
