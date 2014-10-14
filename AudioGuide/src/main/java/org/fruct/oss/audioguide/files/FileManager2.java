@@ -17,6 +17,7 @@ import java.util.concurrent.TimeUnit;
 public class FileManager2 implements Closeable {
 	private final FileSource remoteFileSource;
 	private final FileSource localFileSource;
+
 	private final UrlResolver urlResolver;
 	private final FileStorage cacheStorage;
 	private final FileStorage persistentStorage;

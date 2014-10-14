@@ -182,7 +182,6 @@ public class FileManagerTest extends AndroidTestCase {
 		}
 	}
 
-
 	private void waitFuture(Future<?> future) {
 		try {
 			future.get(100, TimeUnit.MILLISECONDS);
@@ -222,8 +221,8 @@ public class FileManagerTest extends AndroidTestCase {
 	private class TestListener implements FileListener {
 		@Override
 		public void itemLoaded(String fileUrl) {
-			latch.countDown();
 			itemLoaded = fileUrl;
+			latch.countDown();
 		}
 
 		@Override
