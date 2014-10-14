@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -34,7 +35,6 @@ public class FileManagerTest extends AndroidTestCase {
 	public static final String URL1 = "http://example.com/file.xml";
 
 	private FileManager2 fileManager;
-	private FileManager2 fileManager2;
 
 	private FileSource remoteFileSource;
 	private FileSource localFileSource;
@@ -42,8 +42,8 @@ public class FileManagerTest extends AndroidTestCase {
 	private UrlFileStorage cacheStorage;
 	private UrlFileStorage persistentStorage;
 
-	private FileStorage cacheStorageMock;
-	private FileStorage persistentStorageMock;
+	private ExecutorService executor1;
+	private ExecutorService executor2;
 
 	private UrlResolver urlResolver;
 
@@ -63,14 +63,12 @@ public class FileManagerTest extends AndroidTestCase {
 		cacheStorage = new UrlFileStorage();
 		persistentStorage = new UrlFileStorage();
 
-		cacheStorageMock = mock(FileStorage.class);
-		persistentStorageMock = mock(FileStorage.class);
+		executor1 = Executors.newSingleThreadExecutor();
+		executor2 = Executors.newSingleThreadExecutor();
 
 		fileManager = new FileManager2(remoteFileSource, localFileSource,
-				urlResolver, cacheStorage, persistentStorage, Executors.newSingleThreadExecutor());
-
-		fileManager2 = new FileManager2(remoteFileSource, localFileSource,
-				urlResolver, cacheStorageMock, persistentStorageMock, Executors.newSingleThreadExecutor());
+				urlResolver, cacheStorage, persistentStorage,
+				executor1, executor2);
 
 		latch = new CountDownLatch(1);
 		itemLoaded = null;
@@ -81,7 +79,6 @@ public class FileManagerTest extends AndroidTestCase {
 	@Override
 	protected void tearDown() throws Exception {
 		fileManager.close();
-		fileManager2.close();
 
 		super.tearDown();
 	}
@@ -109,19 +106,52 @@ public class FileManagerTest extends AndroidTestCase {
 	public void testProcessing() throws Exception {
 		when(remoteFileSource.getInputStream(URL1, FileSource.Variant.FULL)).thenReturn(createStream("test"));
 
-		Future<Integer> future = fileManager.postDownload(URL1, FileSource.Variant.FULL, new CountPostProcessor());
+		Future<Integer> future = fileManager.postDownload(URL1, FileSource.Variant.FULL, FileManager2.Storage.CACHE, new CountPostProcessor());
 		waitFuture(future);
 
-		assertEquals(4, (int) future.get());
+		assertEquals(9, (int) future.get());
 	}
 
 	public void testProcessingReady() throws Exception {
 		when(remoteFileSource.getInputStream(URL1, FileSource.Variant.FULL)).thenReturn(createStream("test"));
 
 		fileManager.requestDownload(URL1, FileSource.Variant.FULL, FileManager2.Storage.CACHE);
-		Future<Integer> future = fileManager.postDownload(URL1, FileSource.Variant.FULL, new CountPostProcessor());
+		Future<Integer> future = fileManager.postDownload(URL1, FileSource.Variant.FULL, FileManager2.Storage.CACHE, new CountPostProcessor());
 		waitFuture(future);
-		assertEquals(4, (int) future.get());
+		assertEquals(9, (int) future.get());
+	}
+
+	public void testTwoFutureProcessing() throws Exception {
+		when(remoteFileSource.getInputStream(URL1, FileSource.Variant.FULL)).thenReturn(createStream("test"));
+
+		CountDownLatch latch1 = new CountDownLatch(1);
+		CountDownLatch latch2 = new CountDownLatch(1);
+
+		Future<Integer> future1 = fileManager.postDownload(URL1, FileSource.Variant.FULL, FileManager2.Storage.CACHE, new CountDelayPostProcessor(latch1));
+		Future<Integer> future2 = fileManager.postDownload(URL1, FileSource.Variant.FULL, FileManager2.Storage.CACHE, new CountDelayPostProcessor(latch2));
+		latch1.countDown();
+		latch2.countDown();
+		waitFuture(future1);
+		waitFuture(future2);
+
+		assertEquals(9, (int) future1.get());
+		assertEquals(9, (int) future2.get());
+	}
+
+	public void testProcessingCancel() throws Exception {
+		when(remoteFileSource.getInputStream(URL1, FileSource.Variant.FULL)).thenReturn(createStream("test"));
+
+		CountDownLatch latch1 = new CountDownLatch(1);
+		CountDownLatch latch2 = new CountDownLatch(1);
+		CountMonitorPostProcessor postProcessor = new CountMonitorPostProcessor(latch1, latch2);
+		Future<Integer> future1 = fileManager.postDownload(URL1, FileSource.Variant.FULL, FileManager2.Storage.CACHE, postProcessor);
+
+		waitLatch(latch1);
+		future1.cancel(true);
+		latch2.countDown();
+
+		waitExecutor(executor2);
+		assertTrue(postProcessor.isInterrupted());
 	}
 
 	private InputStream createStream(String str) {
@@ -142,6 +172,17 @@ public class FileManagerTest extends AndroidTestCase {
 		}
 	}
 
+	private void waitLatch(CountDownLatch latch) {
+		try {
+			if (!latch.await(100, TimeUnit.MILLISECONDS)) {
+				throw new AssertionFailedError("Latch didn't called");
+			}
+		} catch (InterruptedException e) {
+			throw new AssertionFailedError("Latch didn't called");
+		}
+	}
+
+
 	private void waitFuture(Future<?> future) {
 		try {
 			future.get(100, TimeUnit.MILLISECONDS);
@@ -150,6 +191,24 @@ public class FileManagerTest extends AndroidTestCase {
 			throw new RuntimeException("Processing error", e);
 		} catch (TimeoutException e) {
 			throw new AssertionFailedError("Processing timeout");
+		}
+	}
+
+	private void waitExecutor(ExecutorService executorService) {
+		Future<?> future = executorService.submit(new Runnable() {
+			@Override
+			public void run() {
+			}
+		});
+
+		try {
+			future.get(100, TimeUnit.MILLISECONDS);
+		} catch (InterruptedException e) {
+			throw new RuntimeException("Executor wait interrupted");
+		} catch (ExecutionException e) {
+			throw new RuntimeException("Executor wait failed");
+		} catch (TimeoutException e) {
+			throw new RuntimeException("Executor wait timeout");
 		}
 	}
 
@@ -199,6 +258,55 @@ public class FileManagerTest extends AndroidTestCase {
 		@Override
 		public Integer postProcess(String localUrl) {
 			return localUrl.length();
+		}
+	}
+
+	private class CountDelayPostProcessor implements PostProcessor<Integer> {
+		private final CountDownLatch latch;
+
+		public CountDelayPostProcessor(CountDownLatch latch) {
+			this.latch = latch;
+		}
+
+		@Override
+		public Integer postProcess(String localUrl) {
+			try {
+				if (!latch.await(100, TimeUnit.MILLISECONDS)) {
+					throw new RuntimeException("CountDelayPostProcessor too long wait");
+				}
+			} catch (InterruptedException ignored) {
+			}
+			return localUrl.length();
+		}
+	}
+
+	private class CountMonitorPostProcessor implements PostProcessor<Integer> {
+		private final CountDownLatch monitorLatch;
+		private final CountDownLatch contLatch;
+		private boolean isInterrupted;
+
+		public CountMonitorPostProcessor(CountDownLatch monitorLatch, CountDownLatch contLatch) {
+			this.monitorLatch = monitorLatch;
+			this.contLatch = contLatch;
+		}
+
+		@Override
+		public Integer postProcess(String localUrl) {
+			monitorLatch.countDown();
+
+			try {
+				if (!contLatch.await(100, TimeUnit.MILLISECONDS)) {
+					throw new RuntimeException("CountDelayPostProcessor too long wait");
+				}
+			} catch (InterruptedException ignored) {
+				isInterrupted = true;
+			}
+
+			return localUrl.length();
+		}
+
+		public boolean isInterrupted() {
+			return isInterrupted;
 		}
 	}
 }

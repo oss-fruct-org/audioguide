@@ -1,6 +1,7 @@
 package org.fruct.oss.audioguide.files;
 
 import java.io.Closeable;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -21,13 +22,14 @@ public class FileManager2 implements Closeable {
 	private final FileStorage persistentStorage;
 
 	private final ExecutorService executor;
+	private final ExecutorService processorExecutor;
 
 	private final List<FileListener> listeners = new CopyOnWriteArrayList<FileListener>();
 
-	private final HashMap<String, Future<String>> downloadTasks = new HashMap<String, Future<String>>();
+	private final HashMap<String, DownloadTask> downloadTasks = new HashMap<String, DownloadTask>();
 
 	public FileManager2(FileSource remoteFileSource, FileSource localFileSource, UrlResolver urlResolver,
-						FileStorage cacheStorage, FileStorage persistentStorage, ExecutorService executor) {
+						FileStorage cacheStorage, FileStorage persistentStorage, ExecutorService executor, ExecutorService processorExecutor) {
 
 		this.remoteFileSource = remoteFileSource;
 		this.localFileSource = localFileSource;
@@ -37,6 +39,7 @@ public class FileManager2 implements Closeable {
 		this.persistentStorage = persistentStorage;
 
 		this.executor = executor;
+		this.processorExecutor = processorExecutor;
 
 		/*queue = new PriorityBlockingQueue<Runnable>();
 		executor = new ThreadPoolExecutor(1, 1, 0, TimeUnit.MILLISECONDS, queue);*/
@@ -44,6 +47,7 @@ public class FileManager2 implements Closeable {
 
 	public void close() {
 		executor.shutdownNow();
+		processorExecutor.shutdownNow();
 	}
 
 	/**
@@ -65,7 +69,7 @@ public class FileManager2 implements Closeable {
 	 * Request asynchronous download of file with url
 	 * @param fileUrl source url
 	 * @param variant variant (PREVIEW, FULL)
-	 * @param storage storage type
+	 * @param storageType storage type
 	 */
 	public synchronized void requestDownload(final String fileUrl, final FileSource.Variant variant, final Storage storageType) {
 		if (downloadTasks.containsKey(fileUrl) || getLocalFile(fileUrl, variant) != null) {
@@ -78,15 +82,25 @@ public class FileManager2 implements Closeable {
 				FileStorage storage = storageType == Storage.CACHE ? cacheStorage : persistentStorage;
 				String localFile = storage.storeFile(fileUrl, remoteFileSource.getInputStream(fileUrl, variant));
 
-				for (FileListener listener : listeners) {
-					listener.itemLoaded(fileUrl);
+				synchronized (FileManager2.this) {
+					for (FileListener listener : listeners) {
+						listener.itemLoaded(fileUrl);
+					}
+
+					DownloadTask downloadTask = downloadTasks.get(fileUrl);
+
+					assert downloadTask != null;
+
+					for (FutureTask<?> processorFuture : downloadTask.postProcessorFutures) {
+						processorExecutor.submit(processorFuture);
+					}
 				}
 
 				return localFile;
 			}
 		});
 
-		downloadTasks.put(fileUrl, future);
+		downloadTasks.put(fileUrl, new DownloadTask(future));
 	}
 
 	/**
@@ -97,8 +111,40 @@ public class FileManager2 implements Closeable {
 	 * @param <T> Type of result
 	 * @return future of result
 	 */
-	public <T> Future<T> postDownload(String fileUrl, FileSource.Variant variant, PostProcessor<T> postProcessor) {
-		return null;
+	public synchronized  <T> Future<T> postDownload(final String fileUrl, final FileSource.Variant variant, Storage storageType, final PostProcessor<T> postProcessor) {
+		final String localFile = getLocalFile(fileUrl, variant);
+
+
+		if (localFile != null) {
+			FutureTask<T> processorFuture = new FutureTask<T>(new Callable<T>() {
+				@Override
+				public T call() throws Exception {
+					return postProcessor.postProcess(localFile);
+				}
+			});
+
+			processorExecutor.submit(processorFuture);
+			return processorFuture;
+		}
+
+		FutureTask<T> processorFuture = new FutureTask<T>(new Callable<T>() {
+			@Override
+			public T call() throws Exception {
+				String localFile = getLocalFile(fileUrl, variant);
+				return postProcessor.postProcess(localFile);
+			}
+		});
+
+		DownloadTask downloadTask = downloadTasks.get(fileUrl);
+		if (downloadTask == null) {
+			requestDownload(fileUrl, variant, storageType);
+			downloadTask = downloadTasks.get(fileUrl);
+		}
+
+		downloadTask.postProcessors.add(postProcessor);
+		downloadTask.postProcessorFutures.add(processorFuture);
+
+		return processorFuture;
 	}
 
 	/**
@@ -121,5 +167,17 @@ public class FileManager2 implements Closeable {
 		CACHE, PERSISTENT
 	}
 
+	private class DownloadTask {
+		private DownloadTask(Future<String> future) {
+			this.future = future;
+			this.postProcessors = new ArrayList<PostProcessor<?>>();
+			this.postProcessorFutures = new ArrayList<FutureTask<?>>();
+		}
 
+		final Future<String> future;
+
+		// Parallel arrays of post processors and corresponding futures
+		final List<PostProcessor<?>> postProcessors;
+		final List<FutureTask<?>> postProcessorFutures;
+	}
 }

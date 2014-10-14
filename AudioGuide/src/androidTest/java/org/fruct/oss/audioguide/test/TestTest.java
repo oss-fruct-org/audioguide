@@ -4,6 +4,8 @@ import android.test.AndroidTestCase;
 
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -28,23 +30,47 @@ public class TestTest extends AndroidTestCase {
 		verify(mock, never()).bar(3);
 	}
 
-	/*public void testExecutor() {
+	public void testExecutor() throws InterruptedException, ExecutionException {
 		ExecutorService executor = Executors.newSingleThreadExecutor();
+
+		final boolean[] called = new boolean[2];
 
 		FutureTask<String> task = new FutureTask<String>(new Callable<String>() {
 			@Override
 			public String call() throws Exception {
 				try {
-					Thread.sleep(100);
+					called[0] = true;
+					Thread.sleep(300);
+					called[1] = true;
 				} catch (InterruptedException ex) {
-
 				}
 				return "qwerty";
 			}
 		});
 
-		Future<String> future = executor.submit(task);
-	}*/
+		executor.submit(task);
+		Thread.sleep(200);
+		task.cancel(true);
+		Thread.sleep(200);
+		assertTrue(called[0]);
+		assertFalse(called[1]);
+	}
+
+	public void testExecutor2() throws Exception {
+		ExecutorService executor = Executors.newSingleThreadExecutor();
+		FutureTask<String> task = new FutureTask<String>(new Callable<String>() {
+			@Override
+			public String call() throws Exception {
+				return "qwerty";
+			}
+		});
+
+		executor.submit(task);
+
+		Thread.sleep(50);
+
+		assertEquals("qwerty", task.get());
+	}
 
 	private static interface TestInterface {
 		void foo();
