@@ -7,7 +7,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -20,9 +19,9 @@ import android.widget.ProgressBar;
 import android.widget.SeekBar;
 
 import org.fruct.oss.audioguide.R;
-import org.fruct.oss.audioguide.files.DefaultFileManager;
 import org.fruct.oss.audioguide.files.FileListener;
-import org.fruct.oss.audioguide.files.FileManager;
+import org.fruct.oss.audioguide.files.FileManager2;
+import org.fruct.oss.audioguide.files.FileSource;
 import org.fruct.oss.audioguide.track.AudioPlayer;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.TrackingService;
@@ -54,7 +53,7 @@ public class PanelFragment extends Fragment implements FileListener {
 
 	private ProgressBar progressBar;
 
-	private FileManager fileManager;
+	private FileManager2 fileManager;
 	private String loadingUrl;
 
 	/**
@@ -118,7 +117,7 @@ public class PanelFragment extends Fragment implements FileListener {
 
 		setRetainInstance(true);
 
-		fileManager = DefaultFileManager.getInstance();
+		fileManager = FileManager2.getInstance();
 
 		if (getArguments() != null) {
 			duration = getArguments().getInt("duration", -1);
@@ -271,10 +270,10 @@ public class PanelFragment extends Fragment implements FileListener {
 
 	private void configureFallbackPoint() {
 		if (!isStarted()) {
-			if (fileManager.getLocalPath(Uri.parse(fallbackPoint.getAudioUrl())) == null) {
+			if (fileManager.getLocalFile(fallbackPoint.getAudioUrl(), FileSource.Variant.FULL) == null) {
 				setLoadingState();
 				loadingUrl = fallbackPoint.getAudioUrl();
-				fileManager.addWeakListener(this);
+				fileManager.addListener(this);
 			} else {
 				setPausedState();
 			}

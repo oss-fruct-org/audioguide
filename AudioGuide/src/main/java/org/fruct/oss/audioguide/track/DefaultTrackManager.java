@@ -4,14 +4,12 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.location.Location;
-import android.net.Uri;
 import android.preference.PreferenceManager;
-import android.widget.Toast;
 
 import org.fruct.oss.audioguide.App;
 import org.fruct.oss.audioguide.config.Config;
-import org.fruct.oss.audioguide.files.DefaultFileManager;
-import org.fruct.oss.audioguide.files.FileManager;
+import org.fruct.oss.audioguide.files.FileManager2;
+import org.fruct.oss.audioguide.files.FileSource;
 import org.fruct.oss.audioguide.gets.Category;
 import org.fruct.oss.audioguide.util.Utils;
 
@@ -25,7 +23,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	private final StorageBackend backend;
 	private final CategoriesBackend categoriesBackend;
 	private final Database database;
-	private final FileManager fileManager;
+	private final FileManager2 fileManager;
 	private final SharedPreferences pref;
 
 	private List<Category> categories;
@@ -46,7 +44,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 
 		pref = PreferenceManager.getDefaultSharedPreferences(context);
 
-		fileManager = DefaultFileManager.getInstance();
+		fileManager = FileManager2.getInstance();
 
 		database = new Database(context);
 		refresher = new Refresher(context, database, this);
@@ -114,8 +112,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 						point.setCategoryId(track.getCategoryId());
 
 					if (point.hasAudio()) {
-						fileManager.insertRemoteFile("no-title", Uri.parse(point.getAudioUrl()));
-						fileManager.requestAudioDownload(point.getAudioUrl());
+						fileManager.requestDownload(point.getAudioUrl(), FileSource.Variant.FULL, FileManager2.Storage.CACHE);
 					}
 				}
 
@@ -148,7 +145,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 			public void call(List<Point> points) {
 				for (Point point : points) {
 					if (point.hasAudio()) {
-						fileManager.insertRemoteFile("no-title", Uri.parse(point.getAudioUrl()));
+						//fileManager.insertRemoteFile("no-title", Uri.parse(point.getAudioUrl()));
 						//fileManager.requestAudioDownload(point.getAudioUrl());
 					}
 
@@ -170,7 +167,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 
 				for (Point point : points) {
 					if (point.hasAudio()) {
-						fileManager.insertRemoteFile("no-title", Uri.parse(point.getAudioUrl()));
+						//fileManager.insertRemoteFile("no-title", Uri.parse(point.getAudioUrl()));
 						//fileManager.requestAudioDownload(point.getAudioUrl());
 					}
 

@@ -22,8 +22,6 @@ import android.widget.ListView;
 import org.fruct.oss.audioguide.MultiPanel;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.adapters.PointCursorAdapter;
-import org.fruct.oss.audioguide.files.DefaultFileManager;
-import org.fruct.oss.audioguide.files.FileManager;
 import org.fruct.oss.audioguide.track.CursorHolder;
 import org.fruct.oss.audioguide.track.DefaultTrackManager;
 import org.fruct.oss.audioguide.track.Point;
@@ -51,7 +49,6 @@ public class PointFragment extends ListFragment {
 
 	private MultiPanel multiPanel;
 	private TrackManager trackManager;
-	private FileManager fileManager;
 
 
 	private Track track;
@@ -85,7 +82,6 @@ public class PointFragment extends ListFragment {
 		super.onCreate(savedInstanceState);
 
 		trackManager = DefaultTrackManager.getInstance();
-		fileManager = DefaultFileManager.getInstance();
 
 		Bundle arguments = getArguments();
 		if (arguments != null) {
@@ -131,6 +127,7 @@ public class PointFragment extends ListFragment {
 
 		cursorHolder.close();
 		trackManager = null;
+		pointAdapter.close();
 
 		LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(inReceiver);
 		LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(outReceiver);
@@ -201,7 +198,6 @@ public class PointFragment extends ListFragment {
 	public void onDetach() {
 		super.onDetach();
 		multiPanel = null;
-		fileManager.recycleAllBitmaps("point-fragment");
 	}
 
 	@Override

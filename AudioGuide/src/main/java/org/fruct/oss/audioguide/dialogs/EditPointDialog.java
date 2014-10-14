@@ -8,7 +8,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.PictureDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
@@ -17,16 +16,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.Spinner;
-import android.widget.TextView;
 
 import org.fruct.oss.audioguide.R;
-import org.fruct.oss.audioguide.files.DefaultFileManager;
-import org.fruct.oss.audioguide.files.FileManager;
 import org.fruct.oss.audioguide.gets.Category;
 import org.fruct.oss.audioguide.track.DefaultTrackManager;
 import org.fruct.oss.audioguide.track.Point;
@@ -36,7 +30,6 @@ import org.fruct.oss.audioguide.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -226,13 +219,13 @@ public class EditPointDialog extends DialogFragment implements DialogInterface.O
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
 
-		FileManager fm = DefaultFileManager.getInstance();
+		//FileManager fm = DefaultFileManager.getInstance();
 		ContentResolver resolver = getActivity().getContentResolver();
 
 		if (requestCode == REQUEST_CODE_IMAGE && resultCode == Activity.RESULT_OK) {
 			Uri uri = data.getData();
-			Uri imageUri = fm.insertLocalFile(uri.getLastPathSegment(), uri);
-			point.setPhotoUrl(imageUri.toString());
+			//Uri imageUri = fm.insertLocalFile(uri.getLastPathSegment(), uri);
+			//point.setPhotoUrl(imageUri.toString());
 
 			try {
 				InputStream photoStream = resolver.openInputStream(uri);
@@ -244,8 +237,8 @@ public class EditPointDialog extends DialogFragment implements DialogInterface.O
 		}
 		if (requestCode == REQUEST_CODE_AUDIO && resultCode == Activity.RESULT_OK) {
 			Uri uri = data.getData();
-			Uri audioUri = fm.insertLocalFile(uri.getLastPathSegment(), uri);
-			point.setAudioUrl(audioUri.toString());
+			//Uri audioUri = fm.insertLocalFile(uri.getLastPathSegment(), uri);
+			//point.setAudioUrl(audioUri.toString());
 		}
 	}
 

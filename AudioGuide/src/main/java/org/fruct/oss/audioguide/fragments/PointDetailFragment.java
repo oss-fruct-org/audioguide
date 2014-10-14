@@ -5,7 +5,6 @@ import android.graphics.Bitmap;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -23,9 +22,11 @@ import android.widget.TextView;
 import org.fruct.oss.audioguide.MultiPanel;
 import org.fruct.oss.audioguide.NavigationDrawerFragment;
 import org.fruct.oss.audioguide.R;
-import org.fruct.oss.audioguide.files.DefaultFileManager;
+import org.fruct.oss.audioguide.files.BitmapProcessor;
 import org.fruct.oss.audioguide.files.FileListener;
-import org.fruct.oss.audioguide.files.FileManager;
+import org.fruct.oss.audioguide.files.FileManager2;
+import org.fruct.oss.audioguide.files.FileSource;
+import org.fruct.oss.audioguide.files.ImageViewSetter;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.util.Utils;
 
@@ -39,10 +40,13 @@ public class PointDetailFragment extends Fragment implements FileListener {
 	private boolean isOverlay;
 
 	private MultiPanel multiPanel;
-	private DefaultFileManager fileManager;
+	private FileManager2 fileManager;
 
 	private String pendingUrl;
+
 	private ImageView imageView;
+	private BitmapProcessor bitmapProcessor;
+
 	//private Bitmap imageBitmap;
 
 	private int imageSize;
@@ -117,11 +121,11 @@ public class PointDetailFragment extends Fragment implements FileListener {
 			isOverlay = savedInstanceState.getBoolean(STATE_IS_OVERLAY);
 		}
 
-		fileManager = DefaultFileManager.getInstance();
-		fileManager.addWeakListener(this);
+		fileManager = FileManager2.getInstance();
+		fileManager.addListener(this);
 
 		if (point.hasAudio()) {
-			fileManager.requestAudioDownload(point.getAudioUrl());
+			fileManager.requestDownload(point.getAudioUrl(), FileSource.Variant.FULL, FileManager2.Storage.CACHE);
 		}
 
 		setHasOptionsMenu(true);
@@ -283,7 +287,9 @@ public class PointDetailFragment extends Fragment implements FileListener {
 		multiPanel = null;
 
 		if (!isOverlay) {
-			fileManager.recycleAllBitmaps("point-detail-fragment");
+			if (bitmapProcessor != null) {
+				bitmapProcessor.recycle();
+			}
 		} else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
 			if (imageView.getDrawable() instanceof BitmapDrawable) {
 				Bitmap bitmap = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
@@ -313,7 +319,8 @@ public class PointDetailFragment extends Fragment implements FileListener {
 		if (point.hasPhoto()) {
 			String remoteUrl = point.getPhotoUrl();
 			imageView.setAdjustViewBounds(true);
-			fileManager.requestImageBitmap(remoteUrl, imageWidth, imageHeight, FileManager.ScaleMode.NO_SCALE, new FileManager.ImageViewSetter(imageView), "point-detail-fragment");
+
+			bitmapProcessor = BitmapProcessor.requestBitmap(fileManager, remoteUrl, FileSource.Variant.FULL, imageWidth, imageHeight, FileManager2.ScaleMode.NO_SCALE, new ImageViewSetter(imageView));
 			pendingUrl = null;
 		} else {
 			imageView.setVisibility(View.GONE);

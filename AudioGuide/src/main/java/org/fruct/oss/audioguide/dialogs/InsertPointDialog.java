@@ -50,6 +50,7 @@ public class InsertPointDialog extends DialogFragment implements DialogInterface
 	@Override
 	public void onDestroy() {
 		cursorHolder.close();
+		adapter.close();
 		super.onDestroy();
 	}
 

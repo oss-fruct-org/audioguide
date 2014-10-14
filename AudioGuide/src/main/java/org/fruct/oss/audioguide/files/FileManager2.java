@@ -1,11 +1,22 @@
 package org.fruct.oss.audioguide.files;
 
+import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
+
+import org.fruct.oss.audioguide.App;
+import org.fruct.oss.audioguide.util.Utils;
+
 import java.io.Closeable;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -28,10 +39,15 @@ public class FileManager2 implements Closeable {
 	private final List<FileListener> listeners = new CopyOnWriteArrayList<FileListener>();
 
 	private final HashMap<DownloadTaskParameters, DownloadTask> downloadTasks = new HashMap<DownloadTaskParameters, DownloadTask>();
+	private final Utils.Function<Void, Runnable> listenerHandler;
+
+	private boolean isClosed;
 
 	public FileManager2(FileSource remoteFileSource, FileSource localFileSource, UrlResolver urlResolver,
-						FileStorage cacheStorage, FileStorage persistentStorage, ExecutorService executor, ExecutorService processorExecutor) {
-
+						FileStorage cacheStorage, FileStorage persistentStorage,
+						ExecutorService executor, ExecutorService processorExecutor,
+						Utils.Function<Void, Runnable> listenerHandler) {
+		this.listenerHandler = listenerHandler;
 		this.remoteFileSource = remoteFileSource;
 		this.localFileSource = localFileSource;
 		this.urlResolver = urlResolver;
@@ -49,6 +65,7 @@ public class FileManager2 implements Closeable {
 	public void close() {
 		executor.shutdownNow();
 		processorExecutor.shutdownNow();
+		isClosed = true;
 	}
 
 	/**
@@ -82,12 +99,20 @@ public class FileManager2 implements Closeable {
 			@Override
 			public String call() throws Exception {
 				FileStorage storage = storageType == Storage.CACHE ? cacheStorage : persistentStorage;
-				String localFile = storage.storeFile(fileUrl, variant, remoteFileSource.getInputStream(fileUrl, variant));
+
+				InputStream inputStream = remoteFileSource.getInputStream(fileUrl, variant);
+				String localFile = storage.storeFile(fileUrl, variant, inputStream);
+				inputStream.close();
 
 				synchronized (FileManager2.this) {
-					for (FileListener listener : listeners) {
-						listener.itemLoaded(fileUrl);
-					}
+					listenerHandler.apply(new Runnable() {
+						@Override
+						public void run() {
+							for (FileListener listener : listeners) {
+								listener.itemLoaded(fileUrl);
+							}
+						}
+					});
 
 					DownloadTask downloadTask = downloadTasks.get(parm);
 
@@ -169,6 +194,10 @@ public class FileManager2 implements Closeable {
 		CACHE, PERSISTENT
 	}
 
+	public enum ScaleMode {
+		NO_SCALE, SCALE_CROP, SCALE_FIT
+	}
+
 	private class DownloadTask {
 		private DownloadTask(Future<String> future) {
 			this.future = future;
@@ -210,5 +239,47 @@ public class FileManager2 implements Closeable {
 			result = 31 * result + variant.hashCode();
 			return result;
 		}
+	}
+
+	private static FileManager2 instance;
+	public static synchronized FileManager2 getInstance() {
+		if (instance == null || instance.isClosed) {
+			Context context = App.getContext();
+			UrlFileSource remoteFileSource = new UrlFileSource();
+
+			ExecutorService downloadExecutor = Executors.newSingleThreadExecutor();
+			ExecutorService processExecutor = Executors.newSingleThreadExecutor();
+
+			File cacheDir = new File(context.getCacheDir(), "ag-file-storage2");
+			File persistentDir = context.getDir("ag-file-storage2-p", Context.MODE_PRIVATE);
+
+			DirectoryFileStorage cacheStorage;
+			DirectoryFileStorage persistentStorage;
+
+			try {
+				cacheStorage = new DirectoryFileStorage(cacheDir.getPath(), downloadExecutor);
+				persistentStorage = new DirectoryFileStorage(persistentDir.getPath(), downloadExecutor);
+			} catch (IOException e) {
+				throw new RuntimeException("Can't initialize file manager", e);
+			}
+
+			final Handler handler = new Handler(Looper.getMainLooper());
+			instance = new FileManager2(remoteFileSource, null, null,
+					cacheStorage, persistentStorage, downloadExecutor,  processExecutor,
+					new Utils.Function<Void, Runnable>() {
+						@Override
+						public Void apply(final Runnable runnable) {
+							handler.post(new Runnable() {
+								@Override
+								public void run() {
+									runnable.run();
+								}
+							});
+							return null;
+						}
+					});
+		}
+
+		return instance;
 	}
 }

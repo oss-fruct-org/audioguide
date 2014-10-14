@@ -19,20 +19,16 @@ public class UrlFileSource implements FileSource {
 		URL url = new URL(fileUrl);
 
 		HttpURLConnection conn = null;
-		try {
-			conn = (HttpURLConnection) url.openConnection();
-			conn.setDoInput(true);
-			conn.setConnectTimeout(5000);
-			conn.setReadTimeout(15000);
-			conn.setRequestMethod("GET");
-			conn.connect();
+		conn = (HttpURLConnection) url.openConnection();
+		conn.setDoInput(true);
+		conn.setConnectTimeout(5000);
+		conn.setReadTimeout(15000);
+		conn.setRequestMethod("GET");
+		conn.connect();
 
-			return new HttpInputStream(conn);
-		} finally {
+		int code = conn.getResponseCode();
 
-			if (conn != null)
-				conn.disconnect();
-		}
+		return new HttpInputStream(conn);
 	}
 
 	private static class HttpInputStream extends FilterInputStream {

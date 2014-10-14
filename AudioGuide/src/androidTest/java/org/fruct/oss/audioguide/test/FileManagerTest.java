@@ -10,6 +10,7 @@ import org.fruct.oss.audioguide.files.FileSource;
 import org.fruct.oss.audioguide.files.FileStorage;
 import org.fruct.oss.audioguide.files.PostProcessor;
 import org.fruct.oss.audioguide.files.UrlResolver;
+import org.fruct.oss.audioguide.util.Utils;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -65,7 +66,7 @@ public class FileManagerTest extends AndroidTestCase {
 
 		fileManager = new FileManager2(remoteFileSource, localFileSource,
 				urlResolver, cacheStorage, persistentStorage,
-				executor1, executor2);
+				executor1, executor2, new DirectListenerHandler());
 
 		latch = new CountDownLatch(1);
 		itemLoaded = null;
@@ -317,6 +318,14 @@ public class FileManagerTest extends AndroidTestCase {
 
 		public boolean isInterrupted() {
 			return isInterrupted;
+		}
+	}
+
+	private class DirectListenerHandler implements Utils.Function<Void, Runnable> {
+		@Override
+		public Void apply(Runnable runnable) {
+		 	runnable.run();
+			return null;
 		}
 	}
 }

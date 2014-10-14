@@ -13,9 +13,10 @@ public class DirectoryFileStorage implements FileStorage {
 
 	public DirectoryFileStorage(String directoryPath, Executor executor) throws IOException{
 		this.directory = new File(directoryPath);
+		this.directory.mkdirs();
 
 		if (!directory.exists() || !directory.isDirectory()) {
-			throw new IOException("Wrong directory");
+			throw new IOException("Wrong directory: "+ directory);
 		}
 
 		executor.execute(new Runnable() {

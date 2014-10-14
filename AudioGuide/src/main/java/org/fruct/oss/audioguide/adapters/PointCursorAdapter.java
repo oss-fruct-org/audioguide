@@ -3,7 +3,6 @@ package org.fruct.oss.audioguide.adapters;
 import android.app.Activity;
 import android.content.Context;
 import android.database.Cursor;
-import android.net.Uri;
 import android.support.v4.widget.CursorAdapter;
 import android.view.MotionEvent;
 import android.view.View;
@@ -13,14 +12,17 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import org.fruct.oss.audioguide.R;
-import org.fruct.oss.audioguide.files.DefaultFileManager;
+import org.fruct.oss.audioguide.files.BitmapProcessor;
 import org.fruct.oss.audioguide.files.FileListener;
-import org.fruct.oss.audioguide.files.FileManager;
+import org.fruct.oss.audioguide.files.FileManager2;
+import org.fruct.oss.audioguide.files.FileSource;
+import org.fruct.oss.audioguide.files.ImageViewSetter;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -29,15 +31,16 @@ import java.util.Set;
 public class PointCursorAdapter extends CursorAdapter implements FileListener, View.OnClickListener, View.OnTouchListener {
 	private final static Logger log = LoggerFactory.getLogger(PointCursorAdapter.class);
 
-	private final FileManager fileManager;
+	private final FileManager2 fileManager;
 
 	private final Context context;
 
 	private boolean isPlaceSelectable;
 	private Set<Point> highlightedItems = new HashSet<Point>();
 
-	private Set<String> pendingIconUrls = new HashSet<String>();
+	//private Set<String> pendingIconUrls = new HashSet<String>();
 	private HashMap<String, PointHolder> pendingAudioUrls = new HashMap<String, PointHolder>();
+	private List<BitmapProcessor> bitmapProcessors = new ArrayList<BitmapProcessor>();
 
 	private int selectedPosition = -1;
 
@@ -47,8 +50,14 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 		this.context = context;
 		this.isPlaceSelectable = isPlaceSelectable;
 
-		this.fileManager = DefaultFileManager.getInstance();
-		this.fileManager.addWeakListener(this);
+		this.fileManager = FileManager2.getInstance();
+		this.fileManager.addListener(this);
+	}
+
+	public void close() {
+		for (BitmapProcessor proc : bitmapProcessors) {
+			proc.recycle();
+		}
 	}
 
 	@Override
@@ -69,7 +78,7 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 
 		holder.positionBottom = (View) view.findViewById(R.id.position_bottom);
 		holder.positionTop = (View) view.findViewById(R.id.position_top);
-		holder.bitmapSetter = new FileManager.ImageViewSetter(holder.icon);
+		holder.bitmapSetter = new ImageViewSetter(holder.icon);
 
 		if (isPlaceSelectable) {
 			view.setOnTouchListener(this);
@@ -95,7 +104,9 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 
 		if (point.hasPhoto()) {
 			String photoUrl = point.getPhotoUrl();
-			fileManager.requestImageBitmap(photoUrl, Utils.getDP(48), Utils.getDP(48), FileManager.ScaleMode.SCALE_CROP, holder.bitmapSetter, "point-fragment");
+
+			BitmapProcessor processor = BitmapProcessor.requestBitmap(fileManager, photoUrl, FileSource.Variant.FULL, Utils.getDP(48), Utils.getDP(48), FileManager2.ScaleMode.SCALE_CROP, holder.bitmapSetter);
+			bitmapProcessors.add(processor);
 		} else {
 			holder.bitmapSetter.setTag(null);
 		}
@@ -109,7 +120,7 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 			String audioUrl = point.getAudioUrl();
 			pendingAudioUrls.remove(audioUrl);
 
-			if (fileManager.getLocalPath(Uri.parse(audioUrl)) != null) {
+			if (fileManager.getLocalFile(audioUrl, FileSource.Variant.FULL) != null) {
 				holder.progressBar.setVisibility(View.GONE);
 				holder.audioImage.setVisibility(View.VISIBLE);
 			} else {
@@ -159,8 +170,8 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 
 	@Override
 	public void itemLoaded(final String url) {
-		if (pendingIconUrls.contains(url))
-			notifyDataSetChanged();
+		//if (pendingIconUrls.contains(url))
+		//	notifyDataSetChanged();
 
 		PointHolder holder = pendingAudioUrls.get(url);
 		if (holder != null) {
@@ -222,6 +233,6 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 		String pendingUrl;
 
 		int position;
-		FileManager.ImageViewSetter bitmapSetter;
+		ImageViewSetter bitmapSetter;
 	}
 }

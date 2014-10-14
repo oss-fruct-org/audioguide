@@ -9,8 +9,8 @@ import android.os.Handler;
 import android.os.Looper;
 import android.support.v4.content.LocalBroadcastManager;
 
-import org.fruct.oss.audioguide.files.DefaultFileManager;
-import org.fruct.oss.audioguide.files.FileManager;
+import org.fruct.oss.audioguide.files.FileManager2;
+import org.fruct.oss.audioguide.files.FileSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,12 +29,12 @@ public class AudioPlayer implements MediaPlayer.OnPreparedListener,
 	private Uri currentUri;
 	private Point currentPoint;
 
-	private FileManager fileManager;
+	private FileManager2 fileManager;
 
 	AudioPlayer(Context context) {
 		this.context = context;
 
-		fileManager = DefaultFileManager.getInstance();
+		fileManager = FileManager2.getInstance();
 	}
 
 	public void startAudioTrack(Point point) {
@@ -48,7 +48,7 @@ public class AudioPlayer implements MediaPlayer.OnPreparedListener,
 		player.setAudioStreamType(AudioManager.STREAM_MUSIC);
 		try {
 			// Try to use cached uri
-			String localPath = fileManager.getLocalPath(uri);
+			String localPath = fileManager.getLocalFile(point.getAudioUrl(), FileSource.Variant.FULL);
 			if (localPath == null) {
 				player.release();
 				player = null;

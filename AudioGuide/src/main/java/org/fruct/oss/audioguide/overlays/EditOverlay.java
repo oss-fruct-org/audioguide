@@ -13,8 +13,10 @@ import android.util.Pair;
 import android.view.MotionEvent;
 
 import org.fruct.oss.audioguide.R;
-import org.fruct.oss.audioguide.files.DefaultFileManager;
-import org.fruct.oss.audioguide.files.FileManager;
+import org.fruct.oss.audioguide.files.BitmapProcessor;
+import org.fruct.oss.audioguide.files.BitmapSetter;
+import org.fruct.oss.audioguide.files.FileManager2;
+import org.fruct.oss.audioguide.files.FileSource;
 import org.fruct.oss.audioguide.track.CursorHolder;
 import org.fruct.oss.audioguide.track.CursorReceiver;
 import org.fruct.oss.audioguide.track.Point;
@@ -56,7 +58,8 @@ public class EditOverlay extends Overlay implements Closeable {
 	private final Paint itemBackgroundDragPaint;
 	private final Paint itemBackgroundPaint;
 
-	private final FileManager fileManager;
+	private final FileManager2 fileManager;
+	private List<BitmapProcessor> processors = new ArrayList<BitmapProcessor>();
 
 	private Rect clipRect = new Rect();
 
@@ -126,7 +129,7 @@ public class EditOverlay extends Overlay implements Closeable {
 		itemBackgroundPaint.setAntiAlias(true);
 		itemBackgroundPaint.setTextAlign(Paint.Align.CENTER);
 
-		fileManager = DefaultFileManager.getInstance();
+		fileManager = FileManager2.getInstance();
 	}
 
 	@Override
@@ -135,7 +138,9 @@ public class EditOverlay extends Overlay implements Closeable {
 		if (relationsCursorHolder != null)
 			relationsCursorHolder.close();
 
-		fileManager.recycleAllBitmaps("edit-overlay");
+		for (BitmapProcessor proc : processors) {
+			proc.recycle();
+		}
 	}
 
 	private int getMeanColor(Drawable drawable) {
@@ -244,8 +249,9 @@ public class EditOverlay extends Overlay implements Closeable {
 		if (!item.iconRequested && item.data.hasPhoto()) {
 			log.trace("Requesting icon of point that in screen...");
 			item.iconRequested = true;
-			fileManager.requestImageBitmap(item.data.getPhotoUrl(),
-					itemSize * 2, itemSize * 2, FileManager.ScaleMode.SCALE_CROP, new EditOverlayBitmapSetter(item), "edit-overlay");
+			BitmapProcessor proc = BitmapProcessor.requestBitmap(fileManager, item.data.getPhotoUrl(), FileSource.Variant.FULL,
+					itemSize * 2, itemSize * 2, FileManager2.ScaleMode.SCALE_CROP, new EditOverlayBitmapSetter(item));
+			processors.add(proc);
 		}
 
 		Drawable marker = draggingItem == item ? markerDrawable2 : markerDrawable;
@@ -480,7 +486,7 @@ private void checkDistance(MapView mapView, android.graphics.Point p) {
 		int relHookY;
 	}
 
-	class EditOverlayBitmapSetter implements FileManager.BitmapSetter {
+	class EditOverlayBitmapSetter implements BitmapSetter {
 		private final EditOverlayItem item;
 		private Bitmap bitmap;
 		private Handler handler = new Handler(Looper.getMainLooper());
@@ -489,10 +495,10 @@ private void checkDistance(MapView mapView, android.graphics.Point p) {
 			this.item = item;
 		}
 
-		private Object tag;
+		private BitmapProcessor tag;
 
 		@Override
-		public void bitmapReady(final Bitmap newBitmap, final Object checkTag) {
+		public void bitmapReady(final Bitmap newBitmap, final BitmapProcessor checkTag) {
 			handler.post(new Runnable() {
 				@Override
 				public void run() {
@@ -516,12 +522,12 @@ private void checkDistance(MapView mapView, android.graphics.Point p) {
 		}
 
 		@Override
-		public void setTag(Object tag) {
+		public void setTag(BitmapProcessor tag) {
 			this.tag = tag;
 		}
 
 		@Override
-		public Object getTag() {
+		public BitmapProcessor getTag() {
 			return tag;
 		}
 	}

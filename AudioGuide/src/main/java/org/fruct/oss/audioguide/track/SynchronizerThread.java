@@ -5,8 +5,6 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.HandlerThread;
 
-import org.fruct.oss.audioguide.files.DefaultFileManager;
-import org.fruct.oss.audioguide.files.FileManager;
 import org.fruct.oss.audioguide.parsers.GetsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -125,10 +123,11 @@ public class SynchronizerThread extends HandlerThread {
 	}
 
 	private Uri ensurePointFileUploaded(Uri uri) throws IOException, GetsException {
-		FileManager fm = DefaultFileManager.getInstance();
+		throw new IllegalStateException("Not implemented yet");
+		/*FileManager2 fm = FileManager2.getInstance();
 		if (!fm.isLocal(uri))
 			return null;
 
-		return fm.uploadLocalFile(uri);
+		return fm.uploadLocalFile(uri);*/
 	}
 }
