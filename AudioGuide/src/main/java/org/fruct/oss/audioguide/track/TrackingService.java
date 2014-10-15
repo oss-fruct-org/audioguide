@@ -290,6 +290,7 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 		distanceTracker.removeListener(this);
 
 		audioPlayer.stopAudioTrack();
+		audioPlayer.close();
 
 		releaseWakeLock();
 

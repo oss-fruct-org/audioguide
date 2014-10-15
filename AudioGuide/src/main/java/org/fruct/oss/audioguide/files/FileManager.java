@@ -1,6 +1,7 @@
 package org.fruct.oss.audioguide.files;
 
 import android.content.Context;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
@@ -385,7 +386,9 @@ public class FileManager implements Closeable {
 			ExecutorService processExecutor = Executors.newSingleThreadExecutor();
 
 			File cacheDir = new File(context.getCacheDir(), "ag-file-storage2");
+			//File persistentDir = new File(Environment.getExternalStorageDirectory())
 			File persistentDir = context.getDir("ag-file-storage2-p", Context.MODE_PRIVATE);
+			//File cacheDir = new File(context.getExternalCacheDir(), "ag-file-storage-2p");
 
 			DirectoryFileStorage cacheStorage;
 			DirectoryFileStorage persistentStorage;

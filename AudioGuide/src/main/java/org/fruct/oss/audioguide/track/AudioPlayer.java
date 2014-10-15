@@ -11,9 +11,11 @@ import android.support.v4.content.LocalBroadcastManager;
 
 import org.fruct.oss.audioguide.files.FileManager;
 import org.fruct.oss.audioguide.files.FileSource;
+import org.fruct.oss.audioguide.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 
 public class AudioPlayer implements MediaPlayer.OnPreparedListener,
@@ -25,7 +27,9 @@ public class AudioPlayer implements MediaPlayer.OnPreparedListener,
 	private final static Logger log = LoggerFactory.getLogger(AudioPlayer.class);
 	private final Context context;
 
-	private MediaPlayer player;
+	private final MediaPlayer player;
+
+	private FileInputStream currentInputStream;
 	private Uri currentUri;
 	private Point currentPoint;
 
@@ -34,33 +38,39 @@ public class AudioPlayer implements MediaPlayer.OnPreparedListener,
 	AudioPlayer(Context context) {
 		this.context = context;
 
+		player = new MediaPlayer();
+		player.setAudioStreamType(AudioManager.STREAM_MUSIC);
+
 		fileManager = FileManager.getInstance();
 	}
 
+	public void close() {
+		player.release();
+	}
+
 	public void startAudioTrack(Point point) {
-		if (player != null || !point.hasAudio()) {
+		if (currentInputStream != null || !point.hasAudio()) {
 			return;
 		}
 
 		Uri uri = Uri.parse(point.getAudioUrl());
+		FileInputStream inputStream;
 
-		player = new MediaPlayer();
-		player.setAudioStreamType(AudioManager.STREAM_MUSIC);
 		try {
 			// Try to use cached uri
 			String localPath = fileManager.getLocalFile(point.getAudioUrl(), FileSource.Variant.FULL);
-			if (localPath == null) {
-				player.release();
-				player = null;
+			if (localPath != null) {
+				inputStream = new FileInputStream(localPath);
+				player.setDataSource(inputStream.getFD());
+			} else {
 				return;
-			} else
-				player.setDataSource(context, Uri.parse(localPath));
-
+			}
 		} catch (IOException e) {
 			log.warn("Cannot set data source for player with url = '{}'", uri);
 			return;
 		}
 
+		currentInputStream = inputStream;
 		currentUri = uri;
 		currentPoint = point;
 		player.setOnCompletionListener(this);
@@ -70,16 +80,19 @@ public class AudioPlayer implements MediaPlayer.OnPreparedListener,
 	}
 
 	public void stopAudioTrack() {
-		if (player != null) {
+		if (currentInputStream != null) {
 			player.stop();
-			player = null;
+			player.reset();
+
+			Utils.sclose(currentInputStream);
 			currentUri = null;
+			currentInputStream = null;
 			LocalBroadcastManager.getInstance(context).sendBroadcast(new Intent(BC_ACTION_STOP_PLAY));
 		}
 	}
 
 	public boolean isPlaying(Uri uri) {
-		return player != null && (uri == null || uri.equals(currentUri));
+		return (uri == null || uri.equals(currentUri));
 	}
 
 	@Override
@@ -92,17 +105,17 @@ public class AudioPlayer implements MediaPlayer.OnPreparedListener,
 		intent.putExtra("point", currentPoint);
 		LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
 
-		handlerPlayer = mediaPlayer;
+		handlerInputStream = currentInputStream;
 		handler = new Handler(Looper.getMainLooper());
 		handler.postDelayed(positionUpdater, 1000);
 	}
 
-	private MediaPlayer handlerPlayer;
+	private FileInputStream handlerInputStream;
 	private Handler handler;
 	private Runnable positionUpdater = new Runnable() {
 		@Override
 		public void run() {
-			if (player != handlerPlayer) {
+			if (currentInputStream != handlerInputStream) {
 				return;
 			}
 
@@ -117,41 +130,38 @@ public class AudioPlayer implements MediaPlayer.OnPreparedListener,
 
 	@Override
 	public void onCompletion(MediaPlayer mediaPlayer) {
-		if (player != null) {
-			player.release();
-			player = null;
-			currentUri = null;
-			currentUri = null;
-			LocalBroadcastManager.getInstance(context).sendBroadcast(new Intent(BC_ACTION_STOP_PLAY));
-		}
+		player.reset();
+
+		Utils.sclose(currentInputStream);
+		currentUri = null;
+		currentInputStream = null;
+		LocalBroadcastManager.getInstance(context).sendBroadcast(new Intent(BC_ACTION_STOP_PLAY));
 	}
 
 	@Override
 	public boolean onError(MediaPlayer mediaPlayer, int what, int extra) {
 		log.warn("Player error with uri " + currentUri + " " + what + " " + extra);
 
-		player = null;
-		currentUri = null;
+		player.reset();
+		Utils.sclose(currentInputStream);
+		currentInputStream = null;
 		currentUri = null;
 
 		return false;
 	}
 
 	public void pause() {
-		if (player != null && player.isPlaying()) {
+		if (player.isPlaying())
 			player.pause();
-		}
 	}
 
 	public void unpause() {
-		if (player != null) {
+		if (currentInputStream != null)
 			player.start();
-		}
 	}
 
 	public void seek(int position) {
-		if (player != null) {
+		if (currentInputStream != null)
 			player.seekTo(position);
-		}
 	}
 }
