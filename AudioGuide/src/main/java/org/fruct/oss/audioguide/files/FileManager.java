@@ -384,8 +384,8 @@ public class FileManager implements Closeable {
 			DirectoryFileStorage persistentStorage;
 
 			try {
-				cacheStorage = new DirectoryFileStorage(cacheDir.getPath(), downloadExecutor);
-				persistentStorage = new DirectoryFileStorage(persistentDir.getPath(), downloadExecutor);
+				cacheStorage = new DirectoryFileStorage(cacheDir.getPath(), processExecutor);
+				persistentStorage = new DirectoryFileStorage(persistentDir.getPath(), processExecutor);
 			} catch (IOException e) {
 				throw new RuntimeException("Can't initialize file manager", e);
 			}
