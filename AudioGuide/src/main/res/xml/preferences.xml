@@ -2,10 +2,10 @@
 
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <org.fruct.oss.audioguide.preferences.SliderPreference
-        android:title="Range"
+        android:title="@string/pref_seek_bar_title"
 
         android:summary="@string/pref_seek_bar_summary_stub"
-        android:text="@string/pref_seek_bar_summary_stub"
+        android:text="@plurals/pref_seek_bar_summary"
 
         android:key="pref_range"
         android:max="1000"
@@ -19,9 +19,11 @@
         />
 
     <org.fruct.oss.audioguide.preferences.SliderPreference
-        android:title="Load radius"
+        android:title="@string/pref_distance"
+
         android:summary="@string/pref_load_radius_summary_stub"
-        android:text="@string/pref_load_radius_summary_stub"
+        android:text="@plurals/pref_load_radius_summary"
+
         android:key="pref_load_radius"
         android:max="1000"
         android:defaultValue="500"

@@ -9,6 +9,8 @@ import android.support.annotation.NonNull;
 import org.fruct.oss.audioguide.App;
 import org.fruct.oss.audioguide.util.ProgressInputStream;
 import org.fruct.oss.audioguide.util.Utils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.File;
@@ -28,6 +30,8 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class FileManager implements Closeable {
+	private static final Logger log = LoggerFactory.getLogger(FileManager.class);
+
 	private final FileSource remoteFileSource;
 	private final FileSource localFileSource;
 
@@ -123,6 +127,7 @@ public class FileManager implements Closeable {
 				String localFile = null;
 				InputStream inputStream = null;
 				try {
+					log.trace("Loading file: {}", fileUrl);
 					inputStream = remoteFileSource.getInputStream(fileUrl, variant);
 					ProgressInputStream progressInputStream
 							= new ProgressInputStream(inputStream,
