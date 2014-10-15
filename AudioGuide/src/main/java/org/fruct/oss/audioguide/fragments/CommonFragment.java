@@ -123,7 +123,7 @@ public class CommonFragment extends Fragment {
 			getActivity().startService(new Intent(TrackingService.ACTION_BACKGROUND,
 					null, getActivity(), TrackingService.class));
 		}
-		
+
 		getActivity().unbindService(singletonServiceConnection);
 	}
 

@@ -48,6 +48,8 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 		fileManager = FileManager.getInstance();
 		database = new Database(context);
 
+		synchronizeFileManager();
+
 		refresher = new Refresher(context, database, this);
 
 		if (!Config.isEditLocked()) {
