@@ -4,7 +4,7 @@
       xmlns:app="http://schemas.android.com/apk/res-auto">
     <item android:id="@+id/action_navigate"
           android:icon="@drawable/ic_action_inv_play"
-          android:title="Follow"
+          android:title="@string/str_autoplay"
           app:showAsAction="always"
         />
 </menu>

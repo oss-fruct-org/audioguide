@@ -4,11 +4,11 @@
       xmlns:app="http://schemas.android.com/apk/res-auto">
     <item android:id="@+id/action_add_to_track"
           android:icon="@drawable/ic_action_share"
-          android:title="Add to track"
-          app:showAsAction="always" />
+          android:title="@string/str_add_to_track"
+          app:showAsAction="ifRoom" />
 
     <item android:id="@+id/action_edit"
           android:icon="@drawable/ic_action_edit"
-          android:title="Edit"
-          app:showAsAction="always" />
+          android:title="@string/str_edit"
+          app:showAsAction="ifRoom" />
 </menu>

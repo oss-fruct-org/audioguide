@@ -35,7 +35,7 @@
             android:layout_height="wrap_content"
             android:textSize="14sp"
             android:textColor="#ff58585B"
-            tools:text="Hello world qweqweqwe qwewww"
+            tools:text="..."
             />
     </LinearLayout>
 

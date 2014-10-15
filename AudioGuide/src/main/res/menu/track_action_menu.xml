@@ -4,14 +4,16 @@
       xmlns:app="http://schemas.android.com/apk/res-auto">
     <item android:id="@+id/action_start_guide"
           android:icon="@drawable/ic_action_location_found"
-          android:title="Start"
+          android:title="@string/str_start_track"
           app:showAsAction="always" />
+
     <item android:id="@+id/action_save"
           android:icon="@drawable/ic_action_inv_save"
-          android:title="Save"
+          android:title="@string/str_save_track"
           app:showAsAction="always" />
+
     <item android:id="@+id/action_delete"
           android:icon="@drawable/ic_action_discard"
-          android:title="Delete"
+          android:title="@string/str_delete_track"
           app:showAsAction="always" />
 </menu>

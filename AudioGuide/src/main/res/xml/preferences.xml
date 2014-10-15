@@ -12,8 +12,8 @@
         android:defaultValue="50"/>
 
     <CheckBoxPreference
-        android:title="Wake mode"
-        android:summary="Keep device awake while tracking"
+        android:title="@string/pref_wake_mode_title"
+        android:summary="@string/pref_wake_mode_summary"
         android:key="pref_wake"
         android:defaultValue="true"
         />
@@ -29,7 +29,7 @@
         />
 
     <Preference
-        android:title="Clean obsolete points"
+        android:title="@string/pref_clean_obsolete"
         android:key="pref_clean_points"
         android:enabled="true"
         />

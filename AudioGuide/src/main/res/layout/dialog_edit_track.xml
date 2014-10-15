@@ -6,7 +6,7 @@
               android:layout_height="match_parent">
 
     <EditText
-        android:hint="Name"
+        android:hint="@string/str_title"
 
         android:id="@+id/edit_name"
         android:inputType="text"
@@ -15,7 +15,7 @@
         android:layout_gravity="center_horizontal"/>
 
     <EditText
-        android:hint="Description"
+        android:hint="@string/str_description"
 
         android:inputType="text"
         android:layout_width="match_parent"
@@ -46,6 +46,6 @@
             android:id="@+id/category_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Select category"/>
+            android:text="@string/str_select_category"/>
     </RelativeLayout>
 </LinearLayout>

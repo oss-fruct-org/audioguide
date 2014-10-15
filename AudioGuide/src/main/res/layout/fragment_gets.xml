@@ -9,14 +9,14 @@
         android:id="@+id/login_label"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Not signed in"
+        android:text="@string/str_not_signed_in"
         style="@style/HeaderText"
         />
 
     <Button
         android:id="@+id/sign_in_button"
         style="@style/Button"
-        android:text="Sign in"/>
+        android:text="@string/str_login"/>
 
 <!--
     <Button
@@ -28,6 +28,6 @@
     <Button
         android:id="@+id/logout_button"
         style="@style/Button"
-        android:text="Logout"
+        android:text="@string/str_logout"
         />
 </LinearLayout>

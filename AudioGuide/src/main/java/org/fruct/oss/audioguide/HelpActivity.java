@@ -8,25 +8,18 @@ import java.util.Locale;
 
 import android.graphics.PorterDuff;
 import android.support.v7.app.ActionBarActivity;
-import android.support.v7.app.ActionBar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
-import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
-import org.fruct.oss.audioguide.R;
 
 public class HelpActivity extends ActionBarActivity {
 
@@ -74,33 +67,32 @@ public class HelpActivity extends ActionBarActivity {
         @Override
         public Fragment getItem(int position) {
 			HelpEntry[] helpEntries1 = {
-				new HelpEntry("Sound", "Use this button to start sound automatically", R.drawable.ic_action_volume_on, true),
-				new HelpEntry("Refresh", "Press to refresh list of tracks or points", R.drawable.ic_action_refresh, true),
-				new HelpEntry("Filter", "Use \"Filter\" to show tracks or points from selected categories", 0, true)
+				new HelpEntry(getString(R.string.help_sound), getString(R.string.help_sound_desc), R.drawable.ic_action_inv_play, true),
+				new HelpEntry(getString(R.string.help_refresh), getString(R.string.help_refresh_desc), R.drawable.ic_action_refresh, true),
+				new HelpEntry(getString(R.string.help_filter), getString(R.string.help_filter_desc), 0, true)
 			};
 
 			HelpEntry[] helpEntries2 = {
-					new HelpEntry("Tracks", "Press \"Add\" button to create track", R.drawable.ic_action_new, true),
-					new HelpEntry("Track menu", "Long press to show track's menu", R.drawable.ic_action_refresh, true),
-					new HelpEntry("Activate", "Show track on map hiding unrelated points", R.drawable.ic_action_location_found, true),
-					new HelpEntry("Save", "Save content of track to your device", R.drawable.ic_action_save, false),
-					new HelpEntry("Delete", "Delete track. AudioGuide will ask you delete track locally or on remote server", R.drawable.ic_action_discard, true)
+					new HelpEntry(getString(R.string.help_tracks), getString(R.string.help_tracks_desc), R.drawable.ic_action_new, true),
+					new HelpEntry(getString(R.string.help_track_menu), getString(R.string.help_track_menu_desc), R.drawable.ic_action_refresh, true),
+					new HelpEntry(getString(R.string.help_activate), getString(R.string.help_activate_desc), R.drawable.ic_action_location_found, true),
+					new HelpEntry(getString(R.string.help_save), getString(R.string.help_save_desc), R.drawable.ic_action_save, false),
+					new HelpEntry(getString(R.string.help_delete), getString(R.string.help_delete_desc), R.drawable.ic_action_discard, true)
 			};
 
 			HelpEntry[] helpEntries3 = {
-					new HelpEntry("Modes", "Map has two modes: track and points", 0, true),
-					new HelpEntry("Track mode", "In track mode map shows only active track. Track mode can be switched from menu or from track window by selecting \"Activate\" option from track's menu. " +
-							"Track mode can be deactivated by choosing menu button", android.R.drawable.ic_menu_mapmode, true),
-					new HelpEntry("Point mode", "Show all loaded points", android.R.drawable.ic_menu_mapmode, true),
-					new HelpEntry("Search", "Search near points. Searching radius can be adjusted in settings window", R.drawable.ic_action_search, true),
-					new HelpEntry("Place here", "Set position to current map center", 0, true),
-					new HelpEntry("Add point", "Create new point", R.drawable.ic_action_new, true)
+					new HelpEntry(getString(R.string.help_modes), getString(R.string.help_modes_desc), 0, true),
+					new HelpEntry(getString(R.string.help_track_mode), getString(R.string.help_track_mode_desc), android.R.drawable.ic_menu_mapmode, true),
+					new HelpEntry(getString(R.string.help_points_mode), getString(R.string.help_points_mode_desc), android.R.drawable.ic_menu_mapmode, true),
+					new HelpEntry(getString(R.string.help_search), getString(R.string.help_search_desc), R.drawable.ic_action_search, true),
+					new HelpEntry(getString(R.string.help_place_here), getString(R.string.help_place_here_desc), 0, true),
+					new HelpEntry(getString(R.string.help_add_point), getString(R.string.help_add_point_desc), R.drawable.ic_action_new, true)
 			};
 
 			HelpEntry[] helpEntries4 = {
-					new HelpEntry("Point menu", "Long press point to access point menu", 0, true),
-					new HelpEntry("Add to track", "Add point to track", R.drawable.ic_action_share, true),
-					new HelpEntry("Edit", "Edit point description, image and audio", R.drawable.ic_action_edit, true),
+					new HelpEntry(getString(R.string.help_point_menu), getString(R.string.help_point_menu_desc), 0, true),
+					new HelpEntry(getString(R.string.help_add_to_track), getString(R.string.help_add_to_track_desc), R.drawable.ic_action_share, true),
+					new HelpEntry(getString(R.string.help_desc), getString(R.string.help_desc_desc), R.drawable.ic_action_edit, true),
 			};
 
 			switch (position) {

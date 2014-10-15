@@ -7,14 +7,14 @@
 
     <EditText
         android:id="@+id/text_title"
-        android:hint="Title"
+        android:hint="@string/str_title"
         android:inputType="text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
 
     <EditText
         android:id="@+id/text_description"
-        android:hint="Description"
+        android:hint="@string/str_description"
         android:inputType="text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>

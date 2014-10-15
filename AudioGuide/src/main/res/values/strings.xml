@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
     <string name="app_name">AudioGuide</string>
 
     <string name="title_section1">Tracks</string>
@@ -42,6 +41,72 @@
         <item quantity="other">Load points nearer than %d kilometers</item>
     </plurals>
 
-    <string name="title_activity_help">HelpActivity</string>
+    <string name="pref_wake_mode_summary">Keep device awake while tracking</string>
+    <string name="pref_wake_mode_title">Wake mode</string>
+    <string name="pref_clean_obsolete">Clean obsolete points</string>
+
+
+    <string name="title_activity_help">Help</string>
+
+    <string name="str_filter">Filter</string>
+    <string name="str_add_track">Add track</string>
+    <string name="str_add_point">Add point</string>
+    <string name="str_search">Search</string>
+    <string name="str_place_here">Place here</string>
+    <string name="str_find_me">Find me</string>
+    <string name="str_stop_track_mode">Stop track mode</string>
+    <string name="str_autoplay">Follow</string>
+    <string name="str_show_on_map">Show on map</string>
+    <string name="str_add_to_track">Add to track</string>
+    <string name="str_edit">Edit</string>
+    <string name="str_refresh">Refresh</string>
+    <string name="str_save">Save</string>
+    <string name="str_start_track">Start</string>
+    <string name="str_save_track">Save</string>
+    <string name="str_delete_track">Delete</string>
+
+    <string name="str_title">Title</string>
+    <string name="str_description">Description</string>
+    <string name="str_select_category">Select category</string>
+    <string name="about_text">This application is a part of grant KA332 of Karelia ENPI CBC programme, which is co-funded by the European Union, the Russian Federation and the Republic of Finland. </string>
+    <string name="str_logout">Logout</string>
+    <string name="str_login">Sign in</string>
+    <string name="str_not_signed_in">Not signed in</string>
+
+    <string name="help_sound">Sound</string>
+    <string name="help_sound_desc">Use this button to start sound automatically</string>
+    <string name="help_refresh">Refresh</string>
+    <string name="help_refresh_desc">Press to refresh list of tracks or points</string>
+    <string name="help_filter">Filter</string>
+    <string name="help_filter_desc">Use \"Filter\" to show tracks or points from selected categories</string>
+    <string name="help_tracks">Tracks</string>
+    <string name="help_tracks_desc">Press \"Add\" button to create track</string>
+    <string name="help_track_menu">Track menu</string>
+    <string name="help_track_menu_desc">Long press to show track\'s menu</string>
+    <string name="help_activate">Activate</string>
+    <string name="help_activate_desc">Show track on map hiding unrelated points</string>
+    <string name="help_save">Save</string>
+    <string name="help_save_desc">Save content of track to your device</string>
+    <string name="help_delete">Delete</string>
+    <string name="help_delete_desc">Delete track. AudioGuide will ask you delete track locally or on remote server</string>
+    <string name="help_modes">Modes</string>
+    <string name="help_modes_desc">Map has two modes: track and points</string>
+    <string name="help_track_mode">Track mode</string>
+    <string name="help_track_mode_desc">In track mode map shows only active track. Track mode can be switched from menu or from track window by selecting \"Activate\" option from track\'s menu. Track mode can be deactivated by choosing menu button</string>
+    <string name="help_points_mode">Point mode</string>
+    <string name="help_points_mode_desc">Show all loaded points</string>
+    <string name="help_search">Search</string>
+    <string name="help_search_desc">Search near points. Searching radius can be adjusted in settings window</string>
+    <string name="help_place_here">Place here</string>
+    <string name="help_place_here_desc">Set position to current map center</string>
+    <string name="help_add_point">Add point</string>
+    <string name="help_add_point_desc">Create new point</string>
+    <string name="help_point_menu">Point menu</string>
+    <string name="help_point_menu_desc">Long press point to access point menu</string>
+    <string name="help_add_to_track">Add to track</string>
+    <string name="help_add_to_track_desc">Add point to track</string>
+    <string name="help_desc">Edit</string>
+    <string name="help_desc_desc">Edit point description, image and audio</string>
+
 
 </resources>

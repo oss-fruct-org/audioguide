@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Аудио Гид</string>
+
+    <string name="title_section1">Треки</string>
+    <string name="title_section2">Карта</string>
+    <string name="title_section3">GeTS</string>
+    <string name="title_section4">О программе</string>
+    <string name="title_section5">Настройки</string>
+    <string name="title_section6">Помощь</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_example">Example action</string>
+
+    <string name="action_settings">Настройки</string>
+
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <string name="title_activity_file_chooser">Выберите файл</string>
+    <string name="settings">Настройки</string>
+    <string name="delete_track_server">С сервера</string>
+    <string name="delete_track_local">Локально</string>
+    <string name="delete_track">Удалить трек</string>
+
+    <string-array name="track_spinner_array">
+        <item>Все</item>
+        <item>Приватные</item>
+        <item>Публичные</item>
+        <item>Загруженные</item>
+        <item>Активные</item>
+    </string-array>
+
+    <string name="pref_seek_bar_summary_stub">Проигрывать звук, если точка ближе чем</string>
+    <string name="pref_load_radius_summary_stub">Проигрывать звук, если точка ближе чем</string>
+
+    <plurals name="pref_seek_bar_summary">
+        <item quantity="one">Проигрывать звук, если точка ближе чем %d метр</item>
+        <item quantity="few">Проигрывать звук, если точка ближе чем %d метра</item>
+        <item quantity="many">Проигрывать звук, если точка ближе чем %d метров</item>
+        <item quantity="other">Проигрывать звук, если точка ближе чем %d метров</item>
+    </plurals>
+    <plurals name="pref_load_radius_summary">
+        <item quantity="one">Загружать точки ближе чем %d километр</item>
+        <item quantity="few">Загружать точки ближе чем %d километра</item>
+        <item quantity="many">Загружать точки ближе чем %d километов</item>
+        <item quantity="other">Загружать точки ближе чем %d километов</item>
+    </plurals>
+
+
+    <string name="pref_wake_mode_summary">Не позволять устройству переходить в спящий режим</string>
+    <string name="pref_wake_mode_title">Ждущий режим</string>
+    <string name="pref_clean_obsolete">Удалить старые точки</string>
+
+    <string name="title_activity_help">Помощь</string>
+
+    <string name="str_filter">Фильтр</string>
+    <string name="str_add_track">Добавить трек</string>
+    <string name="str_add_point">Добавить точку</string>
+    <string name="str_search">Поиск</string>
+    <string name="str_place_here">Установить местоположение</string>
+    <string name="str_find_me">Найти текущее положение</string>
+    <string name="str_stop_track_mode">Режим трека</string>
+    <string name="str_autoplay">Автовоспроизведение</string>
+    <string name="str_show_on_map">Показать на карте</string>
+    <string name="str_add_to_track">Добавить к треку</string>
+    <string name="str_edit">Редактировать</string>
+    <string name="str_refresh">Обновить</string>
+    <string name="str_save">Сохранить</string>
+    <string name="str_start_track">Запустить трек</string>
+    <string name="str_save_track">Сохранить трек</string>
+    <string name="str_delete_track">Удалить трек</string>
+
+    <string name="str_title">Заголовок</string>
+    <string name="str_description">Описание</string>
+    <string name="str_select_category">Выберите категорию</string>
+    <string name="about_text">Приложение является частью гранта KA322 программы Karelia ENPI CBC, которая финансируется совместно Европейским Союзом, Российской Федерацией и Финляндской Республикой. </string>
+    <string name="str_logout">Выйти</string>
+    <string name="str_login">Войти</string>
+    <string name="str_not_signed_in">Оффлайн</string>
+
+    <string name="help_sound">Звук</string>
+    <string name="help_sound_desc">Начинать воспроизведение автоматически при достижении точки</string>
+    <string name="help_refresh">Обновить</string>
+    <string name="help_refresh_desc">Обновить список точек или треков</string>
+    <string name="help_filter">Фильтр</string>
+    <string name="help_filter_desc">Фильтрация точек и треков по категориям</string>
+    <string name="help_tracks">Создание трека</string>
+    <string name="help_tracks_desc">Нажмите кномпу "Добавить" для создания трека</string>
+    <string name="help_track_menu">Меню трека</string>
+    <string name="help_track_menu_desc">Удерживайте название трека для получения доступа к меню</string>
+    <string name="help_activate">Активирровать</string>
+    <string name="help_activate_desc">Отобразить только выбранный трек и скрыть посторонние точки</string>
+    <string name="help_save">Сохранить</string>
+    <string name="help_save_desc">Сохранить содержимое трека в локальном хранилище</string>
+    <string name="help_delete">Удалить трек</string>
+    <string name="help_delete_desc">Удалить трек локально или с сервера</string>
+    <string name="help_modes">Режимы</string>
+    <string name="help_modes_desc">Карта имеет два режима: режим трека и режим точек</string>
+    <string name="help_track_mode">Режим трека</string>
+    <string name="help_track_mode_desc">В режиме трека отображается только точки из активного трека </string>
+    <string name="help_points_mode">Режим точек</string>
+    <string name="help_points_mode_desc">Отобразить все загруженные точки</string>
+    <string name="help_search">Поиск</string>
+    <string name="help_search_desc">Загрузить все точки в радиусе, заданном в настройках</string>
+    <string name="help_place_here">Установить местоположение</string>
+    <string name="help_place_here_desc">Установить положение пользователя в текущее положение центра карты</string>
+    <string name="help_add_point">Добавить точку</string>
+    <string name="help_add_point_desc">Создать новую точку в центре карты</string>
+    <string name="help_point_menu">Меню точки</string>
+    <string name="help_point_menu_desc">Нажмите и удерживайте точку для получения доступа к меню</string>
+    <string name="help_add_to_track">Добавить к треку</string>
+    <string name="help_add_to_track_desc">Добавить выбранную точку к треку</string>
+    <string name="help_desc">Редактировать</string>
+    <string name="help_desc_desc">Редактировать описание, аудио и картинку точки</string>
+
+</resources>
