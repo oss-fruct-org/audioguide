@@ -84,6 +84,8 @@ public class MainActivity extends ActionBarActivity
 		}
 
 		setupBottomPanel();
+
+		startService(new Intent(this, SingletonService.class));
 	}
 
 	private void setupBottomPanel() {

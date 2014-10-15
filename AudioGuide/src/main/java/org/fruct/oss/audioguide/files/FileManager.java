@@ -239,6 +239,27 @@ public class FileManager implements Closeable {
 		listeners.remove(listener);
 	}
 
+	/**
+	 * Clean up persistent storage and ensure all urls loaded
+	 * @param fileUrls list of actual url
+	 */
+	public synchronized void retainPersistentUrls(final List<String> fileUrls) {
+		executor.execute(new Runnable() {
+			@Override
+			public void run() {
+				List<String> absentFiles = persistentStorage.retainUrls(fileUrls);
+
+				for (String absentFileUrl : absentFiles) {
+					if (cacheStorage.getFile(absentFileUrl, FileSource.Variant.FULL) != null) {
+						requestTransfer(absentFileUrl, FileSource.Variant.FULL);
+					} else {
+						requestDownload(absentFileUrl, FileSource.Variant.FULL, Storage.PERSISTENT);
+					}
+				}
+			}
+		});
+	}
+
 	private void notifyItemDownloadError(final String fileUrl) {
 		listenerHandler.apply(new Runnable() {
 			@Override
@@ -310,9 +331,7 @@ public class FileManager implements Closeable {
 
 			DownloadTaskParameters that = (DownloadTaskParameters) o;
 
-			if (!url.equals(that.url)) return false;
-			return variant == that.variant;
-
+			return url.equals(that.url) && variant == that.variant;
 		}
 
 		@Override

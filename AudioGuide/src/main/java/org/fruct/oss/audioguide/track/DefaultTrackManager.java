@@ -37,6 +37,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 
 	private Location location = new Location("no-provider");
 	private float radius;
+	private boolean isClosed;
 
 	public DefaultTrackManager(Context context, StorageBackend backend, CategoriesBackend catBackend) {
 		this.categoriesBackend = catBackend;
@@ -45,8 +46,8 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 		pref = PreferenceManager.getDefaultSharedPreferences(context);
 
 		fileManager = FileManager.getInstance();
-
 		database = new Database(context);
+
 		refresher = new Refresher(context, database, this);
 
 		if (!Config.isEditLocked()) {
@@ -73,7 +74,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 		}
 
 		database.close();
-		instance = null;
+		isClosed = true;
 	}
 
 	@Override
@@ -145,11 +146,6 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 			@Override
 			public void call(List<Point> points) {
 				for (Point point : points) {
-					if (point.hasAudio()) {
-						//fileManager.insertRemoteFile("no-title", Uri.parse(point.getAudioUrl()));
-						//fileManager.requestAudioDownload(point.getAudioUrl());
-					}
-
 					database.insertPoint(point);
 				}
 
@@ -167,11 +163,6 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 					return;
 
 				for (Point point : points) {
-					if (point.hasAudio()) {
-						//fileManager.insertRemoteFile("no-title", Uri.parse(point.getAudioUrl()));
-						//fileManager.requestAudioDownload(point.getAudioUrl());
-					}
-
 					point.setPrivate(track.isPrivate());
 					point.setCategoryId(track.getCategoryId());
 				}
@@ -353,6 +344,12 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 		}
 	}
 
+	@Override
+	public void synchronizeFileManager() {
+		List<String> localUrls = database.loadLocalAudioUrls();
+		fileManager.retainPersistentUrls(localUrls);
+	}
+
 	private void loadRemoteCategories() {
 		categoriesBackend.loadCategories(new Utils.Callback<List<Category>>() {
 			@Override
@@ -394,7 +391,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 
 	private static DefaultTrackManager instance;
 	public synchronized static TrackManager getInstance() {
-		if (instance == null) {
+		if (instance == null || instance.isClosed) {
 			GetsBackend backend = new GetsBackend();
 			instance = new DefaultTrackManager(App.getContext(), backend, backend);
 			instance.getCategories();

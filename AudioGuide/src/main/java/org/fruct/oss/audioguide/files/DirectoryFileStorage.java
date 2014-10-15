@@ -7,8 +7,11 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Executor;
 
@@ -119,6 +122,7 @@ public class DirectoryFileStorage implements FileStorage {
 			otherLocalFile.delete();
 		} catch (IOException ex) {
 			newLocalFile.delete();
+			throw ex;
 		} finally {
 			if (input != null)
 				input.close();
@@ -127,6 +131,27 @@ public class DirectoryFileStorage implements FileStorage {
 				output.close();
 
 		}
+	}
+
+	@Override
+	public List<String> retainUrls(List<String> keepUrls) {
+		Set<File> existingFiles = new HashSet<File>(Arrays.asList(directory.listFiles()));
+		List<String> absentUrls = new ArrayList<String>();
+
+		for (String keepUrl : keepUrls) {
+			String nameFull = toFileName(keepUrl, FileSource.Variant.FULL);
+			File fileFull = new File(directory, nameFull);
+
+			if (!existingFiles.remove(fileFull)) {
+				absentUrls.add(keepUrl);
+			}
+		}
+
+		for (File remainingFile : existingFiles) {
+			remainingFile.delete();
+		}
+
+		return absentUrls;
 	}
 
 	public enum Mode {

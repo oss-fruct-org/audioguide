@@ -36,11 +36,16 @@ public class SingletonService extends Service {
 
 	@Override
 	public void onDestroy() {
-		super.onDestroy();
 		log.trace("onDestroy");
 
 		trackManager.close();
 		fileManager.close();
+		super.onDestroy();
+	}
+
+	@Override
+	public int onStartCommand(Intent intent, int flags, int startId) {
+		return START_STICKY;
 	}
 
 	@Override

@@ -19,6 +19,8 @@ import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
@@ -29,8 +31,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 public class DirectoryFileStorageTest extends AndroidTestCase {
-	public static final String URL1 = "http://example.com/file.xml";
+	public static final String URL1 = "http://example.com/file1.xml";
 	public static final String URL2 = "http://example.com/file2.xml";
+	public static final String URL3 = "http://example.com/file3.xml";
+	public static final String URL4 = "http://example.com/file4.xml";
 
 	private RenamingDelegatingContext context;
 	private File dir;
@@ -132,6 +136,20 @@ public class DirectoryFileStorageTest extends AndroidTestCase {
 		assertNotNull(file);
 		assertNull(fileStorage.getFile(URL1, FileSource.Variant.FULL));
 		assertEquals("qwe", getFirstLine(file));
+	}
+
+	public void testRetain() throws Exception {
+		fileStorage.storeFile(URL1, FileSource.Variant.FULL, createStream("qwe"));
+		fileStorage.storeFile(URL2, FileSource.Variant.FULL, createStream("asd"));
+		fileStorage.storeFile(URL3, FileSource.Variant.FULL, createStream("zxc"));
+
+		List<String> absentFiles = fileStorage.retainUrls(Arrays.asList(URL2, URL3, URL4));
+		assertEquals(1, absentFiles.size());
+		assertEquals(URL4, absentFiles.get(0));
+
+		assertNull(fileStorage.getFile(URL1, FileSource.Variant.FULL));
+		assertNotNull(fileStorage.getFile(URL2, FileSource.Variant.FULL));
+		assertNotNull(fileStorage.getFile(URL3, FileSource.Variant.FULL));
 	}
 
 	private String getFirstLine(String file) throws Exception {

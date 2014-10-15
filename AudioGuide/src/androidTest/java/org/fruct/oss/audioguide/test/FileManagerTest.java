@@ -19,6 +19,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -298,6 +299,11 @@ public class FileManagerTest extends AndroidTestCase {
 		@Override
 		public void pullFile(FileStorage otherStorage, String fileUrl, FileSource.Variant variant) {
 			files.put(fileUrl + variant.toString(), fileUrl.substring(6));
+		}
+
+		@Override
+		public List<String> retainUrls(List<String> keepUrls) {
+			throw new IllegalStateException("Not implemented yet");
 		}
 	}
 

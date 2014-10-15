@@ -1,8 +1,12 @@
 package org.fruct.oss.audioguide.preferences;
 
+import android.content.ComponentName;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.widget.Toast;
@@ -11,6 +15,7 @@ import junit.framework.AssertionFailedError;
 
 import org.fruct.oss.audioguide.App;
 import org.fruct.oss.audioguide.R;
+import org.fruct.oss.audioguide.SingletonService;
 import org.fruct.oss.audioguide.track.DefaultTrackManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +33,17 @@ public class SettingsActivity extends PreferenceActivity implements SharedPrefer
 	private SharedPreferences pref;
 	private Preference cleanPointsPreference;
 
+	private ServiceConnection singletonServiceConnection = new ServiceConnection() {
+		@Override
+		public void onServiceConnected(ComponentName name, IBinder service) {
+		}
+
+		@Override
+		public void onServiceDisconnected(ComponentName name) {
+		}
+	};
+
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -44,6 +60,7 @@ public class SettingsActivity extends PreferenceActivity implements SharedPrefer
 				log.debug("Clean points clicked");
 				Toast.makeText(SettingsActivity.this, "Cleaning points...", Toast.LENGTH_LONG).show();
 				DefaultTrackManager.getInstance().requestPointsCleanup();
+				DefaultTrackManager.getInstance().synchronizeFileManager();
 				return true;
 			}
 		});
@@ -51,6 +68,8 @@ public class SettingsActivity extends PreferenceActivity implements SharedPrefer
 		if (Build.VERSION.SDK_INT >= 11) {
 			getActionBar().setDisplayHomeAsUpEnabled(true);
 		}
+
+		bindService(new Intent(this, SingletonService.class), singletonServiceConnection, BIND_AUTO_CREATE);
 	}
 
 	@Override
@@ -84,6 +103,13 @@ public class SettingsActivity extends PreferenceActivity implements SharedPrefer
 		super.onPause();
 	}
 
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+
+		unbindService(singletonServiceConnection);
+	}
+
 	private void updateRangeSummary() {
 		int value = pref.getInt(PREF_RANGE, 50);
 		rangePreference.setSummary(getResources().getQuantityString(R.plurals.pref_seek_bar_summary,
@@ -95,7 +121,6 @@ public class SettingsActivity extends PreferenceActivity implements SharedPrefer
 		loadRadiusPreference.setSummary(getResources().getQuantityString(R.plurals.pref_load_radius_summary,
 				value, value));
 	}
-
 
 	@Override
 	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {

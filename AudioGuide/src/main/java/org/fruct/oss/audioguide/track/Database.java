@@ -409,6 +409,24 @@ public class Database {
 		}
 	}
 
+	public List<String> loadLocalAudioUrls() {
+		Cursor cursor = db.rawQuery("SELECT audioUrl " +
+				"FROM point " +
+				"INNER JOIN tp ON point.id = tp.pointId " +
+				"INNER JOIN track ON track.id = tp.trackId " +
+				"WHERE track.local AND audioUrl IS NOT NULL;", null);
+
+
+		List<String> ret = new ArrayList<String>(cursor.getCount());
+
+		while (cursor.moveToNext()) {
+			ret.add(cursor.getString(0));
+		}
+
+		cursor.close();
+		return ret;
+	}
+
 	private static class Helper extends SQLiteOpenHelper {
 		public static final String DB_NAME = "tracksdb2";
 		public static final int DB_VERSION = 1; // published None
