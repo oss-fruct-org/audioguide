@@ -3,6 +3,7 @@ package org.fruct.oss.audioguide.files;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.annotation.NonNull;
 
 import org.fruct.oss.audioguide.App;
 import org.fruct.oss.audioguide.util.ProgressInputStream;
@@ -21,6 +22,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
+import java.util.concurrent.PriorityBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class FileManager implements Closeable {
 	private final FileSource remoteFileSource;
@@ -103,16 +107,16 @@ public class FileManager implements Closeable {
 	 * @param storageType storage type
 	 */
 	public synchronized void requestDownload(final String fileUrl, final FileSource.Variant variant, final Storage storageType) {
-		final DownloadTaskParameters parm = new DownloadTaskParameters(fileUrl, variant);
+		final DownloadTaskParameters parm = new DownloadTaskParameters(fileUrl, variant, storageType);
 		DownloadTask task = downloadTasks.get(parm);
 
 		if ((task != null && !Utils.isFutureError(task.future)) || getLocalFile(fileUrl, variant) != null) {
 			return;
 		}
 
-		Future<String> future = executor.submit(new Callable<String>() {
+		FutureTask<String> future = new ComparableFuture<String>(-storageType.ordinal(), new Callable<String>() {
 			@Override
-			public String call() throws Exception {
+			public String call() {
 				FileStorage storage = storageType == Storage.CACHE ? cacheStorage : persistentStorage;
 
 				String localFile = null;
@@ -133,11 +137,10 @@ public class FileManager implements Closeable {
 					synchronized (FileManager.this) {
 						downloadTasks.remove(parm);
 						notifyItemDownloadError(fileUrl);
-						throw ex;
+						throw new RuntimeException("Download task error", ex);
 					}
 				} finally {
-					if (inputStream != null)
-						inputStream.close();
+					Utils.sclose(inputStream);
 				}
 
 				synchronized (FileManager.this) {
@@ -152,9 +155,9 @@ public class FileManager implements Closeable {
 				}
 
 				return localFile;
-			}
-		});
+			}});
 
+		executor.execute(future);
 		downloadTasks.put(parm, new DownloadTask(future));
 	}
 
@@ -168,7 +171,7 @@ public class FileManager implements Closeable {
 	 */
 	public synchronized  <T> Future<T> postDownload(final String fileUrl, final FileSource.Variant variant, Storage storageType, final PostProcessor<T> postProcessor) {
 		final String localFile = getLocalFile(fileUrl, variant);
-		final DownloadTaskParameters parm = new DownloadTaskParameters(fileUrl, variant);
+		final DownloadTaskParameters parm = new DownloadTaskParameters(fileUrl, variant, storageType);
 
 		if (localFile != null) {
 			FutureTask<T> processorFuture = new FutureTask<T>(new Callable<T>() {
@@ -211,7 +214,7 @@ public class FileManager implements Closeable {
 		if (cacheStorage.getFile(fileUrl, variant) == null)
 			return;
 
-		executor.execute(new Runnable() {
+		processorExecutor.execute(new Runnable() {
 			@Override
 			public void run() {
 				try {
@@ -244,7 +247,7 @@ public class FileManager implements Closeable {
 	 * @param fileUrls list of actual url
 	 */
 	public synchronized void retainPersistentUrls(final List<String> fileUrls) {
-		executor.execute(new Runnable() {
+		processorExecutor.execute(new Runnable() {
 			@Override
 			public void run() {
 				List<String> absentFiles = persistentStorage.retainUrls(fileUrls);
@@ -301,28 +304,44 @@ public class FileManager implements Closeable {
 		NO_SCALE, SCALE_CROP, SCALE_FIT
 	}
 
+	private class ComparableFuture<T> extends FutureTask<T> implements Comparable<ComparableFuture<T>> {
+		private final int priority;
+
+		public ComparableFuture(int priority, Callable<T> callable) {
+			super(callable);
+			this.priority = priority;
+		}
+
+		@Override
+		public int compareTo(@NonNull ComparableFuture<T> another) {
+			return priority - another.priority;
+		}
+	}
+
 	private class DownloadTask {
-		private DownloadTask(Future<String> future) {
+		private DownloadTask(Future<?> future) {
 			this.future = future;
 			this.postProcessors = new ArrayList<PostProcessor<?>>();
 			this.postProcessorFutures = new ArrayList<FutureTask<?>>();
 		}
 
-		final Future<String> future;
+		final Future<?> future;
 
 		// Parallel arrays of post processors and corresponding futures
 		final List<PostProcessor<?>> postProcessors;
 		final List<FutureTask<?>> postProcessorFutures;
 	}
 
-	private class DownloadTaskParameters {
-		private DownloadTaskParameters(String url, FileSource.Variant variant) {
+	private class DownloadTaskParameters implements Comparable<DownloadTaskParameters> {
+		private final Storage storage;
+		private final String url;
+		private final FileSource.Variant variant;
+
+		private DownloadTaskParameters(String url, FileSource.Variant variant, Storage storage) {
 			this.url = url;
 			this.variant = variant;
+			this.storage = storage;
 		}
-
-		private String url;
-		private FileSource.Variant variant;
 
 		@Override
 		public boolean equals(Object o) {
@@ -331,14 +350,25 @@ public class FileManager implements Closeable {
 
 			DownloadTaskParameters that = (DownloadTaskParameters) o;
 
-			return url.equals(that.url) && variant == that.variant;
+			return storage == that.storage && url.equals(that.url) && variant == that.variant;
+
 		}
 
 		@Override
 		public int hashCode() {
-			int result = url.hashCode();
+			int result = storage.hashCode();
+			result = 31 * result + url.hashCode();
 			result = 31 * result + variant.hashCode();
 			return result;
+		}
+
+		@Override
+		public int compareTo(DownloadTaskParameters another) {
+			if (storage != another.storage) {
+				return another.storage.ordinal() - storage.ordinal();
+			}
+
+			return url.compareTo(another.url);
 		}
 	}
 
@@ -348,7 +378,10 @@ public class FileManager implements Closeable {
 			Context context = App.getContext();
 			UrlFileSource remoteFileSource = new UrlFileSource();
 
-			ExecutorService downloadExecutor = Executors.newSingleThreadExecutor();
+			ExecutorService downloadExecutor = new ThreadPoolExecutor(1, 1,
+					0L, TimeUnit.MILLISECONDS,
+					new PriorityBlockingQueue<Runnable>());
+
 			ExecutorService processExecutor = Executors.newSingleThreadExecutor();
 
 			File cacheDir = new File(context.getCacheDir(), "ag-file-storage2");

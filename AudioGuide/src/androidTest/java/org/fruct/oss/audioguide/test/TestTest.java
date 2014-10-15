@@ -48,7 +48,7 @@ public class TestTest extends AndroidTestCase {
 			}
 		});
 
-		executor.submit(task);
+		executor.execute(task);
 		Thread.sleep(200);
 		task.cancel(true);
 		Thread.sleep(200);
