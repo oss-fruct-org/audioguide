@@ -37,6 +37,7 @@ public class CommonFragment extends Fragment {
 	private TrackingService trackingService;
 	private boolean isStateSaved;
 
+
 	private ServiceConnection singletonServiceConnection = new ServiceConnection() {
 		@Override
 		public void onServiceConnected(ComponentName name, IBinder service) {
@@ -126,9 +127,11 @@ public class CommonFragment extends Fragment {
 
 	@Override
 	public void onDestroy() {
-		super.onDestroy();
 		LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(errorReceiver);
+
 		getActivity().unbindService(singletonServiceConnection);
+
+		super.onDestroy();
 	}
 
 	@Override

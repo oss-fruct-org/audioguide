@@ -124,47 +124,28 @@ public class FileManager implements Closeable {
 							inputStream.available(), 100000, new ProgressInputStream.ProgressListener() {
 						@Override
 						public void update(final int current, final int max) {
-							listenerHandler.apply(new Runnable() {
-								@Override
-								public void run() {
-									for (FileListener listener : listeners) {
-										listener.itemDownloadProgress(fileUrl, current, max);
-									}
-								}
-							});
+							notifyItemDownloadProgress(fileUrl, current, max);
 						}
 					});
 
 					localFile = storage.storeFile(fileUrl, variant, progressInputStream);
 				} catch (IOException ex) {
-					listenerHandler.apply(new Runnable() {
-						@Override
-						public void run() {
-							for (FileListener listener : listeners) {
-								listener.itemDownloadError(fileUrl);
-							}
-						}
-					});
-					throw ex;
+					synchronized (FileManager.this) {
+						downloadTasks.remove(parm);
+						notifyItemDownloadError(fileUrl);
+						throw ex;
+					}
 				} finally {
 					if (inputStream != null)
 						inputStream.close();
 				}
 
 				synchronized (FileManager.this) {
-					listenerHandler.apply(new Runnable() {
-						@Override
-						public void run() {
-							for (FileListener listener : listeners) {
-								listener.itemLoaded(fileUrl);
-							}
-						}
-					});
+					notifyItemLoaded(fileUrl);
 
-					DownloadTask downloadTask = downloadTasks.get(parm);
+					DownloadTask downloadTask = downloadTasks.remove(parm);
 
 					assert downloadTask != null;
-
 					for (FutureTask<?> processorFuture : downloadTask.postProcessorFutures) {
 						processorExecutor.submit(processorFuture);
 					}
@@ -256,6 +237,39 @@ public class FileManager implements Closeable {
 	 */
 	public void removeListener(FileListener listener) {
 		listeners.remove(listener);
+	}
+
+	private void notifyItemDownloadError(final String fileUrl) {
+		listenerHandler.apply(new Runnable() {
+			@Override
+			public void run() {
+				for (FileListener listener : listeners) {
+					listener.itemDownloadError(fileUrl);
+				}
+			}
+		});
+	}
+
+	private void notifyItemLoaded(final String fileUrl) {
+		listenerHandler.apply(new Runnable() {
+			@Override
+			public void run() {
+				for (FileListener listener : listeners) {
+					listener.itemLoaded(fileUrl);
+				}
+			}
+		});
+	}
+
+	private void notifyItemDownloadProgress(final String fileUrl, final int current, final int max) {
+		listenerHandler.apply(new Runnable() {
+			@Override
+			public void run() {
+				for (FileListener listener : listeners) {
+					listener.itemDownloadProgress(fileUrl, current, max);
+				}
+			}
+		});
 	}
 
 	public enum Storage {
