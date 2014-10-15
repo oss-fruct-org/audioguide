@@ -45,7 +45,8 @@ public class SingletonService extends Service {
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
-		return START_STICKY;
+		log.trace("onStartCommand {} {}", intent, flags);
+		return START_NOT_STICKY;
 	}
 
 	@Override
@@ -55,18 +56,22 @@ public class SingletonService extends Service {
 
 	@Override
 	public boolean onUnbind(Intent intent) {
+		log.trace("onUnbind");
 		handler.postDelayed(stopRunnable, STOP_DELAY);
 		return true;
 	}
 
 	@Override
 	public void onRebind(Intent intent) {
+		log.trace("onRebind");
+
 		handler.removeCallbacks(stopRunnable);
 	}
 
 	private Runnable stopRunnable = new Runnable() {
 		@Override
 		public void run() {
+			log.trace("stopSelf");
 			stopSelf();
 		}
 	};
