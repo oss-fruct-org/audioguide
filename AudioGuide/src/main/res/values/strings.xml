@@ -108,5 +108,11 @@
     <string name="help_desc">Edit</string>
     <string name="help_desc_desc">Edit point description, image and audio</string>
 
-
+    <string name="store_30chars_name">Audio guide</string>
+    <string name="store_80chars_desc">Create and use audio guides for free. Application based on geo2tag LBS platform</string>
+    <string name="store_desc">The application will provide access to audio guides storage. The Geo tags and links to audio tracks are stored into open source LBS platform Geo2tag.
+Application works in two modes: free walk and listen guide. In first mode each audio track will play when mobile phone reach corresponding point. In second mode application plays only tracks in guide.
+Application provides off-line mode, when guides and tracks was downloaded before walk.
+You can create own private audio guide using web interface: http://gets.cs.petrsu.ru/gets/web-client/tracks.php The authentication is organized by Google Open ID.
+This application is a part of grant KA322 of Karelia ENPI CBC programme, which is co-funded by the European Union, the Russian Federation and the Republic of Finland.</string>
 </resources>
