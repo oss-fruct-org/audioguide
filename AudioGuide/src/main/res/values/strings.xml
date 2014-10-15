@@ -115,4 +115,7 @@ Application works in two modes: free walk and listen guide. In first mode each a
 Application provides off-line mode, when guides and tracks was downloaded before walk.
 You can create own private audio guide using web interface: http://gets.cs.petrsu.ru/gets/web-client/tracks.php The authentication is organized by Google Open ID.
 This application is a part of grant KA322 of Karelia ENPI CBC programme, which is co-funded by the European Union, the Russian Federation and the Republic of Finland.</string>
+
+    <string name="str_points_mode">Point mode</string>
+    <string name="str_tracks_mode">Tracks mode</string>
 </resources>
