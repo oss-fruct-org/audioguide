@@ -81,7 +81,6 @@ public class CommonFragment extends Fragment {
 			isTrackingActive = savedInstanceState.getBoolean("isTrackingActive");
 		}
 
-		getActivity().bindService(new Intent(getActivity(), SingletonService.class), singletonServiceConnection, Context.BIND_AUTO_CREATE);
 	}
 
 	@Override
@@ -107,6 +106,8 @@ public class CommonFragment extends Fragment {
 						trackingService = null;
 					}
 				}, Context.BIND_AUTO_CREATE);
+
+		getActivity().bindService(new Intent(getActivity(), SingletonService.class), singletonServiceConnection, Context.BIND_AUTO_CREATE);
 	}
 
 	@Override
@@ -122,13 +123,14 @@ public class CommonFragment extends Fragment {
 			getActivity().startService(new Intent(TrackingService.ACTION_BACKGROUND,
 					null, getActivity(), TrackingService.class));
 		}
+		
+		getActivity().unbindService(singletonServiceConnection);
 	}
 
 	@Override
 	public void onDestroy() {
 		LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(errorReceiver);
 
-		getActivity().unbindService(singletonServiceConnection);
 
 		super.onDestroy();
 	}
