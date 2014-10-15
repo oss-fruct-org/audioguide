@@ -108,7 +108,7 @@ public class FileManager implements Closeable {
 	 * @param storageType storage type
 	 */
 	public synchronized void requestDownload(final String fileUrl, final FileSource.Variant variant, final Storage storageType) {
-		final DownloadTaskParameters parm = new DownloadTaskParameters(fileUrl, variant, storageType);
+		final DownloadTaskParameters parm = new DownloadTaskParameters(fileUrl, variant);
 		DownloadTask task = downloadTasks.get(parm);
 
 		if ((task != null && !Utils.isFutureError(task.future)) || getLocalFile(fileUrl, variant) != null) {
@@ -172,7 +172,7 @@ public class FileManager implements Closeable {
 	 */
 	public synchronized  <T> Future<T> postDownload(final String fileUrl, final FileSource.Variant variant, Storage storageType, final PostProcessor<T> postProcessor) {
 		final String localFile = getLocalFile(fileUrl, variant);
-		final DownloadTaskParameters parm = new DownloadTaskParameters(fileUrl, variant, storageType);
+		final DownloadTaskParameters parm = new DownloadTaskParameters(fileUrl, variant);
 
 		if (localFile != null) {
 			FutureTask<T> processorFuture = new FutureTask<T>(new Callable<T>() {
@@ -333,15 +333,13 @@ public class FileManager implements Closeable {
 		final List<FutureTask<?>> postProcessorFutures;
 	}
 
-	private class DownloadTaskParameters implements Comparable<DownloadTaskParameters> {
-		private final Storage storage;
+	private class DownloadTaskParameters {
 		private final String url;
 		private final FileSource.Variant variant;
 
-		private DownloadTaskParameters(String url, FileSource.Variant variant, Storage storage) {
+		private DownloadTaskParameters(String url, FileSource.Variant variant) {
 			this.url = url;
 			this.variant = variant;
-			this.storage = storage;
 		}
 
 		@Override
@@ -351,25 +349,17 @@ public class FileManager implements Closeable {
 
 			DownloadTaskParameters that = (DownloadTaskParameters) o;
 
-			return storage == that.storage && url.equals(that.url) && variant == that.variant;
+			if (!url.equals(that.url)) return false;
+			if (variant != that.variant) return false;
 
+			return true;
 		}
 
 		@Override
 		public int hashCode() {
-			int result = storage.hashCode();
-			result = 31 * result + url.hashCode();
+			int result = url.hashCode();
 			result = 31 * result + variant.hashCode();
 			return result;
-		}
-
-		@Override
-		public int compareTo(DownloadTaskParameters another) {
-			if (storage != another.storage) {
-				return another.storage.ordinal() - storage.ordinal();
-			}
-
-			return url.compareTo(another.url);
 		}
 	}
 
