@@ -21,6 +21,7 @@ import java.util.List;
 public class LoadPointsRequest extends GetsRequest {
 	private final Location location;
 	private final float radius;
+	private int leastCode = Integer.MAX_VALUE;
 
 	private Category currentCategory;
 	private List<Category> categories;
@@ -103,16 +104,20 @@ public class LoadPointsRequest extends GetsRequest {
 
 			loadedPoints.addAll(points);
 		}
+
+		leastCode = Math.min(leastCode, response.getCode());
+
 		// TODO: ignore only "no category with given id" error
 		return !categories.isEmpty();
 	}
 
 	@Override
 	protected void onPostProcess(GetsResponse response) {
-		if (response.getCode() == 0)
-			((Kml) response.getContent()).setTracks(loadedPoints);
+		if (!loadedPoints.isEmpty()) {
+			response.setCode(leastCode);
+			response.setContent(new Kml(loadedPoints));
+		}
 	}
-
 	@Override
 	protected void onError() {
 	}

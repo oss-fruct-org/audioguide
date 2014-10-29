@@ -12,10 +12,18 @@ import java.util.Collections;
 import java.util.List;
 
 public class Kml implements IContent {
+	public Kml(List<Point> points) {
+		this.points = points;
+	}
+
+	public Kml() {
+	}
+
 	public List<Point> getPoints() {
 		return points;
 	}
 
+	/*
 	public String getName() {
 		return name;
 	}
@@ -27,7 +35,7 @@ public class Kml implements IContent {
 	public String getDescription() {
 		return description;
 	}
-
+*/
 
 	private String name;
 	private int open;

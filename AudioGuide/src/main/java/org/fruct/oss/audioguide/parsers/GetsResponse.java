@@ -30,6 +30,14 @@ public class GetsResponse {
 		return content;
 	}
 
+	public void setCode(int code) {
+		this.code = code;
+	}
+
+	public void setContent(Kml content) {
+		this.content = content;
+	}
+
 
 	private static interface ContentParser {
 		IContent parse(XmlPullParser parser) throws IOException, XmlPullParserException;
