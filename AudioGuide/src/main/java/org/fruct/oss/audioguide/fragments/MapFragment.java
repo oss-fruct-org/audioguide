@@ -2,7 +2,6 @@ package org.fruct.oss.audioguide.fragments;
 
 
 import android.annotation.TargetApi;
-import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -36,7 +35,6 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Toast;
 
-import org.fruct.oss.audioguide.MultiPanel;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.config.Config;
 import org.fruct.oss.audioguide.dialogs.EditPointDialog;
@@ -92,7 +90,6 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 	private BroadcastReceiver pointInRangeReceiver;
 
 	private ViewGroup bottomToolbar;
-	private MultiPanel multiPanel;
 
 	private Point selectedPoint;
 
@@ -144,13 +141,15 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 			startAddingPoint();
 			break;
 		case R.id.action_find_me:
-			if (myPositionOverlay != null) {
+			if (myPositionOverlay != null && myPositionOverlay.getLocation() != null) {
 				GeoPoint newMapCenter = new GeoPoint(myPositionOverlay.getLocation());
 				if (mapView.getZoomLevel() < 15) {
 					mapView.getController().setZoom(15);
 				}
 
 				mapView.getController().animateTo(newMapCenter);
+			} else {
+				Toast.makeText(getActivity(), R.string.warn_no_providers, Toast.LENGTH_SHORT).show();
 			}
 			break;
 		case R.id.action_search:
@@ -177,9 +176,13 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 	private void startSearchingPoints() {
 		Toast.makeText(getActivity(), "Searching near points...", Toast.LENGTH_LONG).show();
 
-		trackManager.requestPointsInRadius((float) myPositionOverlay.getLocation().getLatitude(),
-				(float) myPositionOverlay.getLocation().getLongitude(),
-				true);
+		if (myPositionOverlay.getLocation() != null) {
+			trackManager.requestPointsInRadius((float) myPositionOverlay.getLocation().getLatitude(),
+					(float) myPositionOverlay.getLocation().getLongitude(),
+					true);
+		} else {
+			Toast.makeText(getActivity(), R.string.warn_no_providers, Toast.LENGTH_SHORT).show();
+		}
 	}
 
 	private void startAddingPoint() {
@@ -233,6 +236,7 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 		vto.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
 			@Override
 			public void onGlobalLayout() {
+				//noinspection deprecation
 				view.getViewTreeObserver().removeGlobalOnLayoutListener(this);
 				mapView.getController().setZoom(initialZoomLevel);
 				mapView.getController().setCenter(initialMapCenter);
@@ -321,17 +325,6 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 		mapView.getTileProvider().clearTileCache();
 
 		trackManager = null;
-	}
-
-	@Override
-	public void onAttach(Activity activity) {
-		super.onAttach(activity);
-		try {
-			multiPanel = (MultiPanel) activity;
-		} catch (ClassCastException e) {
-			throw new ClassCastException(activity.toString()
-					+ " must implement MultiPanel");
-		}
 	}
 
 	@Override
@@ -485,13 +478,6 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 		super.onActivityResult(requestCode, resultCode, data);
 
 		log.debug("MapFragment onActivityResult {}, {}", requestCode, resultCode);
-	}
-
-	public void centerOn(GeoPoint geoPoint, int zoom) {
-		if (mapView != null) {
-			mapView.getController().setZoom(zoom);
-			mapView.getController().animateTo(geoPoint);
-		}
 	}
 
 	@Override
