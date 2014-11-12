@@ -1,12 +1,17 @@
 package org.fruct.oss.audioguide;
 
 import android.app.Activity;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.provider.Settings;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -20,8 +25,10 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.fruct.oss.audioguide.config.Config;
+import org.fruct.oss.audioguide.dialogs.WarnDialog;
 import org.fruct.oss.audioguide.fragments.AboutFragment;
 import org.fruct.oss.audioguide.fragments.CommonFragment;
 import org.fruct.oss.audioguide.fragments.GetsFragment;
@@ -31,6 +38,7 @@ import org.fruct.oss.audioguide.fragments.TrackFragment;
 import org.fruct.oss.audioguide.preferences.SettingsActivity;
 import org.fruct.oss.audioguide.track.AudioPlayer;
 import org.fruct.oss.audioguide.track.Point;
+import org.fruct.oss.audioguide.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 public class MainActivity extends ActionBarActivity
@@ -39,7 +47,10 @@ public class MainActivity extends ActionBarActivity
 	private final static Logger log = LoggerFactory.getLogger(MainActivity.class);
 
 	private static final String TAG_PANEL_FRAGMENT = "panel-fragment";
+
 	public static final String STATE_BACK_STACK_COUNT = "state-back-stack-count";
+	public static final String STATE_NETWORK_WARN_SHOWN = "state-STATE_NETWORK_WARN_SHOWN";
+	public static final String STATE_PROVIDERS_WARN_SHOWN = "state-STATE_PROVIDERS_WARN_SHOWN";
 
 	/**
 	 * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
@@ -54,6 +65,9 @@ public class MainActivity extends ActionBarActivity
 	private FragmentManager fragmentManager;
 	private BroadcastReceiver startAudioReceiver;
 	private int backStackCount;
+
+	private boolean networkToastShown;
+	private boolean providersToastShown;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -80,6 +94,8 @@ public class MainActivity extends ActionBarActivity
 
 		if (savedInstanceState != null) {
 			backStackCount = savedInstanceState.getInt(STATE_BACK_STACK_COUNT);
+			networkToastShown = savedInstanceState.getBoolean(STATE_NETWORK_WARN_SHOWN);
+			providersToastShown = savedInstanceState.getBoolean(STATE_PROVIDERS_WARN_SHOWN);
 			updateUpButton();
 		}
 
@@ -125,6 +141,9 @@ public class MainActivity extends ActionBarActivity
 	protected void onResume() {
 		super.onResume();
 		log.trace("MainActivity onResume");
+
+		checkNetworkAvailable();
+		checkProvidersEnabled();
 	}
 
 	@Override
@@ -298,6 +317,8 @@ public class MainActivity extends ActionBarActivity
 	protected void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
 		outState.putInt(STATE_BACK_STACK_COUNT, backStackCount);
+		outState.putBoolean(STATE_NETWORK_WARN_SHOWN, networkToastShown);
+		outState.putBoolean(STATE_PROVIDERS_WARN_SHOWN, providersToastShown);
 	}
 
 	@Override
@@ -308,6 +329,67 @@ public class MainActivity extends ActionBarActivity
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
 		log.debug("MainActivity onActivityResult {}, {}", requestCode, resultCode);
+	}
+
+	private void checkNetworkAvailable() {
+		boolean networkActive = Utils.checkNetworkAvailability(this);
+
+		if (!networkToastShown && !networkActive) {
+			SharedPreferences pref = PreferenceManager
+					.getDefaultSharedPreferences(this);
+
+			Intent intent = new Intent(Settings.ACTION_WIRELESS_SETTINGS);
+			PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent,
+					PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_CANCEL_CURRENT);
+
+			if (!pref.getBoolean(SettingsActivity.PREF_WARN_NETWORK_DISABLED, false)) {
+				WarnDialog dialog = WarnDialog.newInstance(R.string.warn_no_network,
+						R.string.str_configure,
+						R.string.str_ignore,
+						SettingsActivity.PREF_WARN_NETWORK_DISABLED, pendingIntent);
+				dialog.show(getSupportFragmentManager(), "network-dialog");
+			} else {
+				Toast toast = Toast.makeText(this,
+						R.string.warn_no_network, Toast.LENGTH_SHORT);
+				toast.show();
+			}
+
+			networkToastShown = true;
+		}
+	}
+
+	private void checkProvidersEnabled() {
+		LocationManager locationManager = (LocationManager) this
+				.getSystemService(Context.LOCATION_SERVICE);
+
+		// Check if all providers disabled and show warning
+		if (!providersToastShown
+				&& !locationManager
+				.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
+				&& !locationManager
+				.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+
+			SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
+
+			Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+			PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent,
+					PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_CANCEL_CURRENT);
+
+			if (!pref.getBoolean(SettingsActivity.PREF_WARN_PROVIDERS_DISABLED, false)) {
+				WarnDialog dialog = WarnDialog.newInstance(R.string.warn_no_providers,
+						R.string.str_configure,
+						R.string.str_ignore,
+						SettingsActivity.PREF_WARN_PROVIDERS_DISABLED,
+						pendingIntent);
+
+				dialog.show(getSupportFragmentManager(), "providers-dialog");
+			} else {
+				Toast toast = Toast.makeText(this,
+						R.string.warn_no_providers, Toast.LENGTH_SHORT);
+				toast.show();
+			}
+			providersToastShown = true;
+		}
 	}
 
 	/**

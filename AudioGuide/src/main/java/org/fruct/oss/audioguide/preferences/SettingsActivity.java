@@ -28,6 +28,9 @@ public class SettingsActivity extends PreferenceActivity implements SharedPrefer
 	public static final String PREF_LOAD_RADIUS = "pref_load_radius";
 	public static final String PREF_CLEAN_POINTS = "pref_clean_points";
 
+	public static final String PREF_WARN_NETWORK_DISABLED = "pref_warn_network_disabled";
+	public static final String PREF_WARN_PROVIDERS_DISABLED = "pref_warn_providers_disabled";
+
 	private SliderPreference rangePreference;
 	private SliderPreference loadRadiusPreference;
 	private SharedPreferences pref;

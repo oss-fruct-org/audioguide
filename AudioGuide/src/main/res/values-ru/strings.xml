@@ -128,4 +128,14 @@
     <string name="str_points_mode">Режим точек</string>
     <string name="str_tracks_mode">Режим трека</string>
 
+    <string name="pref_category_notifications">Уведомления</string>
+    <string name="pref_disable_warn_network">Недоступная сеть</string>
+    <string name="pref_disable_warn_network_sum">Не предупреждать о недоступной сети</string>
+    <string name="pref_disable_warn_providers">Отключенные источники местоположения</string>
+    <string name="pref_disable_warn_providers_sum">Не предупреждать об отключенных источниках местоположения</string>
+
+    <string name="warn_no_providers">Навигация неактивна</string>
+    <string name="warn_no_network">Сеть недоступна</string>
+    <string name="str_configure">Настроить</string>
+    <string name="str_ignore">Больше не показывать</string>
 </resources>

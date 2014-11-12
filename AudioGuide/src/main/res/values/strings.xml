@@ -44,6 +44,21 @@
     <string name="pref_wake_mode_summary">Keep device awake while tracking</string>
     <string name="pref_wake_mode_title">Wake mode</string>
     <string name="pref_clean_obsolete">Clean obsolete points</string>
+    <string name="pref_distance">Load radius</string>
+
+    <string name="pref_category_notifications">Notifications</string>
+
+    <string name="pref_disable_warn_providers">Disabled providers</string>
+    <string name="pref_disable_warn_providers_sum">Don\'t warn about disabled location providers</string>
+
+    <string name="pref_disable_warn_network_sum">Don\'t warn about offline network</string>
+    <string name="pref_disable_warn_network">Unavailable network</string>
+
+    <string name="warn_no_providers">No location providers enabled</string>
+    <string name="warn_no_network">Network not available</string>
+
+    <string name="str_configure">Configure</string>
+    <string name="str_ignore">Don\'t show this dialog again</string>
 
 
     <string name="title_activity_help">Help</string>
@@ -119,5 +134,4 @@ This application is a part of grant KA322 of Karelia ENPI CBC programme, which i
     <string name="str_points_mode">Point mode</string>
     <string name="str_tracks_mode">Tracks mode</string>
     <string name="pref_seek_bar_title">Range</string>
-    <string name="pref_distance">Load radius</string>
 </resources>

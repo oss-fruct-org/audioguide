@@ -1,5 +1,8 @@
 package org.fruct.oss.audioguide.util;
 
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.util.Pair;
 import android.util.TypedValue;
 
@@ -38,6 +41,12 @@ public class Utils {
 	private final static Logger log = LoggerFactory.getLogger(Utils.class);
 
 	private Utils() {
+	}
+
+	public static boolean checkNetworkAvailability(Context context) {
+		ConnectivityManager connManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+		NetworkInfo info = connManager.getActiveNetworkInfo();
+		return info != null && info.isConnected();
 	}
 
 	public static void skip(XmlPullParser parser) throws XmlPullParserException, IOException {
