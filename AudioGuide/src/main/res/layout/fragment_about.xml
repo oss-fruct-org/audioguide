@@ -22,14 +22,21 @@
                 android:textAppearance="?android:attr/textAppearanceLarge"
                 android:text="@string/app_name"
                 android:layout_gravity="center_horizontal"
-                android:id="@+id/textView"/>
+                android:id="@+id/textViewTitle"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:text="@string/str_version"
+                android:id="@+id/textViewVersion"/>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceMedium"
                 android:text="@string/about_text"
-                android:id="@+id/textView3"/>
+                android:id="@+id/textViewAbout"/>
 
             <View
                 android:layout_width="match_parent"

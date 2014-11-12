@@ -138,4 +138,5 @@
     <string name="warn_no_network">Сеть недоступна</string>
     <string name="str_configure">Настроить</string>
     <string name="str_ignore">Больше не показывать</string>
+        <string name="str_version">Версия:</string>
 </resources>

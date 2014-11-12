@@ -2,6 +2,8 @@ package org.fruct.oss.audioguide.fragments;
 
 
 
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -16,7 +18,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Deque;
 
 public class AboutFragment extends Fragment implements View.OnClickListener {
@@ -47,8 +48,15 @@ public class AboutFragment extends Fragment implements View.OnClickListener {
 		// Inflate the layout for this fragment
 		View view = inflater.inflate(R.layout.fragment_about, container, false);
 
-		TextView textView = (TextView) view.findViewById(R.id.textView);
+		TextView textView = (TextView) view.findViewById(R.id.textViewTitle);
 		textView.setOnClickListener(this);
+
+		try {
+			PackageInfo pInfo = getActivity().getPackageManager().getPackageInfo(getActivity().getPackageName(), 0);
+			TextView versionView = (TextView) view.findViewById(R.id.textViewVersion);
+			versionView.setText(versionView.getText() + " " + pInfo.versionName);
+		} catch (PackageManager.NameNotFoundException ignore) {
+		}
 
 		return view;
 	}
