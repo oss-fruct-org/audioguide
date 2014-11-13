@@ -11,6 +11,7 @@ import org.fruct.oss.audioguide.config.Config;
 import org.fruct.oss.audioguide.files.FileManager;
 import org.fruct.oss.audioguide.files.FileSource;
 import org.fruct.oss.audioguide.gets.Category;
+import org.fruct.oss.audioguide.gets.Gets;
 import org.fruct.oss.audioguide.util.Utils;
 
 import java.io.Closeable;
@@ -327,7 +328,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 		}
 
 		activeCategories = database.getActiveCategories();
-
+		Gets.getInstance().setEnv("categories", activeCategories);
 		notifyDataChanged();
 	}
 
