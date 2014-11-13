@@ -346,6 +346,7 @@ public class Utils {
 		HttpURLConnection conn = null;
 		InputStream responseStream = null;
 
+		long startTime = System.currentTimeMillis();
 		try {
 			URL url = new URL(urlString);
 			conn = (HttpURLConnection) url.openConnection();
@@ -371,7 +372,8 @@ public class Utils {
 			responseStream = conn.getInputStream();
 			String response = Utils.inputStreamToString(responseStream);
 
-			log.trace("Response code {}, response {}", responseCode, response);
+			long requestTime = System.currentTimeMillis() - startTime;
+			log.trace("Response code {}, response {}, time {}", Utils.toArray(responseCode, response, requestTime));
 
 			return response;
 		} finally {
