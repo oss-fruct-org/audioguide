@@ -129,7 +129,9 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 
 	@Override
 	public void requestTracksInRadius() {
-		loadRemoteCategories();
+		if (categories == null)
+			loadRemoteCategories();
+
 		backend.loadTracksInRadius((float) location.getLatitude(), (float) location.getLongitude(), radius, activeCategories, new Utils.Callback<List<Track>>() {
 			@Override
 			public void call(List<Track> tracks) {
@@ -145,6 +147,9 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 
 	@Override
 	public void requestPointsInRadius(final float latitude, final float longitude, boolean autoStore) {
+		if (categories == null)
+			loadRemoteCategories();
+
 		backend.loadPointsInRadius(latitude, longitude, radius, activeCategories, new Utils.Callback<List<Point>>() {
 			@Override
 			public void call(List<Point> points) {
@@ -328,7 +333,7 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 		}
 
 		activeCategories = database.getActiveCategories();
-		Gets.getInstance().setEnv("categories", activeCategories);
+		//Gets.getInstance().setEnv("categories", activeCategories);
 		notifyDataChanged();
 	}
 

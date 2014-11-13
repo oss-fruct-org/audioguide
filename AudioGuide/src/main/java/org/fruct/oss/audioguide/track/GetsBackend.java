@@ -222,11 +222,12 @@ public class GetsBackend implements StorageBackend, CategoriesBackend, Closeable
 	}
 
 	@Override
-	public void loadTracksInRadius(float lat, float lon, float radius, List<Category> categories, final Utils.Callback<List<Track>> callback) {
+	public void loadTracksInRadius(float lat, float lon, float radius, List<Category> activeCategories, final Utils.Callback<List<Track>> callback) {
 		Location location = new Location("no-provider");
 		location.setLatitude(lat);
 		location.setLongitude(lon);
 
+		gets.setEnv("activeCategories", activeCategories);
 		gets.addRequest(new LoadTracksRequest(gets, location, radius) {
 			@Override
 			protected void onPostProcess(GetsResponse response) {
@@ -249,6 +250,7 @@ public class GetsBackend implements StorageBackend, CategoriesBackend, Closeable
 		location.setLatitude(lat);
 		location.setLongitude(lon);
 
+		gets.setEnv("activeCategories", activeCategories);
 		gets.addRequest(new LoadPointsRequest(gets, location, radius) {
 			@Override
 			protected void onPostProcess(GetsResponse response) {

@@ -84,9 +84,12 @@ public class LoadPointsRequest extends GetsRequest {
 		if (categories != null)
 			return true;
 
-		categories = ((List<Category>) gets.getEnv("categories"));
+		categories = ((List<Category>) gets.getEnv("activeCategories"));
+		if (categories == null || categories.isEmpty()) {
+			categories = ((List<Category>) gets.getEnv("categories"));
+		}
 
-		if (categories == null)
+		if (categories == null || categories.isEmpty())
 			return false;
 
 		categories = new ArrayList<Category>(categories);
