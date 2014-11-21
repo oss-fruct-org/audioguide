@@ -12,6 +12,7 @@ import android.os.Looper;
 import android.preference.PreferenceManager;
 
 import org.fruct.oss.audioguide.App;
+import org.fruct.oss.audioguide.BuildConfig;
 import org.fruct.oss.audioguide.parsers.GetsException;
 import org.fruct.oss.audioguide.parsers.GetsResponse;
 import org.fruct.oss.audioguide.parsers.TokenContent;
@@ -29,7 +30,13 @@ import java.util.Iterator;
 public class Gets implements Runnable {
 	//public static final String GETS_SERVER = "http://getsi.ddns.net/getslocal";
 	//public static final String GETS_SERVER = "http://oss.fruct.org/projects/gets/service";
-	public static final String GETS_SERVER = "http://gets.cs.petrsu.ru/gets/service";
+	public static String GETS_SERVER = "http://gets.cs.petrsu.ru/gets/service";
+
+	static {
+		if (!BuildConfig.DEBUG) {
+			GETS_SERVER = "http://gets.cs.petrsu.ru/gets/service";
+		}
+	}
 
 	private final static Logger log = LoggerFactory.getLogger(Gets.class);
 
