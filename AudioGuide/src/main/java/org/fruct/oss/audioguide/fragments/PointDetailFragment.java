@@ -16,7 +16,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import org.fruct.oss.audioguide.MultiPanel;
@@ -160,15 +162,24 @@ public class PointDetailFragment extends Fragment implements FileListener {
 			}
 		});
 
-		setupOverlayMode(view);
 
 		if (isOverlay) {
+			View innerLayout = view.findViewById(R.id.inner_layout);
+
+			setupOverlayMode(innerLayout);
+
 			view.setOnClickListener(new View.OnClickListener() {
 				@Override
 				public void onClick(View view) {
 					getActivity().getSupportFragmentManager().popBackStack("details-fragment", FragmentManager.POP_BACK_STACK_INCLUSIVE);
 				}
 			});
+
+			int marginValue = Utils.getDP(24);
+			((FrameLayout.LayoutParams) innerLayout.getLayoutParams())
+					.setMargins(marginValue, marginValue, marginValue, marginValue);
+
+			view.setClickable(true);
 		}
 		return view;
 	}

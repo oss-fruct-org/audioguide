@@ -11,7 +11,8 @@
         android:id="@+id/container"
         android:baselineAligned="false"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        >
 
         <FrameLayout
             android:id="@+id/panel1"
@@ -29,7 +30,6 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_centerInParent="true"
-            android:layout_margin="24dp"
             android:layout_above="@id/panel_container"
             />
 
