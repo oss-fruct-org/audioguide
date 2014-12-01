@@ -139,4 +139,8 @@
     <string name="str_configure">Настроить</string>
     <string name="str_ignore">Больше не показывать</string>
         <string name="str_version">Версия:</string>
+
+    <string name="stop_audio">Стоп</string>
+    <string name="play_audio">Старт</string>
+    <string name="pause_audio">Пауза</string>
 </resources>

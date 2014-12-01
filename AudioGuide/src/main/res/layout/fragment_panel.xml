@@ -1,37 +1,100 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/fragment_panel"
-    android:layout_width="match_parent"
-    android:layout_height="64dp"
-    android:layout_gravity="left"
-    android:gravity="left"
-    android:background="@android:drawable/screen_background_dark_transparent"
-    tools:context="org.fruct.oss.audioguide.fragments.PanelFragment">
+              xmlns:tools="http://schemas.android.com/tools"
+              android:id="@+id/fragment_panel"
+              android:layout_width="match_parent"
+              android:layout_height="96dp"
+              android:layout_gravity="left"
+              android:gravity="left"
+              android:background="@android:drawable/screen_background_dark_transparent"
+              tools:context="org.fruct.oss.audioguide.fragments.PanelFragment">
 
-    <ImageButton
-        android:id="@+id/stop_button"
-        android:layout_width="64dp"
-        android:layout_height="64dp"
-        android:background="@null"
-        android:src="@drawable/ic_action_inv_stop"
-        />
+    <RelativeLayout
+        android:id="@+id/stop_button_layout"
 
-    <ImageButton
-        android:id="@+id/play_button"
-        android:layout_width="64dp"
-        android:layout_height="64dp"
-        android:src="@drawable/ic_action_inv_play"
-        android:background="@null"
-        android:visibility="gone"
-        />
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
 
-    <ImageButton
-        android:id="@+id/pause_button"
-        android:layout_width="64dp"
-        android:layout_height="64dp"
-        android:src="@drawable/ic_action_inv_pause"
-        android:background="@null"
-        />
+        <ImageButton
+            android:id="@+id/stop_button"
+            android:layout_centerHorizontal="true"
+            android:layout_alignParentTop="true"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:background="@null"
+            android:src="@drawable/ic_action_inv_stop"
+            />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:layout_centerHorizontal="true"
+            android:layout_below="@id/stop_button"
+
+            android:textColor="#ffffffff"
+            android:text="@string/stop_audio"
+            />
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/play_button_layout"
+
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <ImageButton
+            android:id="@+id/play_button"
+            android:layout_centerHorizontal="true"
+            android:layout_alignParentTop="true"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:background="@null"
+            android:src="@drawable/ic_action_inv_play"
+            />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:layout_centerHorizontal="true"
+            android:layout_below="@id/play_button"
+
+            android:textColor="#ffffffff"
+            android:text="@string/play_audio"
+            />
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/pause_button_layout"
+
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <ImageButton
+            android:id="@+id/pause_button"
+            android:layout_centerHorizontal="true"
+            android:layout_alignParentTop="true"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:background="@null"
+            android:src="@drawable/ic_action_inv_pause"
+            />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:layout_centerHorizontal="true"
+            android:layout_below="@id/pause_button"
+
+            android:textColor="#ffffffff"
+            android:text="@string/pause_audio"
+            />
+
+    </RelativeLayout>
+
 
     <ProgressBar
         android:id="@+id/progress_bar"

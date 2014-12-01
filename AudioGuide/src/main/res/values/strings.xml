@@ -135,4 +135,7 @@ This application is a part of grant KA322 of Karelia ENPI CBC programme, which i
     <string name="str_tracks_mode">Tracks mode</string>
     <string name="pref_seek_bar_title">Range</string>
     <string name="str_version">Version:</string>
+    <string name="stop_audio">Stop</string>
+    <string name="play_audio">Play</string>
+    <string name="pause_audio">Pause</string>
 </resources>

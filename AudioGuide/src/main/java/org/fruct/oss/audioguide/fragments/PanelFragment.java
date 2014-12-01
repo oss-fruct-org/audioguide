@@ -51,6 +51,10 @@ public class PanelFragment extends Fragment implements FileListener {
 	private View pauseButton;
 	private View stopButton;
 
+	private View playLayout;
+	private View pauseLayout;
+	private View stopLayout;
+
 	private ProgressBar progressBar;
 
 	private FileManager fileManager;
@@ -195,18 +199,24 @@ public class PanelFragment extends Fragment implements FileListener {
                              Bundle savedInstanceState) {
 		View view = inflater.inflate(R.layout.fragment_panel, container, false);
 
-		view.findViewById(R.id.stop_button).setOnClickListener(new View.OnClickListener() {
+		seekBar = ((SeekBar) view.findViewById(R.id.seek_bar));
+
+		stopButton = view.findViewById(R.id.stop_button);
+		playButton = view.findViewById(R.id.play_button);
+		pauseButton = view.findViewById(R.id.pause_button);
+
+		stopLayout = view.findViewById(R.id.stop_button_layout);
+		playLayout = view.findViewById(R.id.play_button_layout);
+		pauseLayout = view.findViewById(R.id.pause_button_layout);
+
+		progressBar = (ProgressBar) view.findViewById(R.id.progress_bar);
+
+		stopButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View view) {
 				getActivity().startService(new Intent(TrackingService.ACTION_STOP, null, getActivity(), TrackingService.class));
 			}
 		});
-
-		seekBar = ((SeekBar) view.findViewById(R.id.seek_bar));
-		stopButton = view.findViewById(R.id.stop_button);
-		playButton = view.findViewById(R.id.play_button);
-		pauseButton = view.findViewById(R.id.pause_button);
-		progressBar = (ProgressBar) view.findViewById(R.id.progress_bar);
 
 		playButton.setOnClickListener(new View.OnClickListener() {
 			@Override
@@ -281,23 +291,23 @@ public class PanelFragment extends Fragment implements FileListener {
 	}
 
 	private void setPlayingState() {
-		pauseButton.setVisibility(View.VISIBLE);
-		playButton.setVisibility(View.GONE);
-		stopButton.setVisibility(View.VISIBLE);
+		pauseLayout.setVisibility(View.VISIBLE);
+		playLayout.setVisibility(View.GONE);
+		stopLayout.setVisibility(View.VISIBLE);
 		progressBar.setVisibility(View.GONE);
 	}
 
 	private void setPausedState() {
-		pauseButton.setVisibility(View.GONE);
-		playButton.setVisibility(View.VISIBLE);
-		stopButton.setVisibility(View.VISIBLE);
+		pauseLayout.setVisibility(View.GONE);
+		playLayout.setVisibility(View.VISIBLE);
+		stopLayout.setVisibility(View.VISIBLE);
 		progressBar.setVisibility(View.GONE);
 	}
 
 	private void setLoadingState() {
-		pauseButton.setVisibility(View.GONE);
-		playButton.setVisibility(View.GONE);
-		stopButton.setVisibility(View.GONE);
+		pauseLayout.setVisibility(View.GONE);
+		playLayout.setVisibility(View.GONE);
+		stopLayout.setVisibility(View.GONE);
 		progressBar.setVisibility(View.VISIBLE);
 	}
 
@@ -311,6 +321,10 @@ public class PanelFragment extends Fragment implements FileListener {
 		stopButton = null;
 		playButton = null;
 		pauseButton = null;
+		stopLayout = null;
+		playLayout = null;
+		pauseLayout = null;
+
 	}
 
 	public void setFallbackPoint(Point point) {
