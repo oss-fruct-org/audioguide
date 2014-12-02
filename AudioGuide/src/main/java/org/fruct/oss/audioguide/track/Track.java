@@ -16,6 +16,8 @@ public class Track implements Parcelable, Comparable<Track> {
 	private boolean isActive;
 	private boolean isPrivate;
 
+	private String photoUrl;
+
 	private long localId;
 	private long categoryId = -1;
 
@@ -83,6 +85,13 @@ public class Track implements Parcelable, Comparable<Track> {
 		return categoryId;
 	}
 
+	public long getLocalId() {
+		return localId;
+	}
+
+	public String getPhotoUrl() {
+		return photoUrl;
+	}
 
 	// Setters
 	public void setName(String name) {
@@ -117,14 +126,17 @@ public class Track implements Parcelable, Comparable<Track> {
 		this.categoryId = categoryId;
 	}
 
-	public long getLocalId() {
-		return localId;
-	}
-
 	public void setLocalId(long localId) {
 		this.localId = localId;
 	}
 
+	public void setPhotoUrl(String photoUrl) {
+		this.photoUrl = photoUrl;
+	}
+
+	public boolean hasPhoto() {
+		return photoUrl != null && !photoUrl.isEmpty();
+	}
 
 	public String getHumanReadableName() {
 		if (hname != null)
