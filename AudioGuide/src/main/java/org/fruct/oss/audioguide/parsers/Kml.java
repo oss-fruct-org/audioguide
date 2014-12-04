@@ -23,20 +23,6 @@ public class Kml implements IContent {
 		return points;
 	}
 
-	/*
-	public String getName() {
-		return name;
-	}
-
-	public int getOpen() {
-		return open;
-	}
-
-	public String getDescription() {
-		return description;
-	}
-*/
-
 	private String name;
 	private int open;
 	private String description;

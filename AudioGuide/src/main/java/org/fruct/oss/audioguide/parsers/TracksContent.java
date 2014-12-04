@@ -57,7 +57,6 @@ public class TracksContent implements IContent {
 		String hname = null;
 		String access = "r";
 		String photoUrl = null;
-
 		long categoryId = -1;
 
 		while (parser.next() != XmlPullParser.END_TAG) {

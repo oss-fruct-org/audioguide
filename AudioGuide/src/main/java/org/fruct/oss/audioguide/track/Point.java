@@ -13,7 +13,9 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.StringTokenizer;
 import java.util.UUID;
@@ -39,6 +41,8 @@ public class Point implements Parcelable, Comparable<Point> {
 
 	private String audioUrl;
 	private String photoUrl;
+	private List<String> photoUrlList = new ArrayList<String>();
+
 	private String time;
 	private boolean isPrivate;
 	private long categoryId = -1;
@@ -161,6 +165,7 @@ public class Point implements Parcelable, Comparable<Point> {
 		this.description = description;
 	}
 
+	@Deprecated
 	public void setPhotoUrl(String photoUrl) {
 		this.photoUrl = photoUrl;
 	}
@@ -187,6 +192,14 @@ public class Point implements Parcelable, Comparable<Point> {
 
 	public void setIdx(long idx) {
 		this.idx = idx;
+	}
+
+	public void addPhotoUrl(String photoUrl) {
+		if (this.photoUrl == null) {
+			this.photoUrl = photoUrl;
+		}
+
+		photoUrlList.add(photoUrl);
 	}
 
 	public void createTime() {
@@ -351,7 +364,13 @@ public class Point implements Parcelable, Comparable<Point> {
 				continue;
 
 			String tagName = parser.getName();
-			if (tagName.equals("Data")) {
+			if (tagName.equals("gets:photo")) {
+				String value = GetsResponse.readText(parser);
+				if (point.photoUrl == null) {
+					point.photoUrl = value;
+				}
+				point.addPhotoUrl(value);
+			} else if (tagName.equals("Data")) {
 				String key = parser.getAttributeValue(null, "name");
 				if (key == null)
 					throw new XmlPullParserException("Data tag have to have attribute 'name'");
@@ -360,18 +379,22 @@ public class Point implements Parcelable, Comparable<Point> {
 				parser.require(XmlPullParser.START_TAG, null, "value");
 				String value = GetsResponse.readText(parser);
 
-				if (key.equals("uuid"))
+				if (key.equals("uuid")) {
 					point.uuid = value;
-				else if (key.equals("time"))
+				} else if (key.equals("time")) {
 					point.time = value;
-				else if (key.equals("photo"))
-					point.photoUrl = value;
-				else if (key.equals("audio"))
+				} else if (key.equals("photo")) {
+					if (point.photoUrl == null) {
+						point.photoUrl = value;
+					}
+					point.addPhotoUrl(value);
+				} else if (key.equals("audio")) {
 					point.audioUrl = value;
-				else if (key.equals("access"))
+				} else if (key.equals("access")) {
 					point.setPrivate(value.equals("rw"));
-				else if (key.equals("idx"))
+				} else if (key.equals("idx")) {
 					point.setIdx(Long.parseLong(value));
+				}
 
 				parser.nextTag();
 				parser.require(XmlPullParser.END_TAG, null, "Data");
