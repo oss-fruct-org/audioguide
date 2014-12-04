@@ -2,6 +2,7 @@ package org.fruct.oss.audioguide.fragments;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -9,6 +10,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.view.PagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -20,6 +23,8 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import com.example.pagercontainer.PagerContainer;
 
 import org.fruct.oss.audioguide.MultiPanel;
 import org.fruct.oss.audioguide.NavigationDrawerFragment;
@@ -162,6 +167,7 @@ public class PointDetailFragment extends Fragment implements FileListener {
 			}
 		});
 
+		setupGallery(view);
 
 		if (isOverlay) {
 			View innerLayout = view.findViewById(R.id.inner_layout);
@@ -181,7 +187,20 @@ public class PointDetailFragment extends Fragment implements FileListener {
 
 			view.setClickable(true);
 		}
+
 		return view;
+	}
+
+	private void setupGallery(View view) {
+		TestPagerAdapter adapter = new TestPagerAdapter();
+
+		PagerContainer pagerContainer = ((PagerContainer) view.findViewById(R.id.pager_container));
+		ViewPager pager = pagerContainer.getViewPager();
+
+		pager.setClipChildren(false);
+		pager.setOffscreenPageLimit(adapter.getCount());
+		pager.setAdapter(adapter);
+		pager.setPageMargin(15);
 	}
 
 	@Override
@@ -365,5 +384,29 @@ public class PointDetailFragment extends Fragment implements FileListener {
 
 	public Point getPoint() {
 		return point;
+	}
+
+	private class TestPagerAdapter extends PagerAdapter {
+		@Override
+		public Object instantiateItem(ViewGroup container, int position) {
+			View view = getActivity().getLayoutInflater().inflate(R.layout.test_image_layout, container, false);
+			container.addView(view);
+			return view;
+		}
+
+		@Override
+		public void destroyItem(ViewGroup container, int position, Object object) {
+			container.removeView((View) object);
+		}
+
+		@Override
+		public int getCount() {
+			return 5;
+		}
+
+		@Override
+		public boolean isViewFromObject(View view, Object o) {
+			return (view == o);
+		}
 	}
 }
