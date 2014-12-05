@@ -162,7 +162,7 @@ public class PointDetailFragment extends Fragment implements FileListener {
 			@Override
 			public void onGlobalLayout() {
 				view.getViewTreeObserver().removeGlobalOnLayoutListener(this);
-				imageSize = view.getMeasuredWidth();
+				imageSize = imageView.getMeasuredWidth();
 				tryUpdateImage(imageSize, imageSize);
 			}
 		});
