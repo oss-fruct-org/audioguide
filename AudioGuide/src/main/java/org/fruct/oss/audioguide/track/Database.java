@@ -19,14 +19,14 @@ public class Database {
 	private final SQLiteDatabase db;
 	private final Helper helper;
 
-	public static final String[] SELECT_POINTS_COLUMNS = { "name", "description", "lat", "lon", "audioUrl", "photoUrl" };
-	public static final String[] SELECT_TRACKS_COLUMNS = { "name", "description", "url", "hname", "active" };
 	public static final String[] SELECT_CATEGORIES_COLUMNS = {
 			"id", "name", "description", "url", "state"
 	};
 
-	public static final String[] SEARCH_POINT_COLUMNS = { "name", "description", "lat", "lon" };
 	public static final String[] ID_COLUMNS = {"id"};
+
+	public static final String URL_TYPE_AUDIO = "audio";
+	public static final String URL_TYPE_PHOTO = "photo";
 
 	public Database(Context context) {
 		helper = new Helper(context);
@@ -82,9 +82,9 @@ public class Database {
 		cv.put("uuid", newPoint.getUuid());
 
 		if (newPoint.hasAudio())
-			cv.put("audioUrl", newPoint.getAudioUrl());
+			cv.put("audioUrl", findOrInsertUrl(newPoint.getAudioUrl(), URL_TYPE_AUDIO));
 		if (newPoint.hasPhoto())
-			cv.put("photoUrl", newPoint.getPhotoUrl());
+			cv.put("photoUrl", findOrInsertUrl(newPoint.getPhotoUrl(), URL_TYPE_PHOTO));
 		if (newPoint.getCategoryId() != -1)
 			cv.put("categoryId", newPoint.getCategoryId());
 		if (newPoint.getTime() != null)
@@ -99,7 +99,7 @@ public class Database {
 	}
 
 	public long insertTrack(Track track) {
-		ContentValues cv = new ContentValues(8);
+		ContentValues cv = new ContentValues(9);
 		cv.put("name", track.getName());
 		cv.put("description", track.getDescription());
 		cv.put("hname", track.getHname());
@@ -110,6 +110,9 @@ public class Database {
 		cv.put("private", track.isPrivate());
 
 		cv.put("categoryId", track.getCategoryId());
+
+		if (track.hasPhoto())
+			cv.put("photoUrl", findOrInsertUrl(track.getPhotoUrl(), URL_TYPE_PHOTO));
 
 		long newId = db.insert("track", null, cv);
 
@@ -163,18 +166,21 @@ public class Database {
 	}
 
 	public Cursor loadTracksCursor() {
-		Cursor cursor = db.rawQuery("SELECT track.name, track.description, track.url, track.local, track.categoryId, track.private, track.hname, track.id AS _id " +
-				"FROM track LEFT JOIN category " +
-				"ON category.id = track.categoryId " +
+		Cursor cursor = db.rawQuery("SELECT track.name, track.description, track.url, track.local, track.categoryId, track.private, track.hname, url.url, track.id AS _id " +
+				"FROM track LEFT JOIN category ON category.id = track.categoryId " +
+				"LEFT JOIN url ON url.id = track.photoUrl " +
 				"WHERE category.state = 1 OR category.state IS NULL;", null);
 		return cursor;
 	}
 
 	public Cursor loadPointsCursor(Track track) {
 		Cursor cursor = db.rawQuery(
-				"SELECT point.name, point.description, point.audioUrl, point.photoUrl, point.lat, point.lon, point.private, point.categoryId, point.time, point.uuid, point.id AS _id " +
+				"SELECT point.name, point.description, url_audio.url, url_photo.url, point.lat, point.lon, point.private, point.categoryId, point.time, point.uuid, point.id AS _id " +
 						"FROM point INNER JOIN tp ON tp.pointId=point.id " +
-						"WHERE tp.trackId IN (SELECT track.id FROM track WHERE track.name=?) " +
+						"INNER JOIN track ON track.id = tp.trackId " +
+						"LEFT JOIN url AS url_audio ON url_audio.id = point.audioUrl " +
+						"LEFT JOIN url AS url_photo ON url_photo.id = point.photoUrl " +
+						"WHERE track.name=? " +
 						"ORDER BY tp.idx;", Utils.toArray(track.getName())
 		);
 		return cursor;
@@ -183,10 +189,22 @@ public class Database {
 
 	public Cursor loadPointsCursor() {
 		Cursor cursor = db.rawQuery(
-				"SELECT point.name, point.description, point.audioUrl, point.photoUrl, point.lat, point.lon, point.private, point.categoryId, point.time, point.uuid, point.id AS _id " +
-						"FROM point LEFT JOIN category " +
-						"ON category.id = point.categoryId " +
+				"SELECT point.name, point.description, url_audio.url, url_photo.url, point.lat, point.lon, point.private, point.categoryId, point.time, point.uuid, point.id AS _id " +
+						"FROM point LEFT JOIN category ON category.id = point.categoryId " +
+						"LEFT JOIN url AS url_audio ON url_audio.id = point.audioUrl " +
+						"LEFT JOIN url AS url_photo ON url_photo.id = point.photoUrl " +
 						"WHERE category.state=1 OR category.state IS NULL;", null);
+		return cursor;
+	}
+
+	public Cursor loadUpdatedPoints() {
+		// FIXME: java.lang.IllegalStateException: database /data/data/org.fruct.oss.audioguide/databases/tracksdb2 already closed
+		// From synchronized
+		Cursor cursor = db.rawQuery("SELECT point.name, point.description, url_audio.url, url_photo.url, point.lat, point.lon, point.private, point.categoryId, point.time, point.uuid, point.id AS _id " +
+				"FROM point INNER JOIN point_update ON point.id = point_update.pointId " +
+				"LEFT JOIN url AS url_audio ON url_audio.id = point.audioUrl " +
+				"LEFT JOIN url AS url_photo ON url_photo.id = point.photoUrl " +
+				"GROUP BY point.id;", null);
 		return cursor;
 	}
 
@@ -200,36 +218,29 @@ public class Database {
 	}
 
 	public Cursor loadPrivateTracks() {
-		Cursor cursor = db.rawQuery("SELECT track.name, track.description, track.url, track.local, track.categoryId, track.private, track.hname, track.id AS _id " +
+		Cursor cursor = db.rawQuery("SELECT track.name, track.description, track.url, track.local, track.categoryId, track.private, track.hname, url.url, track.id AS _id " +
 				"FROM track " +
+				"LEFT JOIN url ON url.id = track.photoUrl " +
 				"WHERE track.private = 1;", null);
 		return cursor;
 	}
 
 	public Cursor loadLocalTracks() {
-		Cursor cursor = db.rawQuery("SELECT track.name, track.description, track.url, track.local, track.categoryId, track.private, track.hname, track.id AS _id " +
+		Cursor cursor = db.rawQuery("SELECT track.name, track.description, track.url, track.local, track.categoryId, track.private, track.hname, url.url, track.id AS _id " +
 				"FROM track " +
+				"LEFT JOIN url ON url.id = track.photoUrl " +
 				"WHERE track.local = 1;", null);
 		return cursor;
 	}
 
 	public Cursor loadUpdatedTracks() {
-		Cursor cursor = db.rawQuery("SELECT track.name, track.description, track.url, track.local, track.categoryId, track.private, track.hname, track.id AS _id " +
-				"FROM track INNER JOIN track_update " +
-				"ON track.id = track_update.trackId " +
+		Cursor cursor = db.rawQuery("SELECT track.name, track.description, track.url, track.local, track.categoryId, track.private, track.hname, url.photoUrl, track.id AS _id " +
+				"FROM track INNER JOIN track_update ON track.id = track_update.trackId " +
+				"LEFT JOIN url ON url.id = track.photoUrl " +
 				"GROUP BY track.id", null);
 		return cursor;
 	}
 
-	public Cursor loadUpdatedPoints() {
-		// FIXME: java.lang.IllegalStateException: database /data/data/org.fruct.oss.audioguide/databases/tracksdb2 already closed
-		// From synchronized
-		Cursor cursor = db.rawQuery("SELECT point.name, point.description, point.audioUrl, point.photoUrl, point.lat, point.lon, point.private, point.categoryId, point.time, point.uuid, point.id AS _id " +
-				"FROM point INNER JOIN point_update " +
-				"ON point.id = point_update.pointId " +
-				"GROUP BY point.id;", null);
-		return cursor;
-	}
 
 	private long findPointId(Point point) {
 		Cursor cursor;
@@ -264,15 +275,18 @@ public class Database {
 		}
 	}
 
-	private long findRelationId(long trackId, long pointId) {
-		Cursor cursor = db.query("tp", Utils.toArray("ROWID"), "trackId=? and pointId=?", Utils.toArray(trackId, pointId),
-				null, null, null);
-
+	private long findOrInsertUrl(String url, String type) {
+		Cursor cursor = db.query("url", ID_COLUMNS, "url=?", Utils.toArray(url), null, null, null);
 		try {
-			if (!cursor.moveToFirst())
-				return -1;
-			else
+			if (!cursor.moveToFirst()) {
+				ContentValues cv = new ContentValues(3);
+				cv.put("url", url);
+				cv.put("type", type);
+
+				return db.insert("url", null, cv);
+			} else {
 				return cursor.getLong(0);
+			}
 		} finally {
 			cursor.close();
 		}
@@ -429,7 +443,7 @@ public class Database {
 
 	private static class Helper extends SQLiteOpenHelper {
 		public static final String DB_NAME = "tracksdb2";
-		public static final int DB_VERSION = 1; // published None
+		public static final int DB_VERSION = 2; // published None
 
 		public static final String CREATE_POINT_UPDATES_SQL = "CREATE TABLE point_update " +
 				"(pointId INTEGER," +
@@ -448,7 +462,10 @@ public class Database {
 				"active INTEGER," +
 				"local INTEGER," +
 				"private INTEGER," +
-				"categoryId INTEGER);";
+				"categoryId INTEGER," +
+				"photoUrl INTEGER," +
+
+				"FOREIGN KEY (photoUrl) REFERENCES url(id));";
 
 		public static final String CREATE_POINTS_SQL = "CREATE TABLE point " +
 				"(id INTEGER PRIMARY KEY AUTOINCREMENT," +
@@ -456,19 +473,21 @@ public class Database {
 				"description TEXT," +
 				"lat INTEGER," +
 				"lon INTEGER," +
-				"audioUrl TEXT," +
-				"photoUrl TEXT," +
+				"audioUrl INTEGER," +
+				"photoUrl INTEGER," +
 				"categoryId INTEGER," +
 				"private INTEGER, " +
 				"time TEXT, " +
 				"uuid TEXT, " +
 
-				"FOREIGN KEY(categoryId) REFERENCES category(id));";
+				"FOREIGN KEY (audioUrl) REFERENCES url(id)," +
+				"FOREIGN KEY (photoUrl) REFERENCES url(id)," +
+				"FOREIGN KEY (categoryId) REFERENCES category(id));";
 
 		public static final String CREATE_TRACK_POINTS_SQL = "CREATE TABLE tp " +
 				"(trackId INTEGER, pointId INTEGER, idx INTEGER," +
-				"FOREIGN KEY(trackId) REFERENCES track(id) ON DELETE CASCADE," +
-				"FOREIGN KEY(pointId) REFERENCES point(id) ON DELETE CASCADE);";
+				"FOREIGN KEY (trackId) REFERENCES track(id) ON DELETE CASCADE," +
+				"FOREIGN KEY (pointId) REFERENCES point(id) ON DELETE CASCADE);";
 
 		public static final String CREATE_CATEGORIES_SQL = "CREATE TABLE category " +
 				"(id INTEGER PRIMARY KEY," +
@@ -476,6 +495,11 @@ public class Database {
 				"description TEXT," +
 				"url TEXT," +
 				"state INTEGER);"; // 1 - active, 0 - non-active
+
+		public static final String CREATE_URLS_SQL = "CREATE TABLE url " +
+				"(id INTEGER PRIMARY KEY AUTOINCREMENT," +
+				"url TEXT UNIQUE," +
+				"type TEXT);";
 
 		public Helper(Context context) {
 			super(context, DB_NAME, null, DB_VERSION);
@@ -489,6 +513,7 @@ public class Database {
 			db.execSQL(CREATE_TRACK_POINTS_SQL);
 			db.execSQL(CREATE_POINT_UPDATES_SQL);
 			db.execSQL(CREATE_TRACK_UPDATES_SQL);
+			db.execSQL(CREATE_URLS_SQL);
 		}
 
 		@Override
@@ -502,14 +527,11 @@ public class Database {
 
 		@Override
 		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-			if (oldVersion != newVersion) {
-				db.execSQL("drop table category");
-				db.execSQL("drop table track");
-				db.execSQL("drop table tp");
-				db.execSQL("drop table point");
-				db.execSQL("drop table point_update");
-				db.execSQL("drop table track_update");
-				onCreate(db);
+			for (int version = oldVersion + 1; version <= newVersion; version++) {
+				if (version == 2) {
+					// Add field photoUrl to track
+					db.execSQL("ALTER TABLE track ADD COLUMN photoUrl TEXT;");
+				}
 			}
 		}
 	}

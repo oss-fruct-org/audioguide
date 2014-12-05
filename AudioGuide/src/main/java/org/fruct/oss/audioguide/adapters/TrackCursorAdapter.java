@@ -16,15 +16,36 @@ import android.widget.TextView;
 
 import org.fruct.oss.audioguide.App;
 import org.fruct.oss.audioguide.R;
+import org.fruct.oss.audioguide.files.BitmapProcessor;
+import org.fruct.oss.audioguide.files.FileListener;
+import org.fruct.oss.audioguide.files.FileManager;
+import org.fruct.oss.audioguide.files.FileSource;
+import org.fruct.oss.audioguide.files.ImageViewSetter;
 import org.fruct.oss.audioguide.track.DefaultTrackManager;
 import org.fruct.oss.audioguide.track.Track;
 import org.fruct.oss.audioguide.track.TrackManager;
+import org.fruct.oss.audioguide.util.Utils;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.List;
 
-public class TrackCursorAdapter extends CursorAdapter implements View.OnClickListener {
+public class TrackCursorAdapter extends CursorAdapter implements View.OnClickListener, FileListener {
+	private final FileManager fileManager;
+	private List<BitmapProcessor> bitmapProcessors = new ArrayList<BitmapProcessor>();
+
 	public TrackCursorAdapter(Context context) {
 		super(context, null, false);
+
+		this.fileManager = FileManager.getInstance();
+		this.fileManager.addListener(this);
+	}
+
+	public void close() {
+		fileManager.close();
+		for (BitmapProcessor bitmapProcessor : bitmapProcessors) {
+			bitmapProcessor.recycle();
+		}
 	}
 
 	@Override
@@ -47,6 +68,9 @@ public class TrackCursorAdapter extends CursorAdapter implements View.OnClickLis
 
 		holder.localImage = (ImageButton) view.findViewById(R.id.localImage);
 		holder.localImage.setTag(holder);
+
+		holder.icon = (ImageView) view.findViewById(android.R.id.icon);
+		holder.bitmapSetter = new ImageViewSetter(holder.icon);
 
 		//holder.activeImage = (ImageButton) view.findViewById(R.id.activeImage);
 		//holder.activeImage.setTag(holder);
@@ -72,6 +96,18 @@ public class TrackCursorAdapter extends CursorAdapter implements View.OnClickLis
 		setupButton(holder.publicImage, !holder.track.isPrivate());
 		setupButton(holder.localImage, holder.track.isLocal());
 		//setupButton(holder.activeImage, holder.track.isActive());
+
+		if (track.hasPhoto()) {
+			String photoUrl = track.getPhotoUrl();
+
+			BitmapProcessor processor = BitmapProcessor.requestBitmap(fileManager,
+					photoUrl, FileSource.Variant.FULL, Utils.getDP(48), Utils.getDP(48),
+					FileManager.ScaleMode.SCALE_CROP, holder.bitmapSetter);
+			bitmapProcessors.add(processor);
+		} else {
+			holder.bitmapSetter.setTag(null);
+		}
+
 
 		/*Integer highlightColor = highlight.get(track.getName());
 		if (highlightColor != null) {
@@ -106,8 +142,26 @@ public class TrackCursorAdapter extends CursorAdapter implements View.OnClickLis
 		}
 	}
 
+	@Override
+	public void itemLoaded(String fileUrl) {
+
+	}
+
+	@Override
+	public void itemDownloadProgress(String fileUrl, int current, int max) {
+
+	}
+
+	@Override
+	public void itemDownloadError(String fileUrl) {
+
+	}
+
 	private static class TrackHolder {
 		Track track;
+
+		ImageView icon;
+		ImageViewSetter bitmapSetter;
 
 		TextView text1;
 		TextView text2;

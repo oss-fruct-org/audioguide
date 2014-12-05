@@ -1,8 +1,10 @@
 package org.fruct.oss.audioguide.util;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.support.annotation.Nullable;
 import android.util.Pair;
 import android.util.TypedValue;
 
@@ -428,6 +430,14 @@ public class Utils {
 			arr[c++] = obj.toString();
 		}
 		return arr;
+	}
+
+	@Nullable
+	public static String getString(Cursor cursor, int index) {
+		if (cursor.isNull(index))
+			return null;
+		else
+			return cursor.getString(index);
 	}
 
 	public static void sclose(InputStream stream) {

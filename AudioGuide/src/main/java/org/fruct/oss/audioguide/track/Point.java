@@ -77,8 +77,8 @@ public class Point implements Parcelable, Comparable<Point> {
 	}
 
 	public Point(Cursor cursor) {
-		this(cursor.getString(0), cursor.getString(1), cursor.getString(2),
-				cursor.getString(3), cursor.getInt(4), cursor.getInt(5));
+		this(cursor.getString(0), cursor.getString(1), Utils.getString(cursor, 2),
+				Utils.getString(cursor, 3), cursor.getInt(4), cursor.getInt(5));
 		setPrivate(cursor.getInt(6) != 0);
 
 		if (!cursor.isNull(7)) {
@@ -100,6 +100,7 @@ public class Point implements Parcelable, Comparable<Point> {
 		isPrivate = point.isPrivate;
 		time = point.time;
 		uuid = point.uuid;
+		photoUrlList = new ArrayList<String>(point.photoUrlList);
 	}
 
 	public Point(String name, String description, String audioUrl, String photoUrl, int latE6, int lonE6) {
@@ -249,7 +250,7 @@ public class Point implements Parcelable, Comparable<Point> {
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
+		if (o == null || ((Object) this).getClass() != o.getClass()) return false;
 
 		Point point = (Point) o;
 
@@ -294,6 +295,8 @@ public class Point implements Parcelable, Comparable<Point> {
 		parcel.writeInt(isPrivate ? 1 : 0);
 		parcel.writeString(time);
 		parcel.writeString(uuid);
+
+		parcel.writeStringList(photoUrlList);
 	}
 
 	public static final Creator<Point> CREATOR = new Creator<Point>() {
@@ -312,6 +315,7 @@ public class Point implements Parcelable, Comparable<Point> {
 			point.setPrivate(parcel.readInt() != 0);
 			point.setTime(parcel.readString());
 			point.uuid = parcel.readString();
+			parcel.readStringList(point.photoUrlList);
 
 			return point;
 		}

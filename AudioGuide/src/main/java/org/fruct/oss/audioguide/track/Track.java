@@ -43,7 +43,8 @@ public class Track implements Parcelable, Comparable<Track> {
 		setLocal(cursor.getInt(3) != 0);
 		setCategoryId(cursor.getLong(4));
 		setPrivate(cursor.getInt(5) != 0);
-		setHname(cursor.getString(6));
+		if (!cursor.isNull(6)) setHname(cursor.getString(6));
+		if (!cursor.isNull(7)) setPhotoUrl(cursor.getString(7));
 	}
 
 	public Track(String name, String description, String url) {
@@ -151,7 +152,7 @@ public class Track implements Parcelable, Comparable<Track> {
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
+		if (o == null || ((Object) this).getClass() != o.getClass()) return false;
 
 		Track track = (Track) o;
 
@@ -180,6 +181,7 @@ public class Track implements Parcelable, Comparable<Track> {
 		parcel.writeInt(isPrivate ? 1 : 0);
 		parcel.writeLong(localId);
 		parcel.writeLong(categoryId);
+		parcel.writeString(photoUrl);
 	}
 
 	public static final Creator<Track> CREATOR = new Creator<Track>() {
@@ -196,6 +198,7 @@ public class Track implements Parcelable, Comparable<Track> {
 
 			track.localId = parcel.readLong();
 			track.categoryId = parcel.readLong();
+			track.photoUrl = parcel.readString();
 
 			return track;
 		}

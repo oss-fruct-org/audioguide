@@ -10,9 +10,25 @@
                 android:background="@drawable/list_item_activated"
     >
 
-    <LinearLayout
+    <ImageView
+        android:id="@android:id/icon"
+
         android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+
+        android:layout_centerVertical="true"
+        android:layout_height="48dp"
+        android:layout_width="48dp"
+        android:scaleType="centerCrop"
+        android:layout_margin="6dp"/>
+
+    <LinearLayout
+        android:layout_toRightOf="@android:id/icon"
+        android:layout_toEndOf="@android:id/icon"
+
         android:layout_toLeftOf="@+id/buttonsLayout"
+        android:layout_toStartOf="@+id/buttonsLayout"
+
         android:orientation="vertical"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
