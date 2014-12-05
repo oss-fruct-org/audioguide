@@ -20,7 +20,7 @@
         android:layout_height="48dp"
         android:layout_width="48dp"
         android:scaleType="centerCrop"
-        android:layout_margin="6dp"/>
+        android:layout_margin="8dp"/>
 
     <LinearLayout
         android:layout_toRightOf="@android:id/icon"
@@ -32,9 +32,6 @@
         android:orientation="vertical"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        android:paddingLeft="4dp"
-        android:paddingTop="4dp"
-        android:paddingBottom="4dp"
         >
         <TextView
             android:id="@android:id/text1"
@@ -51,6 +48,8 @@
             android:layout_height="wrap_content"
             android:textSize="14sp"
             android:textColor="#ff58585B"
+            android:lines="2"
+            android:ellipsize="marquee"
             tools:text="..."
             />
     </LinearLayout>

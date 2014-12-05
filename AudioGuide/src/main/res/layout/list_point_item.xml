@@ -14,7 +14,7 @@
         android:layout_height="48dp"
         android:layout_width="48dp"
         android:scaleType="centerCrop"
-        android:layout_margin="6dp"/>
+        android:layout_margin="8dp"/>
 
     <LinearLayout
         android:layout_toLeftOf="@+id/buttonsLayout"

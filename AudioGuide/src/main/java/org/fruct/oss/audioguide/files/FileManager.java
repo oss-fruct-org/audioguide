@@ -226,7 +226,6 @@ public class FileManager implements Closeable {
 				try {
 					persistentStorage.pullFile(cacheStorage, fileUrl, variant);
 				} catch (IOException e) {
-
 				}
 			}
 		});

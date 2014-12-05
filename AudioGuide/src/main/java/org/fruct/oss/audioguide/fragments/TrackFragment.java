@@ -192,6 +192,7 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 	@Override
 	public void onDestroy() {
 		cursorHolder.close();
+		trackCursorAdapter.close();
 		super.onDestroy();
 	}
 
