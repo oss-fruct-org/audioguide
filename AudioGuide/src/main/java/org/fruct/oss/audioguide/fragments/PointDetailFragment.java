@@ -37,7 +37,7 @@ import org.fruct.oss.audioguide.files.ImageViewSetter;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.util.Utils;
 
-public class PointDetailFragment extends Fragment implements FileListener {
+public class PointDetailFragment extends Fragment {
     private static final String ARG_POINT = "point";
 	private static final String STATE_POINT = "point";
 	private static final String ARG_IS_OVERLAY = "c";
@@ -48,8 +48,6 @@ public class PointDetailFragment extends Fragment implements FileListener {
 
 	private MultiPanel multiPanel;
 	private FileManager fileManager;
-
-	private String pendingUrl;
 
 	private ImageView imageView;
 	private BitmapProcessor bitmapProcessor;
@@ -129,7 +127,6 @@ public class PointDetailFragment extends Fragment implements FileListener {
 		}
 
 		fileManager = FileManager.getInstance();
-		fileManager.addListener(this);
 
 		if (point.hasAudio()) {
 			fileManager.requestDownload(point.getAudioUrl(), FileSource.Variant.FULL, FileManager.Storage.CACHE);
@@ -332,8 +329,6 @@ public class PointDetailFragment extends Fragment implements FileListener {
 	@Override
 	public void onDestroyView() {
 		super.onDestroyView();
-		fileManager.removeListener(this);
-		pendingUrl = null;
 	}
 
 	@Override
@@ -352,34 +347,9 @@ public class PointDetailFragment extends Fragment implements FileListener {
 			imageView.setAdjustViewBounds(true);
 
 			bitmapProcessor = BitmapProcessor.requestBitmap(fileManager, remoteUrl, FileSource.Variant.FULL, imageWidth, imageHeight, FileManager.ScaleMode.NO_SCALE, new ImageViewSetter(imageView));
-			pendingUrl = null;
 		} else {
 			imageView.setVisibility(View.GONE);
 		}
-	}
-
-	/*private void expandImage() {
-
-	}
-
-	private void shrinkImage() {
-
-	}*/
-
-	@Override
-	public void itemLoaded(String url) {
-		if (url.equals(pendingUrl)) {
-			tryUpdateImage(imageView.getWidth(), imageView.getHeight());
-		}
-	}
-
-	@Override
-	public void itemDownloadProgress(String url, int current, int max) {
-	}
-
-	@Override
-	public void itemDownloadError(String fileUrl) {
-
 	}
 
 	public Point getPoint() {

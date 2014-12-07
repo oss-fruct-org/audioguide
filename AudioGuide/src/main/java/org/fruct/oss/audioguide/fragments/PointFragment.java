@@ -17,17 +17,27 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import org.fruct.oss.audioguide.MultiPanel;
+import org.fruct.oss.audioguide.NavigationDrawerFragment;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.adapters.PointCursorAdapter;
+import org.fruct.oss.audioguide.files.BitmapProcessor;
+import org.fruct.oss.audioguide.files.FileManager;
+import org.fruct.oss.audioguide.files.FileSource;
+import org.fruct.oss.audioguide.files.ImageViewSetter;
 import org.fruct.oss.audioguide.track.CursorHolder;
 import org.fruct.oss.audioguide.track.DefaultTrackManager;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.Track;
 import org.fruct.oss.audioguide.track.TrackManager;
 import org.fruct.oss.audioguide.track.TrackingService;
+import org.fruct.oss.audioguide.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,6 +60,8 @@ public class PointFragment extends ListFragment {
 	private MultiPanel multiPanel;
 	private TrackManager trackManager;
 
+	private ImageView trackImageView;
+	private BitmapProcessor trackImageProcessor;
 
 	private Track track;
 	private BroadcastReceiver inReceiver;
@@ -104,8 +116,80 @@ public class PointFragment extends ListFragment {
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		return inflater.inflate(R.layout.fragment_list_view, container, false);
-		//return super.onCreateView(inflater, container, savedInstanceState);
+		final View view = inflater.inflate(R.layout.fragment_list_view, container, false);
+		final ListView listView = (ListView) view.findViewById(android.R.id.list);
+
+		final ViewGroup headerView = (ViewGroup) inflater.inflate(R.layout.fragment_track_detail_header, listView, false);
+		trackImageView = (ImageView) headerView.findViewById(R.id.image_view);
+
+		view.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+			@Override
+			public void onGlobalLayout() {
+				view.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+				int imageWidth = view.getMeasuredWidth();
+				tryUpdateImage(imageWidth);
+			}
+		});
+
+		TextView descriptionTextView = (TextView) headerView.findViewById(R.id.text_description);
+		if (Utils.isNullOrEmpty(track.getDescription())) {
+			descriptionTextView.setVisibility(View.GONE);
+		} else {
+			descriptionTextView.setText(track.getDescription());
+		}
+
+		TextView titleTextView = (TextView) headerView.findViewById(R.id.text_title);
+		titleTextView.setText(track.getHumanReadableName());
+
+		ImageButton imageButton = (ImageButton) headerView.findViewById(R.id.button);
+		imageButton.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				if (track.isLocal()) {
+					startTrack();
+				} else {
+					saveTrack();
+				}
+			}
+		});
+		imageButton.setImageResource(track.isLocal() ? R.drawable.ic_action_place : R.drawable.ic_action_save);
+
+		listView.addHeaderView(headerView);
+		return view;
+	}
+
+	private void startTrack() {
+		if (pointAdapter.getCount() == 0) {
+			return;
+		}
+
+		Point firstPoint = pointAdapter.getPoint(0);
+
+		Bundle args = new Bundle();
+		args.putParcelable(MapFragment.ARG_POINT, firstPoint);
+
+		trackManager.activateTrackMode(track);
+		NavigationDrawerFragment frag =
+				(NavigationDrawerFragment)
+						getActivity().getSupportFragmentManager()
+								.findFragmentById(R.id.navigation_drawer);
+
+		frag.selectItem(1, args);
+	}
+
+	private void saveTrack() {
+		trackManager.storeTrackLocal(track);
+	}
+
+	private void tryUpdateImage(int imageWidth) {
+		if (track.hasPhoto()) {
+			FileManager fileManager = FileManager.getInstance();
+			String remoteUrl = track.getPhotoUrl();
+			trackImageView.setAdjustViewBounds(true);
+			trackImageProcessor = BitmapProcessor.requestBitmap(fileManager, remoteUrl, FileSource.Variant.FULL, imageWidth, -1, FileManager.ScaleMode.NO_SCALE, new ImageViewSetter(trackImageView));
+		} else {
+			trackImageView.setVisibility(View.GONE);
+		}
 	}
 
 	@Override
@@ -128,6 +212,10 @@ public class PointFragment extends ListFragment {
 		cursorHolder.close();
 		trackManager = null;
 		pointAdapter.close();
+
+		if (trackImageProcessor != null) {
+			trackImageProcessor.recycle();
+		}
 
 		LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(inReceiver);
 		LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(outReceiver);
@@ -204,10 +292,12 @@ public class PointFragment extends ListFragment {
 	public void onListItemClick(ListView l, View v, int position, long id) {
 		super.onListItemClick(l, v, position, id);
 
-		Point point = pointAdapter.getPoint(position);
-		multiPanel.replaceFragment(PointDetailFragment.newInstance(point, false), this);
+		// Ignore header click
+		if (position != 0) {
+			Point point = pointAdapter.getPoint(position - 1);
+			multiPanel.replaceFragment(PointDetailFragment.newInstance(point, false), this);
+		}
 	}
-
 	@Override
 	public void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
