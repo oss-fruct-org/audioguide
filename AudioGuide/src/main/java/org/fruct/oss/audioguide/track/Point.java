@@ -158,6 +158,10 @@ public class Point implements Parcelable, Comparable<Point> {
 		return uuid;
 	}
 
+	List<String> getPhotoUrls() {
+		return photoUrlList;
+	}
+
 	public void setName(String name) {
 		this.name = name;
 	}

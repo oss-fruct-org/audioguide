@@ -1,6 +1,7 @@
 package org.fruct.oss.audioguide.fragments;
 
 import android.app.Activity;
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
@@ -34,8 +35,13 @@ import org.fruct.oss.audioguide.files.FileListener;
 import org.fruct.oss.audioguide.files.FileManager;
 import org.fruct.oss.audioguide.files.FileSource;
 import org.fruct.oss.audioguide.files.ImageViewSetter;
+import org.fruct.oss.audioguide.track.DefaultTrackManager;
 import org.fruct.oss.audioguide.track.Point;
+import org.fruct.oss.audioguide.track.TrackManager;
 import org.fruct.oss.audioguide.util.Utils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class PointDetailFragment extends Fragment {
     private static final String ARG_POINT = "point";
@@ -51,6 +57,8 @@ public class PointDetailFragment extends Fragment {
 
 	private ImageView imageView;
 	private BitmapProcessor bitmapProcessor;
+
+	private List<BitmapProcessor> galleryBitmapProcessors = new ArrayList<BitmapProcessor>();
 
 	//private Bitmap imageBitmap;
 
@@ -155,16 +163,16 @@ public class PointDetailFragment extends Fragment {
 
 		imageView = (ImageView) view.findViewById(android.R.id.icon);
 
-		view.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+		/*view.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
 			@Override
 			public void onGlobalLayout() {
 				view.getViewTreeObserver().removeGlobalOnLayoutListener(this);
-				imageSize = imageView.getMeasuredWidth();
-				tryUpdateImage(imageSize, imageSize);
+				imageSize = view.getMeasuredWidth();
+				tryUpdateImage(imageSize);
 			}
-		});
+		});*/
 
-		setupGallery(view);
+		setupGallery2(view);
 
 		if (isOverlay) {
 			View innerLayout = view.findViewById(R.id.inner_layout);
@@ -188,6 +196,7 @@ public class PointDetailFragment extends Fragment {
 		return view;
 	}
 
+/*
 	private void setupGallery(View view) {
 		TestPagerAdapter adapter = new TestPagerAdapter();
 
@@ -198,6 +207,39 @@ public class PointDetailFragment extends Fragment {
 		pager.setOffscreenPageLimit(adapter.getCount());
 		pager.setAdapter(adapter);
 		pager.setPageMargin(15);
+	}
+*/
+
+	private void setupGallery2(View view) {
+		View galleryScroll = (View) view.findViewById(R.id.gallery_scroll);
+
+		LinearLayout galleryLayout = (LinearLayout) view.findViewById(R.id.gallery);
+		TrackManager trackManager = DefaultTrackManager.getInstance();
+
+		Context context = getActivity();
+
+		List<String> photos = trackManager.getPointPhotos(point);
+		if (photos.isEmpty()) {
+			galleryScroll.setVisibility(View.GONE);
+			return;
+		}
+
+		final int MARGIN_SIZE = Utils.getDP(8);
+		final int PHOTO_SIZE = Utils.getDP(80);
+
+		for (String photo : photos) {
+			ImageView photoImage = new ImageView(context);
+			LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
+					ViewGroup.LayoutParams.MATCH_PARENT);
+			params.setMargins(MARGIN_SIZE, MARGIN_SIZE, MARGIN_SIZE, MARGIN_SIZE);
+			photoImage.setLayoutParams(params);
+			photoImage.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+
+			BitmapProcessor photoBitmapProcessor = BitmapProcessor.requestBitmap(fileManager, photo, FileSource.Variant.FULL,
+					-1, PHOTO_SIZE, FileManager.ScaleMode.NO_SCALE, new ImageViewSetter(photoImage));
+			galleryBitmapProcessors.add(photoBitmapProcessor);
+			galleryLayout.addView(photoImage);
+		}
 	}
 
 	@Override
@@ -317,6 +359,10 @@ public class PointDetailFragment extends Fragment {
 			if (bitmapProcessor != null) {
 				bitmapProcessor.recycle();
 			}
+
+			for (BitmapProcessor bp : galleryBitmapProcessors) {
+				bp.recycle();
+			}
 		} else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
 			if (imageView.getDrawable() instanceof BitmapDrawable) {
 				Bitmap bitmap = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
@@ -324,11 +370,6 @@ public class PointDetailFragment extends Fragment {
 					bitmap.recycle();
 			}
 		}
-	}
-
-	@Override
-	public void onDestroyView() {
-		super.onDestroyView();
 	}
 
 	@Override
@@ -341,12 +382,12 @@ public class PointDetailFragment extends Fragment {
 		isStateSaved = true;
 	}
 
-	private void tryUpdateImage(int imageWidth, int imageHeight) {
+	private void tryUpdateImage(int imageWidth) {
 		if (point.hasPhoto()) {
 			String remoteUrl = point.getPhotoUrl();
 			imageView.setAdjustViewBounds(true);
-
-			bitmapProcessor = BitmapProcessor.requestBitmap(fileManager, remoteUrl, FileSource.Variant.FULL, imageWidth, imageHeight, FileManager.ScaleMode.NO_SCALE, new ImageViewSetter(imageView));
+			bitmapProcessor = BitmapProcessor.requestBitmap(fileManager, remoteUrl, FileSource.Variant.FULL, imageWidth, -1,
+					FileManager.ScaleMode.NO_SCALE, new ImageViewSetter(imageView));
 		} else {
 			imageView.setVisibility(View.GONE);
 		}

@@ -322,6 +322,17 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	}
 
 	@Override
+	public List<String> getPointPhotos(Point point) {
+		Cursor photoCursor = database.loadPointPhotos(point);
+		ArrayList<String> ret = new ArrayList<String>(photoCursor.getCount());
+		while (photoCursor.moveToNext()) {
+			ret.add(photoCursor.getString(0));
+		}
+		photoCursor.close();
+		return ret;
+	}
+
+	@Override
 	public void setCategoryState(Category category, boolean isActive) {
 		category.setActive(isActive);
 		database.setCategoryState(category);

@@ -91,11 +91,17 @@ public class Database {
 			cv.put("time", newPoint.getTime());
 
 		if (existingPointId == -1)
-			return db.insert("point", null, cv);
+			existingPointId = db.insert("point", null, cv);
 		else {
 			db.update("point", cv, "id=?", Utils.toArray(existingPointId));
-			return existingPointId;
 		}
+
+		db.execSQL("DELETE FROM point_photo WHERE pointId=?", Utils.toArray());
+		for (String photoUrl : newPoint.getPhotoUrls()) {
+			insertPointPhoto(existingPointId, photoUrl);
+		}
+
+		return existingPointId;
 	}
 
 	public long insertTrack(Track track) {
@@ -163,6 +169,22 @@ public class Database {
 		} finally {
 			db.endTransaction();
 		}
+	}
+
+	private void insertPointPhoto(long pointId, String url) {
+		long photoUrlId = findOrInsertUrl(url, URL_TYPE_PHOTO);
+		db.execSQL("INSERT INTO point_photo VALUES (?, ?);", Utils.toArray(pointId, photoUrlId));
+	}
+
+	public Cursor loadPointPhotos(Point point) {
+		long pointId = findPointId(point);
+
+		Cursor cursor = db.rawQuery("SELECT DISTINCT url.url " +
+				"FROM url " +
+				"INNER JOIN point_photo ON point_photo.urlId = url.id " +
+				"INNER JOIN point ON point.id = point_photo.pointId " +
+				"WHERE point.id=?;", Utils.toArray(pointId));
+		return cursor;
 	}
 
 	public Cursor loadTracksCursor() {
@@ -501,6 +523,13 @@ public class Database {
 				"url TEXT UNIQUE," +
 				"type TEXT);";
 
+		public static final String CREATE_POINT_PHOTO_SQL = "CREATE TABLE point_photo " +
+				"(pointId INTEGER," +
+				"urlId INTEGER," +
+
+				"FOREIGN KEY (pointId) REFERENCES point(id)," +
+				"FOREIGN KEY (urlId) REFERENCES url(id));";
+
 		public Helper(Context context) {
 			super(context, DB_NAME, null, DB_VERSION);
 		}
@@ -514,6 +543,7 @@ public class Database {
 			db.execSQL(CREATE_POINT_UPDATES_SQL);
 			db.execSQL(CREATE_TRACK_UPDATES_SQL);
 			db.execSQL(CREATE_URLS_SQL);
+			db.execSQL(CREATE_POINT_PHOTO_SQL);
 		}
 
 		@Override
@@ -527,12 +557,22 @@ public class Database {
 
 		@Override
 		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-			for (int version = oldVersion + 1; version <= newVersion; version++) {
+			if (oldVersion != newVersion) {
+				db.execSQL("DROP TABLE point_update");
+				db.execSQL("DROP TABLE track_update");
+				db.execSQL("DROP TABLE point_photo");
+				db.execSQL("DROP TABLE url");
+				db.execSQL("DROP TABLE category");
+				db.execSQL("DROP TABLE tp");
+				db.execSQL("DROP TABLE point");
+				db.execSQL("DROP TABLE track");
+			}
+
+			/*for (int version = oldVersion + 1; version <= newVersion; version++) {
 				if (version == 2) {
 					// Add field photoUrl to track
-					db.execSQL("ALTER TABLE track ADD COLUMN photoUrl TEXT;");
 				}
-			}
+			}*/
 		}
 	}
 }

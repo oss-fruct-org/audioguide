@@ -54,6 +54,8 @@ public interface TrackManager extends Closeable {
 
 	List<Category> getCategories();
 
+	List<String> getPointPhotos(Point point);
+
 	void setCategoryState(Category category, boolean isActive);
 
 	void deleteTrack(Track track, boolean deleteFromServer);

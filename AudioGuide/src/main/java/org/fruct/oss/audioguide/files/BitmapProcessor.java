@@ -30,8 +30,8 @@ public class BitmapProcessor implements PostProcessor<Bitmap> {
 		Bitmap bitmap = AUtils.decodeSampledBitmapFromResource(Resources.getSystem(), localUrl, width, height);
 
 		if (scaleMode != FileManager.ScaleMode.NO_SCALE) {
-			if (height < 0) {
-				throw new IllegalArgumentException("Negative height can only be used with NO_SCALE");
+			if (height < 0 || width < 0) {
+				throw new IllegalArgumentException("Negative dimensions can only be used with NO_SCALE");
 			}
 
 			float ax = bitmap.getWidth() / (float) width;
