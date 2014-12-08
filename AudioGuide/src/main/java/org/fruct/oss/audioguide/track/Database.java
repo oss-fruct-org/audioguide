@@ -388,8 +388,8 @@ public class Database {
 	}
 
 	public Track getTrackByName(String name) {
-		Cursor cursor = db.rawQuery("SELECT track.name, track.description, track.url, track.local, track.categoryId, track.private, track.hname, track.id AS _id " +
-				"FROM track " +
+		Cursor cursor = db.rawQuery("SELECT track.name, track.description, track.url, track.local, track.categoryId, track.private, track.hname, url.url, track.id AS _id " +
+				"FROM track LEFT JOIN url ON url.id = track.photoUrl " +
 				"WHERE track.name=?;", Utils.toArray(name));
 
 		try {

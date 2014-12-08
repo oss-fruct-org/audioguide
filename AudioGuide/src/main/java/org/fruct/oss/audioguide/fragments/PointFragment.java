@@ -35,6 +35,7 @@ import org.fruct.oss.audioguide.track.CursorHolder;
 import org.fruct.oss.audioguide.track.DefaultTrackManager;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.Track;
+import org.fruct.oss.audioguide.track.TrackListener;
 import org.fruct.oss.audioguide.track.TrackManager;
 import org.fruct.oss.audioguide.track.TrackingService;
 import org.fruct.oss.audioguide.util.Utils;
@@ -50,7 +51,7 @@ import java.util.List;
  * Activities containing this fragment MUST implement the {@link org.fruct.oss.audioguide.MultiPanel}
  * interface.
  */
-public class PointFragment extends ListFragment {
+public class PointFragment extends ListFragment implements TrackListener {
 	private final static Logger log = LoggerFactory.getLogger(PointFragment.class);
 
 	private static final String STATE_TRACK = "track";
@@ -59,6 +60,7 @@ public class PointFragment extends ListFragment {
 
 	private MultiPanel multiPanel;
 	private TrackManager trackManager;
+	private FileManager fileManager;
 
 	private ImageView trackImageView;
 	private BitmapProcessor trackImageProcessor;
@@ -73,6 +75,7 @@ public class PointFragment extends ListFragment {
 	private TrackingService trackingService;
 
 	private TrackingServiceConnection serviceConnection = new TrackingServiceConnection();
+	private ViewGroup headerView;
 
 	public static PointFragment newInstance(Track track) {
 		Bundle args = new Bundle(1);
@@ -94,6 +97,7 @@ public class PointFragment extends ListFragment {
 		super.onCreate(savedInstanceState);
 
 		trackManager = DefaultTrackManager.getInstance();
+		fileManager = FileManager.getInstance();
 
 		Bundle arguments = getArguments();
 		if (arguments != null) {
@@ -112,14 +116,16 @@ public class PointFragment extends ListFragment {
 
 		setHasOptionsMenu(true);
 		setupRangeReceiver();
+
 	}
+
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		final View view = inflater.inflate(R.layout.fragment_list_view, container, false);
 		final ListView listView = (ListView) view.findViewById(android.R.id.list);
 
-		final ViewGroup headerView = (ViewGroup) inflater.inflate(R.layout.fragment_track_detail_header, listView, false);
+		headerView = (ViewGroup) inflater.inflate(R.layout.fragment_track_detail_header, listView, false);
 		trackImageView = (ImageView) headerView.findViewById(R.id.image_view);
 
 		view.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
@@ -131,15 +137,22 @@ public class PointFragment extends ListFragment {
 			}
 		});
 
+		setupTrack(track);
+
+		listView.addHeaderView(headerView);
+		return view;
+	}
+
+	private void setupTrack(final Track track) {
+		TextView titleTextView = (TextView) headerView.findViewById(R.id.text_title);
+		titleTextView.setText(track.getHumanReadableName());
+
 		TextView descriptionTextView = (TextView) headerView.findViewById(R.id.text_description);
 		if (Utils.isNullOrEmpty(track.getDescription())) {
 			descriptionTextView.setVisibility(View.GONE);
 		} else {
 			descriptionTextView.setText(track.getDescription());
 		}
-
-		TextView titleTextView = (TextView) headerView.findViewById(R.id.text_title);
-		titleTextView.setText(track.getHumanReadableName());
 
 		ImageButton imageButton = (ImageButton) headerView.findViewById(R.id.button);
 		imageButton.setOnClickListener(new View.OnClickListener() {
@@ -152,10 +165,8 @@ public class PointFragment extends ListFragment {
 				}
 			}
 		});
-		imageButton.setImageResource(track.isLocal() ? R.drawable.ic_action_place : R.drawable.ic_action_save);
 
-		listView.addHeaderView(headerView);
-		return view;
+		imageButton.setImageResource(track.isLocal() ? R.drawable.ic_action_place : R.drawable.ic_action_save);
 	}
 
 	private void startTrack() {
@@ -183,7 +194,6 @@ public class PointFragment extends ListFragment {
 
 	private void tryUpdateImage(int imageWidth) {
 		if (track.hasPhoto()) {
-			FileManager fileManager = FileManager.getInstance();
 			String remoteUrl = track.getPhotoUrl();
 			trackImageView.setAdjustViewBounds(true);
 			trackImageProcessor = BitmapProcessor.requestBitmap(fileManager, remoteUrl, FileSource.Variant.FULL, imageWidth, -1, FileManager.ScaleMode.NO_SCALE, new ImageViewSetter(trackImageView));
@@ -197,12 +207,15 @@ public class PointFragment extends ListFragment {
 		super.onStart();
 		getActivity().bindService(new Intent(getActivity(), TrackingService.class),
 				serviceConnection, Context.BIND_AUTO_CREATE);
+
+		trackManager.addListener(this);
 	}
 
 	@Override
 	public void onStop() {
-		super.onStop();
+		trackManager.removeListener(this);
 		getActivity().unbindService(serviceConnection);
+		super.onStop();
 	}
 
 	@Override
@@ -298,11 +311,18 @@ public class PointFragment extends ListFragment {
 			multiPanel.replaceFragment(PointDetailFragment.newInstance(point, false), this);
 		}
 	}
+	
 	@Override
 	public void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
 
 		outState.putParcelable(STATE_TRACK, track);
+	}
+
+	@Override
+	public void onDataChanged() {
+		track = trackManager.getTrackByName(track.getName());
+		setupTrack(track);
 	}
 
 	private class TrackingServiceConnection implements ServiceConnection {
