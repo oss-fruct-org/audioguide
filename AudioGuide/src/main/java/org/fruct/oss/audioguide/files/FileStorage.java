@@ -8,5 +8,5 @@ public interface FileStorage {
 	String storeFile(String fileUrl, FileSource.Variant variant, InputStream inputStream) throws IOException;
 	String getFile(String fileUrl, FileSource.Variant variant);
 	void pullFile(FileStorage otherStorage, String fileUrl, FileSource.Variant variant) throws IOException;
-	List<String> retainUrls(List<String> keepUrls);
+	void removeUrls(List<String> keepUrls);
 }

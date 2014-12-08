@@ -445,18 +445,30 @@ public class Database {
 		}
 	}
 
-	public List<String> loadLocalAudioUrls() {
-		Cursor cursor = db.rawQuery("SELECT audioUrl " +
-				"FROM point " +
-				"INNER JOIN tp ON point.id = tp.pointId " +
-				"INNER JOIN track ON track.id = tp.trackId " +
-				"WHERE track.local AND audioUrl IS NOT NULL;", null);
+	public List<String> gcUrls() {
+		Cursor cursor = db.rawQuery("SELECT url.url, url.id " +
+				"FROM url " +
+				"LEFT JOIN point_photo ON point_photo.urlId = url.id " +
+				"LEFT JOIN track ON track.photoUrl = url.id " +
+				"LEFT JOIN point AS point1 ON point1.photoUrl = url.id " +
+				"LEFT JOIN point AS point2 ON point2.audioUrl = url.id " +
 
+				"WHERE point_photo.pointId IS NULL " +
+				"AND track.id IS NULL " +
+				"AND point1.id IS NULL " +
+				"AND point2.id IS NULL;", null);
 
 		List<String> ret = new ArrayList<String>(cursor.getCount());
 
-		while (cursor.moveToNext()) {
-			ret.add(cursor.getString(0));
+		try {
+			db.beginTransaction();
+			while (cursor.moveToNext()) {
+				ret.add(cursor.getString(0));
+				db.delete("url", "id=?", Utils.toArray(cursor.getInt(1)));
+			}
+			db.setTransactionSuccessful();
+		} finally {
+			db.endTransaction();
 		}
 
 		cursor.close();
@@ -527,7 +539,7 @@ public class Database {
 				"(pointId INTEGER," +
 				"urlId INTEGER," +
 
-				"FOREIGN KEY (pointId) REFERENCES point(id)," +
+				"FOREIGN KEY (pointId) REFERENCES point(id) ON DELETE CASCADE," +
 				"FOREIGN KEY (urlId) REFERENCES url(id));";
 
 		public Helper(Context context) {

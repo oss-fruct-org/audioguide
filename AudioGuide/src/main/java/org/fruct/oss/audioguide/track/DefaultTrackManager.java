@@ -11,7 +11,6 @@ import org.fruct.oss.audioguide.config.Config;
 import org.fruct.oss.audioguide.files.FileManager;
 import org.fruct.oss.audioguide.files.FileSource;
 import org.fruct.oss.audioguide.gets.Category;
-import org.fruct.oss.audioguide.gets.Gets;
 import org.fruct.oss.audioguide.util.Utils;
 
 import java.io.Closeable;
@@ -365,8 +364,8 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 
 	@Override
 	public void synchronizeFileManager() {
-		List<String> localUrls = database.loadLocalAudioUrls();
-		fileManager.retainPersistentUrls(localUrls);
+		List<String> garbageUrls = database.gcUrls();
+		fileManager.removePersistentUrls(garbageUrls);
 	}
 
 	private void loadRemoteCategories() {

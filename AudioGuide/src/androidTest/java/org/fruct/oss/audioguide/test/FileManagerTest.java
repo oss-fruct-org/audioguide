@@ -302,7 +302,7 @@ public class FileManagerTest extends AndroidTestCase {
 		}
 
 		@Override
-		public List<String> retainUrls(List<String> keepUrls) {
+		public void removeUrls(List<String> keepUrls) {
 			throw new IllegalStateException("Not implemented yet");
 		}
 	}

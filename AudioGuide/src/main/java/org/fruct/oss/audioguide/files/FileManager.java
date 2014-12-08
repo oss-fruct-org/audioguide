@@ -1,7 +1,6 @@
 package org.fruct.oss.audioguide.files;
 
 import android.content.Context;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
@@ -63,9 +62,6 @@ public class FileManager implements Closeable {
 
 		this.executor = executor;
 		this.processorExecutor = processorExecutor;
-
-		/*queue = new PriorityBlockingQueue<Runnable>();
-		executor = new ThreadPoolExecutor(1, 1, 0, TimeUnit.MILLISECONDS, queue);*/
 	}
 
 	public void close() {
@@ -251,21 +247,18 @@ public class FileManager implements Closeable {
 	 * Clean up persistent storage and ensure all urls loaded
 	 * @param fileUrls list of actual url
 	 */
-	public synchronized void retainPersistentUrls(final List<String> fileUrls) {
-		processorExecutor.execute(new Runnable() {
-			@Override
-			public void run() {
-				List<String> absentFiles = persistentStorage.retainUrls(fileUrls);
-
-				for (String absentFileUrl : absentFiles) {
-					if (cacheStorage.getFile(absentFileUrl, FileSource.Variant.FULL) != null) {
-						requestTransfer(absentFileUrl, FileSource.Variant.FULL);
-					} else {
-						requestDownload(absentFileUrl, FileSource.Variant.FULL, Storage.PERSISTENT);
-					}
+	public synchronized void removePersistentUrls(final List<String> fileUrls) {
+		try {
+			processorExecutor.execute(new Runnable() {
+				@Override
+				public void run() {
+					persistentStorage.removeUrls(fileUrls);
 				}
-			}
-		});
+			});
+		} catch (Exception ex) {
+			int i = 5;
+			i++;
+		}
 	}
 
 	private void notifyItemDownloadError(final String fileUrl) {

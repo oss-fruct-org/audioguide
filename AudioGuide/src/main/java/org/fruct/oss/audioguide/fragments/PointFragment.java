@@ -311,7 +311,7 @@ public class PointFragment extends ListFragment implements TrackListener {
 			multiPanel.replaceFragment(PointDetailFragment.newInstance(point, false), this);
 		}
 	}
-	
+
 	@Override
 	public void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);

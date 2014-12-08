@@ -24,7 +24,6 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 import org.fruct.oss.audioguide.preferences.SettingsActivity;
-import org.fruct.oss.audioguide.preferences.SettingsActivityCompat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

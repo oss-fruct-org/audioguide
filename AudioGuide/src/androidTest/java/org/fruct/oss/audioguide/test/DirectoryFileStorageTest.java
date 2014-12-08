@@ -5,7 +5,6 @@ import android.test.AndroidTestCase;
 import android.test.RenamingDelegatingContext;
 
 import junit.framework.AssertionFailedError;
-import junit.framework.TestCase;
 
 import org.fruct.oss.audioguide.files.DirectoryFileStorage;
 import org.fruct.oss.audioguide.files.FileSource;
@@ -13,7 +12,6 @@ import org.fruct.oss.audioguide.files.FileSource;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FilterInputStream;
 import java.io.IOException;
@@ -23,7 +21,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -143,7 +140,7 @@ public class DirectoryFileStorageTest extends AndroidTestCase {
 		fileStorage.storeFile(URL2, FileSource.Variant.FULL, createStream("asd"));
 		fileStorage.storeFile(URL3, FileSource.Variant.FULL, createStream("zxc"));
 
-		List<String> absentFiles = fileStorage.retainUrls(Arrays.asList(URL2, URL3, URL4));
+		List<String> absentFiles = fileStorage.removeUrls(Arrays.asList(URL2, URL3, URL4));
 		assertEquals(1, absentFiles.size());
 		assertEquals(URL4, absentFiles.get(0));
 

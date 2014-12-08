@@ -134,24 +134,12 @@ public class DirectoryFileStorage implements FileStorage {
 	}
 
 	@Override
-	public List<String> retainUrls(List<String> keepUrls) {
-		Set<File> existingFiles = new HashSet<File>(Arrays.asList(directory.listFiles()));
-		List<String> absentUrls = new ArrayList<String>();
-
-		for (String keepUrl : keepUrls) {
-			String nameFull = toFileName(keepUrl, FileSource.Variant.FULL);
+	public void removeUrls(List<String> urls) {
+		for (String removeUrl : urls) {
+			String nameFull = toFileName(removeUrl, FileSource.Variant.FULL);
 			File fileFull = new File(directory, nameFull);
-
-			if (!existingFiles.remove(fileFull)) {
-				absentUrls.add(keepUrl);
-			}
+			fileFull.delete();
 		}
-
-		for (File remainingFile : existingFiles) {
-			remainingFile.delete();
-		}
-
-		return absentUrls;
 	}
 
 	public enum Mode {
