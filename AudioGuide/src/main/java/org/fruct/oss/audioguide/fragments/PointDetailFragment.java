@@ -327,28 +327,4 @@ public class PointDetailFragment extends Fragment {
 	public Point getPoint() {
 		return point;
 	}
-
-	private class TestPagerAdapter extends PagerAdapter {
-		@Override
-		public Object instantiateItem(ViewGroup container, int position) {
-			View view = getActivity().getLayoutInflater().inflate(R.layout.test_image_layout, container, false);
-			container.addView(view);
-			return view;
-		}
-
-		@Override
-		public void destroyItem(ViewGroup container, int position, Object object) {
-			container.removeView((View) object);
-		}
-
-		@Override
-		public int getCount() {
-			return 5;
-		}
-
-		@Override
-		public boolean isViewFromObject(View view, Object o) {
-			return (view == o);
-		}
-	}
 }
