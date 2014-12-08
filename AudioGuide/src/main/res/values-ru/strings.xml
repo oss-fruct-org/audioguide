@@ -143,4 +143,6 @@
     <string name="stop_audio">Стоп</string>
     <string name="play_audio">Старт</string>
     <string name="pause_audio">Пауза</string>
+    <string name="title_activity_gallery">Галерея</string>
+
 </resources>

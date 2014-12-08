@@ -39,6 +39,8 @@
             android:layout_height="wrap_content"
             android:textSize="14sp"
             android:textColor="#ff58585B"
+            android:lines="2"
+            android:ellipsize="marquee"
             tools:text="..."
             />
 

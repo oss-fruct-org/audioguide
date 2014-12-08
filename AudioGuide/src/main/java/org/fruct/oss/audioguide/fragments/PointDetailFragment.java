@@ -2,6 +2,7 @@ package org.fruct.oss.audioguide.fragments;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
@@ -27,6 +28,7 @@ import android.widget.TextView;
 
 import com.example.pagercontainer.PagerContainer;
 
+import org.fruct.oss.audioguide.GalleryActivity;
 import org.fruct.oss.audioguide.MultiPanel;
 import org.fruct.oss.audioguide.NavigationDrawerFragment;
 import org.fruct.oss.audioguide.R;
@@ -163,15 +165,6 @@ public class PointDetailFragment extends Fragment {
 
 		imageView = (ImageView) view.findViewById(android.R.id.icon);
 
-		/*view.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-			@Override
-			public void onGlobalLayout() {
-				view.getViewTreeObserver().removeGlobalOnLayoutListener(this);
-				imageSize = view.getMeasuredWidth();
-				tryUpdateImage(imageSize);
-			}
-		});*/
-
 		setupGallery2(view);
 
 		if (isOverlay) {
@@ -196,19 +189,6 @@ public class PointDetailFragment extends Fragment {
 		return view;
 	}
 
-/*
-	private void setupGallery(View view) {
-		TestPagerAdapter adapter = new TestPagerAdapter();
-
-		PagerContainer pagerContainer = ((PagerContainer) view.findViewById(R.id.pager_container));
-		ViewPager pager = pagerContainer.getViewPager();
-
-		pager.setClipChildren(false);
-		pager.setOffscreenPageLimit(adapter.getCount());
-		pager.setAdapter(adapter);
-		pager.setPageMargin(15);
-	}
-*/
 
 	private void setupGallery2(View view) {
 		View galleryScroll = (View) view.findViewById(R.id.gallery_scroll);
@@ -227,7 +207,7 @@ public class PointDetailFragment extends Fragment {
 		final int MARGIN_SIZE = Utils.getDP(8);
 		final int PHOTO_SIZE = Utils.getDP(80);
 
-		for (String photo : photos) {
+		for (final String photo : photos) {
 			ImageView photoImage = new ImageView(context);
 			LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
 					ViewGroup.LayoutParams.MATCH_PARENT);
@@ -239,7 +219,20 @@ public class PointDetailFragment extends Fragment {
 					-1, PHOTO_SIZE, FileManager.ScaleMode.NO_SCALE, new ImageViewSetter(photoImage));
 			galleryBitmapProcessors.add(photoBitmapProcessor);
 			galleryLayout.addView(photoImage);
+
+			photoImage.setOnClickListener(new View.OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					galleryImageClicked(photo);
+				}
+			});
 		}
+	}
+
+	private void galleryImageClicked(String photo) {
+		Intent intent = new Intent(getActivity(), GalleryActivity.class);
+		intent.putExtra(GalleryActivity.EXTRA_URL, photo);
+		getActivity().startActivity(intent);
 	}
 
 	@Override
@@ -276,68 +269,6 @@ public class PointDetailFragment extends Fragment {
 
 		view.setBackgroundDrawable(background);
 	}
-
-	/*private void setupCenterButton(View view) {
-		final Button buttonCenter = (Button) view.findViewById(R.id.button_map);
-		buttonCenter.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View view) {
-				MainActivity activity = (MainActivity) getActivity();
-
-				NavigationDrawerFragment frag =
-						(NavigationDrawerFragment)
-								activity.getSupportFragmentManager()
-										.findFragmentById(R.id.navigation_drawer);
-
-				Bundle params = new Bundle();
-				params.putParcelable("point", point);
-
-				frag.selectItem(1, params);
-			}
-		});
-	}
-
-	private void setupAudioButton(View view) {
-		final Button buttonPlay = (Button) view.findViewById(R.id.button_play);
-		final Button buttonStop = (Button) view.findViewById(R.id.button_stop);
-
-		buttonPlay.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View view) {
-				if (point == null)
-					return;
-
-				Intent intent = new Intent(TrackingService.ACTION_PLAY,
-						Uri.parse(point.getAudioUrl()),
-						getActivity(), TrackingService.class);
-				getActivity().startService(intent);
-
-				buttonPlay.setVisibility(View.GONE);
-				buttonStop.setVisibility(View.VISIBLE);
-			}
-		});
-
-		buttonStop.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View view) {
-				Intent intent = new Intent(TrackingService.ACTION_STOP,
-						null,
-						getActivity(), TrackingService.class);
-				getActivity().startService(intent);
-
-				buttonPlay.setVisibility(View.VISIBLE);
-				buttonStop.setVisibility(View.GONE);
-			}
-		});
-
-		if (point.hasAudio()) {
-			buttonPlay.setVisibility(View.VISIBLE);
-		} else {
-			buttonPlay.setVisibility(View.GONE);
-		}
-
-		buttonStop.setVisibility(View.GONE);
-	}*/
 
 	@Override
     public void onAttach(Activity activity) {
