@@ -477,7 +477,7 @@ public class Database {
 
 	private static class Helper extends SQLiteOpenHelper {
 		public static final String DB_NAME = "tracksdb2";
-		public static final int DB_VERSION = 2; // published None
+		public static final int DB_VERSION = 111; // published 2
 
 		public static final String CREATE_POINT_UPDATES_SQL = "CREATE TABLE point_update " +
 				"(pointId INTEGER," +
@@ -570,14 +570,15 @@ public class Database {
 		@Override
 		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 			if (oldVersion != newVersion) {
-				db.execSQL("DROP TABLE point_update");
-				db.execSQL("DROP TABLE track_update");
-				db.execSQL("DROP TABLE point_photo");
-				db.execSQL("DROP TABLE url");
-				db.execSQL("DROP TABLE category");
-				db.execSQL("DROP TABLE tp");
-				db.execSQL("DROP TABLE point");
-				db.execSQL("DROP TABLE track");
+				db.execSQL("DROP TABLE IF EXISTS point_update");
+				db.execSQL("DROP TABLE IF EXISTS track_update");
+				db.execSQL("DROP TABLE IF EXISTS point_photo");
+				db.execSQL("DROP TABLE IF EXISTS url");
+				db.execSQL("DROP TABLE IF EXISTS category");
+				db.execSQL("DROP TABLE IF EXISTS tp");
+				db.execSQL("DROP TABLE IF EXISTS point");
+				db.execSQL("DROP TABLE IF EXISTS track");
+				onCreate(db);
 			}
 
 			/*for (int version = oldVersion + 1; version <= newVersion; version++) {

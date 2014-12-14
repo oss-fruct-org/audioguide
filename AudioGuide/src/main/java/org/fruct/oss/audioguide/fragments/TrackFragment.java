@@ -62,6 +62,7 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 
 	private Track selectedTrack;
 	private int selectedPosition;
+	private ActionMode actionMode;
 
 	public static TrackFragment newInstance() {
 		return new TrackFragment();
@@ -217,23 +218,35 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 		selectedTrack = trackCursorAdapter.getTrack(position);
 		selectedPosition = position;
 		getListView().setItemChecked(position, true);
+
 		ActionBarActivity activity = ((ActionBarActivity) getActivity());
-		activity.startSupportActionMode(actionModeCallback);
+		actionMode = activity.startSupportActionMode(actionModeCallback);
 	}
 
 	@Override
 	public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
-		showContextualActionBar(i);
+		if (actionMode == null) {
+			showContextualActionBar(i);
+		} else {
+			actionMode.finish();
+			actionMode = null;
+		}
+
 		return true;
 	}
 
 
 	@Override
 	public void onListItemClick(ListView l, View v, int position, long id) {
-		Track track = trackCursorAdapter.getTrack(position);
-		multiPanel.replaceFragment(PointFragment.newInstance(track), this);
-		trackManager.requestPointsInTrack(track);
-}
+		if (actionMode == null) {
+			Track track = trackCursorAdapter.getTrack(position);
+			multiPanel.replaceFragment(PointFragment.newInstance(track), this);
+			trackManager.requestPointsInTrack(track);
+		} else {
+			actionMode.finish();
+			actionMode = null;
+		}
+	}
 
 	@Override
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
@@ -272,6 +285,7 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 		outState.putInt(STATE_SPINNER_STATE, selectedSpinnerItem);
 	}
 
+	@SuppressWarnings("StatementWithEmptyBody")
 	@Override
 	public boolean onMenuItemClick(MenuItem menuItem) {
 		if (menuItem == popupItemActivate) {
@@ -343,17 +357,20 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 			case R.id.action_start_guide:
 				startGuide();
 				actionMode.finish();
+				TrackFragment.this.actionMode = null;
 				return true;
 
 			case R.id.action_save:
 				// FIXME: selectedTrack can sometimes be null
 				trackManager.storeTrackLocal(selectedTrack);
 				actionMode.finish();
+				TrackFragment.this.actionMode = null;
 				return true;
 
 			case R.id.action_delete:
 				startDeletingTrack(selectedTrack);
 				actionMode.finish();
+				TrackFragment.this.actionMode = null;
 				return true;
 
 			default:
