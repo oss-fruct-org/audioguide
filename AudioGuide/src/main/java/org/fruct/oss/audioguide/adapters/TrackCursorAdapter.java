@@ -42,7 +42,7 @@ public class TrackCursorAdapter extends CursorAdapter implements View.OnClickLis
 	}
 
 	public void close() {
-		fileManager.close();
+		fileManager.removeListener(this);
 		for (BitmapProcessor bitmapProcessor : bitmapProcessors) {
 			bitmapProcessor.recycle();
 		}

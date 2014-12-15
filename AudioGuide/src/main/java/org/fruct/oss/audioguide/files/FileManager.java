@@ -64,7 +64,9 @@ public class FileManager implements Closeable {
 		this.processorExecutor = processorExecutor;
 	}
 
+	@Override
 	public void close() {
+		log.debug("FileManager closed");
 		executor.shutdownNow();
 		processorExecutor.shutdownNow();
 		isClosed = true;
