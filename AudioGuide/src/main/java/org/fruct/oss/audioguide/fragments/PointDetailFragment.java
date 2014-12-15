@@ -14,6 +14,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -54,19 +55,11 @@ public class PointDetailFragment extends Fragment {
 	private Point point;
 	private boolean isOverlay;
 
-	private MultiPanel multiPanel;
 	private FileManager fileManager;
-
-	private ImageView imageView;
-	private BitmapProcessor bitmapProcessor;
 
 	private List<BitmapProcessor> galleryBitmapProcessors = new ArrayList<BitmapProcessor>();
 
-	//private Bitmap imageBitmap;
-
-	private int imageSize;
 	private boolean isStateSaved;
-	private boolean isImageExpanded;
 
 	/**
      * Use this factory method to create a new instance of
@@ -163,8 +156,6 @@ public class PointDetailFragment extends Fragment {
 			description.setVisibility(View.GONE);
 		}
 
-		imageView = (ImageView) view.findViewById(android.R.id.icon);
-
 		setupGallery2(view);
 
 		if (isOverlay) {
@@ -180,15 +171,15 @@ public class PointDetailFragment extends Fragment {
 			});
 
 			int marginValue = Utils.getDP(24);
-			((FrameLayout.LayoutParams) innerLayout.getLayoutParams())
-					.setMargins(marginValue, marginValue, marginValue, marginValue);
+			FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) innerLayout.getLayoutParams();
+			layoutParams.setMargins(marginValue, marginValue, marginValue, marginValue);
+			layoutParams.gravity = Gravity.CENTER;
 
 			view.setClickable(true);
 		}
 
 		return view;
 	}
-
 
 	private void setupGallery2(View view) {
 		View galleryScroll = (View) view.findViewById(R.id.gallery_scroll);
@@ -270,35 +261,13 @@ public class PointDetailFragment extends Fragment {
 		view.setBackgroundDrawable(background);
 	}
 
-	@Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        try {
-            multiPanel = (MultiPanel) activity;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString()
-                    + " must implement MultiPanel");
-        }
-    }
-
     @Override
     public void onDetach() {
 		super.onDetach();
-		multiPanel = null;
 
 		if (!isOverlay) {
-			if (bitmapProcessor != null) {
-				bitmapProcessor.recycle();
-			}
-
 			for (BitmapProcessor bp : galleryBitmapProcessors) {
 				bp.recycle();
-			}
-		} else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
-			if (imageView.getDrawable() instanceof BitmapDrawable) {
-				Bitmap bitmap = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
-				if (bitmap != null && !bitmap.isRecycled())
-					bitmap.recycle();
 			}
 		}
 	}
@@ -313,16 +282,6 @@ public class PointDetailFragment extends Fragment {
 		isStateSaved = true;
 	}
 
-	private void tryUpdateImage(int imageWidth) {
-		if (point.hasPhoto()) {
-			String remoteUrl = point.getPhotoUrl();
-			imageView.setAdjustViewBounds(true);
-			bitmapProcessor = BitmapProcessor.requestBitmap(fileManager, remoteUrl, FileSource.Variant.FULL, imageWidth, -1,
-					FileManager.ScaleMode.NO_SCALE, new ImageViewSetter(imageView));
-		} else {
-			imageView.setVisibility(View.GONE);
-		}
-	}
 
 	public Point getPoint() {
 		return point;
