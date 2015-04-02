@@ -28,10 +28,10 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 public class Gets implements Runnable {
-	public static String GETS_SERVER = "http://getsi.ddns.net/getslocal";
+	//public static String GETS_SERVER = "http://getsi.ddns.net/getslocal";
 	//public static String GETS_SERVER = "http://oss.fruct.org/projects/gets/service";
 	////public static String GETS_SERVER = "http://gets.cs.petrsu.ru/gets/service";
-	//public static String GETS_SERVER = "http://gets.cs.petrsu.ru/gets/service";
+	public static String GETS_SERVER = "http://gets.cs.petrsu.ru/gets/service";
 
 	static {
 		if (!BuildConfig.DEBUG) {

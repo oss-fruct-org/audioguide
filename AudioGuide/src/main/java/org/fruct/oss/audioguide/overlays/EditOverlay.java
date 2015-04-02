@@ -8,15 +8,18 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
-import android.os.Looper;
+import android.support.v4.util.LongSparseArray;
 import android.util.Pair;
 import android.view.MotionEvent;
 
+import com.nostra13.universalimageloader.core.DisplayImageOptions;
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.assist.ImageScaleType;
+import com.nostra13.universalimageloader.core.assist.ImageSize;
+import com.nostra13.universalimageloader.core.assist.ViewScaleType;
+import com.nostra13.universalimageloader.core.imageaware.NonViewAware;
+
 import org.fruct.oss.audioguide.R;
-import org.fruct.oss.audioguide.files.BitmapProcessor;
-import org.fruct.oss.audioguide.files.BitmapSetter;
-import org.fruct.oss.audioguide.files.FileManager;
-import org.fruct.oss.audioguide.files.FileSource;
 import org.fruct.oss.audioguide.track.CursorHolder;
 import org.fruct.oss.audioguide.track.CursorReceiver;
 import org.fruct.oss.audioguide.track.Point;
@@ -31,6 +34,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
+import java.lang.ref.Reference;
+import java.lang.ref.SoftReference;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -52,14 +58,12 @@ public class EditOverlay extends Overlay implements Closeable {
 			R.drawable.marker_2,
 			R.drawable.marker_3};
 
-	private Map<Long, EditOverlayItem> items = new HashMap<Long, EditOverlayItem>();
+	private LongSparseArray<EditOverlayItem> items = new LongSparseArray<EditOverlayItem>();
 	private int itemSize;
 
-	private final Paint itemBackgroundDragPaint;
-	private final Paint itemBackgroundPaint;
+	private DisplayImageOptions displayOptions;
 
-	private final FileManager fileManager;
-	private List<BitmapProcessor> processors = new ArrayList<BitmapProcessor>();
+	private final Paint itemBackgroundPaint;
 
 	private Rect clipRect = new Rect();
 
@@ -112,10 +116,6 @@ public class EditOverlay extends Overlay implements Closeable {
 
 		itemSize = Utils.getDP(24);
 
-		itemBackgroundDragPaint = new Paint();
-		itemBackgroundDragPaint.setColor(0xff1143fa);
-		itemBackgroundDragPaint.setStyle(Paint.Style.FILL);
-
 		linePaint = new Paint();
 		linePaint.setColor(0xff1143fa);
 		linePaint.setStyle(Paint.Style.STROKE);
@@ -129,7 +129,11 @@ public class EditOverlay extends Overlay implements Closeable {
 		itemBackgroundPaint.setAntiAlias(true);
 		itemBackgroundPaint.setTextAlign(Paint.Align.CENTER);
 
-		fileManager = FileManager.getInstance();
+		displayOptions = new DisplayImageOptions.Builder()
+				.cacheOnDisk(true)
+				.cacheInMemory(false)
+				.imageScaleType(ImageScaleType.EXACTLY)
+				.build();
 	}
 
 	@Override
@@ -137,10 +141,6 @@ public class EditOverlay extends Overlay implements Closeable {
 		pointsCursorHolder.close();
 		if (relationsCursorHolder != null)
 			relationsCursorHolder.close();
-
-		for (BitmapProcessor proc : processors) {
-			proc.recycle();
-		}
 	}
 
 	private int getMeanColor(Drawable drawable) {
@@ -231,9 +231,9 @@ public class EditOverlay extends Overlay implements Closeable {
 	}
 
 	private void drawItems(Canvas canvas, MapView view) {
-		int i = 0;
-		for (EditOverlayItem item : items.values()) {
-			drawItem(canvas, view, item, i++);
+		for (int i = 0; i < items.size(); i++) {
+			EditOverlayItem item = items.valueAt(i);
+			drawItem(canvas, view, item, i);
 		}
 	}
 
@@ -243,15 +243,24 @@ public class EditOverlay extends Overlay implements Closeable {
 		proj.toPixels(item.geoPoint, point);
 
 		if (!clipRect.contains(point.x, point.y)) {
+			// Allow collect this bitmap
+			item.keeperReference = null;
+			item.iconRequested = false;
+
 			return;
 		}
 
-		if (!item.iconRequested && item.data.hasPhoto()) {
+		// If item returned to screen, then store strong reference again
+		Bitmap iconBitmap = item.keeperReference = item.iconBitmap.get();
+
+		if (!item.iconRequested && iconBitmap == null && item.data.hasPhoto()) {
 			log.trace("Requesting icon of point that in screen...");
 			item.iconRequested = true;
-			BitmapProcessor proc = BitmapProcessor.requestBitmap(fileManager, item.data.getPhotoUrl(), FileSource.Variant.FULL,
-					itemSize * 2, itemSize * 2, FileManager.ScaleMode.SCALE_CROP, new EditOverlayBitmapSetter(item));
-			processors.add(proc);
+
+			String photoUrl = item.data.getPhotoUrl();
+			ImageLoader.getInstance().displayImage(photoUrl,
+					new EditOverlayImageAware(photoUrl, new ImageSize(itemSize * 2, itemSize * 2), item),
+					displayOptions);
 		}
 
 		Drawable marker = draggingItem == item ? markerDrawable2 : markerDrawable;
@@ -264,8 +273,12 @@ public class EditOverlay extends Overlay implements Closeable {
 
 		Rect bounds = marker.getBounds();
 
-		if (item.iconBitmap != null) {
-			canvas.drawBitmap(item.iconBitmap, bounds.left + markerPadding.left, bounds.top + markerPadding.top, null);
+		if (iconBitmap != null) {
+			canvas.save();
+			canvas.clipRect(bounds.left + markerPadding.left, bounds.top + markerPadding.top,
+					bounds.right - markerPadding.right, bounds.bottom - markerPadding.bottom);
+			canvas.drawBitmap(iconBitmap, bounds.left + markerPadding.left, bounds.top + markerPadding.top, null);
+			canvas.restore();
 		} else {
 			canvas.drawText(String.valueOf(index), point.x, point.y - itemSize + itemSize / 3, itemBackgroundPaint);
 		}
@@ -293,9 +306,11 @@ public class EditOverlay extends Overlay implements Closeable {
 	}
 
 	public HitResult testHit(MotionEvent e, MapView mapView) {
-		for (EditOverlayItem item : items.values()) {
+		for (int i = 0; i < items.size(); i++) {
+			EditOverlayItem item = items.valueAt(i);
 			if (testHit(e, mapView, item, hitResult))
 				return hitResult;
+
 		}
 
 		return null;
@@ -459,8 +474,10 @@ private void checkDistance(MapView mapView, android.graphics.Point p) {
 
 		Point data;
 		GeoPoint geoPoint;
-		Bitmap iconBitmap;
 		boolean iconRequested;
+
+		Bitmap keeperReference;
+		Reference<Bitmap> iconBitmap = new WeakReference<>(null);
 
 		@Override
 		public boolean equals(Object o) {
@@ -486,49 +503,26 @@ private void checkDistance(MapView mapView, android.graphics.Point p) {
 		int relHookY;
 	}
 
-	class EditOverlayBitmapSetter implements BitmapSetter {
+	class EditOverlayImageAware extends NonViewAware {
 		private final EditOverlayItem item;
-		private Bitmap bitmap;
-		private Handler handler = new Handler(Looper.getMainLooper());
 
-		public EditOverlayBitmapSetter(EditOverlayItem item) {
+		public EditOverlayImageAware(String imageUri, ImageSize imageSize, EditOverlayItem item) {
+			super(imageUri, imageSize, ViewScaleType.CROP);
 			this.item = item;
 		}
 
-		private BitmapProcessor tag;
-
 		@Override
-		public void bitmapReady(final Bitmap newBitmap, final BitmapProcessor checkTag) {
-			handler.post(new Runnable() {
-				@Override
-				public void run() {
-					if (!checkTag.equals(tag)) {
-						return;
-					}
+		public boolean setImageBitmap(Bitmap bitmap) {
+			item.keeperReference = bitmap;
+			item.iconBitmap = new SoftReference<>(bitmap);
 
-					item.iconBitmap = newBitmap;
-					recycle();
-					bitmap = newBitmap;
-					mapView.invalidate();
-				}
-			});
+			mapView.invalidate();
+			return true;
 		}
 
 		@Override
-		public void recycle() {
-			if (bitmap != null && !bitmap.isRecycled()) {
-				bitmap.recycle();
-			}
-		}
-
-		@Override
-		public void setTag(BitmapProcessor tag) {
-			this.tag = tag;
-		}
-
-		@Override
-		public BitmapProcessor getTag() {
-			return tag;
+		public boolean setImageDrawable(Drawable drawable) {
+			return super.setImageDrawable(drawable);
 		}
 	}
 }
