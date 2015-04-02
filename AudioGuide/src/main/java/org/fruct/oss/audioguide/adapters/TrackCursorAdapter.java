@@ -86,7 +86,6 @@ public class TrackCursorAdapter extends CursorAdapter implements View.OnClickLis
 
 		setupButton(holder.publicImage, !holder.track.isPrivate());
 		setupButton(holder.localImage, holder.track.isLocal());
-		//setupButton(holder.activeImage, holder.track.isActive());
 
 		if (track.hasPhoto()) {
 			String photoUrl = track.getPhotoUrl();
@@ -94,7 +93,6 @@ public class TrackCursorAdapter extends CursorAdapter implements View.OnClickLis
 		} else {
 			holder.icon.setImageDrawable(null);
 		}
-
 
 		/*Integer highlightColor = highlight.get(track.getName());
 		if (highlightColor != null) {

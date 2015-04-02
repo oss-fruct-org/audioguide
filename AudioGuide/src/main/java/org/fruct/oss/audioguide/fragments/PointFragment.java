@@ -23,6 +23,8 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.nostra13.universalimageloader.core.ImageLoader;
+
 import org.fruct.oss.audioguide.MultiPanel;
 import org.fruct.oss.audioguide.NavigationDrawerFragment;
 import org.fruct.oss.audioguide.R;
@@ -60,10 +62,8 @@ public class PointFragment extends ListFragment implements TrackListener {
 
 	private MultiPanel multiPanel;
 	private TrackManager trackManager;
-	private FileManager fileManager;
 
 	private ImageView trackImageView;
-	private BitmapProcessor trackImageProcessor;
 
 	private Track track;
 	private BroadcastReceiver inReceiver;
@@ -97,7 +97,6 @@ public class PointFragment extends ListFragment implements TrackListener {
 		super.onCreate(savedInstanceState);
 
 		trackManager = DefaultTrackManager.getInstance();
-		fileManager = FileManager.getInstance();
 
 		Bundle arguments = getArguments();
 		if (arguments != null) {
@@ -116,9 +115,7 @@ public class PointFragment extends ListFragment implements TrackListener {
 
 		setHasOptionsMenu(true);
 		setupRangeReceiver();
-
 	}
-
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -196,7 +193,7 @@ public class PointFragment extends ListFragment implements TrackListener {
 		if (track.hasPhoto()) {
 			String remoteUrl = track.getPhotoUrl();
 			trackImageView.setAdjustViewBounds(true);
-			trackImageProcessor = BitmapProcessor.requestBitmap(fileManager, remoteUrl, FileSource.Variant.FULL, imageWidth, -1, FileManager.ScaleMode.NO_SCALE, new ImageViewSetter(trackImageView));
+			ImageLoader.getInstance().displayImage(remoteUrl, trackImageView);
 		} else {
 			trackImageView.setVisibility(View.GONE);
 		}
@@ -225,10 +222,6 @@ public class PointFragment extends ListFragment implements TrackListener {
 		cursorHolder.close();
 		trackManager = null;
 		pointAdapter.close();
-
-		if (trackImageProcessor != null) {
-			trackImageProcessor.recycle();
-		}
 
 		LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(inReceiver);
 		LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(outReceiver);
