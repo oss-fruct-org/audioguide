@@ -1,13 +1,13 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 20
-    buildToolsVersion '20'
+    compileSdkVersion 21
+    buildToolsVersion '21.1.2'
 
     defaultConfig {
         applicationId 'org.fruct.oss.audioguide'
         minSdkVersion 10
-        targetSdkVersion 20
+        targetSdkVersion 21
         versionCode 15
         versionName '0.0.15'
     }
@@ -34,10 +34,12 @@ android {
 
 dependencies {
     compile fileTree(include: ['*.jar', '*.aar'], dir: 'libs')
-    compile 'com.android.support:support-v4:20.+'
-    compile 'com.android.support:appcompat-v7:20.+'
-    compile 'org.osmdroid:osmdroid-android:4.2'
+    compile 'com.android.support:support-v4:21.+'
+    compile 'com.android.support:appcompat-v7:21.+'
+    compile 'org.osmdroid:osmdroid-android:4.3'
     compile 'org.slf4j:slf4j-android:1.6.1-RC1'
+    compile 'com.nostra13.universalimageloader:universal-image-loader:1.9.3'
+
     androidTestCompile 'org.mockito:mockito-core:1.10.0'
     androidTestCompile 'com.google.dexmaker:dexmaker-mockito:1.1'
 }

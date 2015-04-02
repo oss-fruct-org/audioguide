@@ -3,6 +3,7 @@ package org.fruct.oss.audioguide.adapters;
 import android.app.Activity;
 import android.content.Context;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.graphics.PorterDuff;
 import android.support.v4.widget.CursorAdapter;
 import android.view.MotionEvent;
@@ -11,6 +12,10 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+
+import com.nostra13.universalimageloader.cache.memory.impl.LruMemoryCache;
+import com.nostra13.universalimageloader.core.DisplayImageOptions;
+import com.nostra13.universalimageloader.core.ImageLoader;
 
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.files.BitmapProcessor;
@@ -29,37 +34,26 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class PointCursorAdapter extends CursorAdapter implements FileListener, View.OnClickListener, View.OnTouchListener {
+public class PointCursorAdapter extends CursorAdapter implements View.OnClickListener, View.OnTouchListener {
 	private final static Logger log = LoggerFactory.getLogger(PointCursorAdapter.class);
-
-	private final FileManager fileManager;
-
-	private final Context context;
 
 	private boolean isPlaceSelectable;
 	private Set<Point> highlightedItems = new HashSet<Point>();
 
 	private HashMap<String, PointHolder> pendingAudioUrls = new HashMap<String, PointHolder>();
 
-	private List<BitmapProcessor> bitmapProcessors = new ArrayList<BitmapProcessor>();
-
 	private int selectedPosition = -1;
+
+	private Bitmap testBitmap = generateBitmap();
 
 	public PointCursorAdapter(Context context, boolean isPlaceSelectable) {
 		super(context, null, false);
 
-		this.context = context;
 		this.isPlaceSelectable = isPlaceSelectable;
 
-		this.fileManager = FileManager.getInstance();
-		this.fileManager.addListener(this);
 	}
 
 	public void close() {
-		for (BitmapProcessor proc : bitmapProcessors) {
-			proc.recycle();
-		}
-		this.fileManager.removeListener(this);
 	}
 
 	@Override
@@ -73,14 +67,12 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 		view.setTag(holder);
 
 		holder.text1 = (TextView) view.findViewById(android.R.id.text1);
-		holder.text2 = (TextView) view.findViewById(android.R.id.text2);
 		holder.audioImage = (ImageView) view.findViewById(R.id.audio_image);
 		holder.icon = (ImageView) view.findViewById(android.R.id.icon);
 		holder.progressBar = (ProgressBar) view.findViewById(R.id.progress_bar);
 
-		holder.positionBottom = (View) view.findViewById(R.id.position_bottom);
-		holder.positionTop = (View) view.findViewById(R.id.position_top);
-		holder.bitmapSetter = new ImageViewSetter(holder.icon);
+		//holder.positionBottom = (View) view.findViewById(R.id.position_bottom);
+		//holder.positionTop = (View) view.findViewById(R.id.position_top);
 
 		if (isPlaceSelectable) {
 			view.setOnTouchListener(this);
@@ -100,17 +92,13 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 		holder.point = point;
 
 		holder.text1.setText(point.getName());
-		holder.text2.setText(point.getDescription());
-		holder.icon.setImageDrawable(null);
 		holder.position = cursor.getPosition();
 
 		if (point.hasPhoto()) {
 			String photoUrl = point.getPhotoUrl();
-
-			BitmapProcessor processor = BitmapProcessor.requestBitmap(fileManager, photoUrl, FileSource.Variant.FULL, Utils.getDP(48), Utils.getDP(48), FileManager.ScaleMode.SCALE_CROP, holder.bitmapSetter);
-			bitmapProcessors.add(processor);
+			ImageLoader.getInstance().displayImage(photoUrl, holder.icon);
 		} else {
-			holder.bitmapSetter.setTag(null);
+			holder.icon.setImageDrawable(null);
 		}
 
 		/*if (holder.pendingUrl != null) {
@@ -119,6 +107,7 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 			holder.pendingUrl = null;
 		}*/
 
+/*
 		if (point.hasAudio()) {
 			String audioUrl = point.getAudioUrl();
 			pendingAudioUrls.remove(audioUrl);
@@ -147,17 +136,7 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 			holder.audioImage.setVisibility(View.GONE);
 			holder.pendingUrl = null;
 		}
-
-		if (selectedPosition == holder.position) {
-			holder.positionTop.setVisibility(View.VISIBLE);
-			holder.positionBottom.setVisibility(View.GONE);
-		} else if (selectedPosition == holder.position + 1) {
-			holder.positionBottom.setVisibility(View.VISIBLE);
-			holder.positionTop.setVisibility(View.GONE);
-		} else {
-			holder.positionBottom.setVisibility(View.GONE);
-			holder.positionTop.setVisibility(View.GONE);
-		}
+*/
 
 		if (highlightedItems.contains(point)) {
 			view.setBackgroundColor(0xffffd700);
@@ -180,7 +159,7 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 		highlightedItems.remove(point);
 		notifyDataSetChanged();
 	}
-
+/*
 	@Override
 	public void itemLoaded(final String url) {
 		PointHolder holder = pendingAudioUrls.get(url);
@@ -206,6 +185,7 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 	public void itemDownloadError(String fileUrl) {
 
 	}
+*/
 
 	public Point getPoint(int position) {
 		Cursor cursor = (Cursor) getItem(position);
@@ -238,18 +218,26 @@ public class PointCursorAdapter extends CursorAdapter implements FileListener, V
 	private static class PointHolder {
 		Point point;
 		TextView text1;
-		TextView text2;
 
 		ImageView audioImage;
 		ImageView icon;
 		ProgressBar progressBar;
 
-		View positionBottom;
-		View positionTop;
-
-		String pendingUrl;
+		//View positionBottom;
+		//View positionTop;
 
 		int position;
-		ImageViewSetter bitmapSetter;
+	}
+
+	private Bitmap generateBitmap() {
+		Bitmap bitmap = Bitmap.createBitmap(72, 72, Bitmap.Config.ARGB_8888);
+
+		for (int x = 0; x < 72; x++) {
+			for (int y = 0; y < 72; y++) {
+				bitmap.setPixel(x, y, 0xff000000 | x << 24 | y << 16);
+			}
+		}
+
+		return bitmap;
 	}
 }

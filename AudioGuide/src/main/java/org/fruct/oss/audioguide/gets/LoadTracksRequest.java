@@ -72,7 +72,7 @@ public class LoadTracksRequest extends GetsRequest {
 
 	@Override
 	protected boolean onPreExecute() {
-		if (categories != null)
+		if (categories != null && !categories.isEmpty())
 			return true;
 
 		categories = ((List<Category>) gets.getEnv("activeCategories"));

@@ -1,57 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                xmlns:tools="http://schemas.android.com/tools"
-                android:orientation="vertical"
-                android:minHeight="?android:listPreferredItemHeight"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:tools="http://schemas.android.com/tools"
+              android:orientation="horizontal"
+              android:minHeight="?android:listPreferredItemHeight"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
 
     <ImageView
         android:id="@android:id/icon"
-        android:layout_alignParentLeft="true"
-        android:layout_centerVertical="true"
         android:layout_height="48dp"
         android:layout_width="48dp"
+        android:layout_margin="8dp"
+        android:layout_gravity="center_vertical"
         android:scaleType="centerCrop"
-        android:layout_margin="8dp"/>
+        />
 
-    <LinearLayout
-        android:layout_toLeftOf="@+id/buttonsLayout"
-        android:layout_toRightOf="@android:id/icon"
-        android:id="@+id/text_layout"
+    <TextView
+        android:id="@android:id/text1"
+        android:layout_weight="1"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:textSize="18sp"
+        android:textColor="#ff58585B"
+        tools:text="Title text"
+        />
 
-        android:orientation="vertical"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent">
-        <TextView
-            android:id="@android:id/text1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="18sp"
-            android:textColor="#ff58585B"
-            tools:text="Hello world Hello world"
-            />
-
-        <TextView
-            android:id="@android:id/text2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="14sp"
-            android:textColor="#ff58585B"
-            android:lines="2"
-            android:ellipsize="marquee"
-            tools:text="..."
-            />
-
-    </LinearLayout>
 
     <FrameLayout
-        android:id="@id/buttonsLayout"
+        android:id="@+id/buttonsLayout"
         android:layout_width="24dp"
         android:layout_height="24dp"
-        android:layout_alignParentRight="true"
-        android:layout_centerVertical="true"
+
         android:layout_marginLeft="8dp"
         android:layout_marginRight="8dp"
         android:gravity="center">
@@ -63,7 +43,6 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
 
-            android:contentDescription="Image"
             android:background="@null"
             />
 
@@ -81,22 +60,4 @@
             android:visibility="gone"
             />
     </FrameLayout>
-
-
-    <View
-        android:id="@+id/position_bottom"
-        android:visibility="gone"
-        android:layout_width="match_parent"
-        android:layout_height="3dp"
-        android:background="#ffffff00"
-        android:layout_alignParentBottom="true" />
-
-    <View
-        android:id="@+id/position_top"
-        android:visibility="gone"
-        android:layout_width="match_parent"
-        android:layout_height="3dp"
-        android:background="#ffffff00"
-        android:layout_alignParentTop="true" />
-
-</RelativeLayout>
+</LinearLayout>

@@ -14,6 +14,8 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.nostra13.universalimageloader.core.ImageLoader;
+
 import org.fruct.oss.audioguide.App;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.files.BitmapProcessor;
@@ -31,21 +33,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TrackCursorAdapter extends CursorAdapter implements View.OnClickListener, FileListener {
-	private final FileManager fileManager;
-	private List<BitmapProcessor> bitmapProcessors = new ArrayList<BitmapProcessor>();
-
 	public TrackCursorAdapter(Context context) {
 		super(context, null, false);
-
-		this.fileManager = FileManager.getInstance();
-		this.fileManager.addListener(this);
 	}
 
 	public void close() {
-		fileManager.removeListener(this);
-		for (BitmapProcessor bitmapProcessor : bitmapProcessors) {
-			bitmapProcessor.recycle();
-		}
 	}
 
 	@Override
@@ -70,7 +62,6 @@ public class TrackCursorAdapter extends CursorAdapter implements View.OnClickLis
 		holder.localImage.setTag(holder);
 
 		holder.icon = (ImageView) view.findViewById(android.R.id.icon);
-		holder.bitmapSetter = new ImageViewSetter(holder.icon);
 
 		//holder.activeImage = (ImageButton) view.findViewById(R.id.activeImage);
 		//holder.activeImage.setTag(holder);
@@ -99,13 +90,9 @@ public class TrackCursorAdapter extends CursorAdapter implements View.OnClickLis
 
 		if (track.hasPhoto()) {
 			String photoUrl = track.getPhotoUrl();
-
-			BitmapProcessor processor = BitmapProcessor.requestBitmap(fileManager,
-					photoUrl, FileSource.Variant.FULL, Utils.getDP(48), Utils.getDP(48),
-					FileManager.ScaleMode.SCALE_CROP, holder.bitmapSetter);
-			bitmapProcessors.add(processor);
+			ImageLoader.getInstance().displayImage(photoUrl, holder.icon);
 		} else {
-			holder.bitmapSetter.setTag(null);
+			holder.icon.setImageDrawable(null);
 		}
 
 
@@ -161,7 +148,6 @@ public class TrackCursorAdapter extends CursorAdapter implements View.OnClickLis
 		Track track;
 
 		ImageView icon;
-		ImageViewSetter bitmapSetter;
 
 		TextView text1;
 		TextView text2;
