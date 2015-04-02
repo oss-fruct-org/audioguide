@@ -23,11 +23,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.FrameLayout;
+import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.example.pagercontainer.PagerContainer;
+import com.nostra13.universalimageloader.core.ImageLoader;
 
 import org.fruct.oss.audioguide.GalleryActivity;
 import org.fruct.oss.audioguide.MultiPanel;
@@ -49,15 +51,11 @@ import java.util.List;
 public class PointDetailFragment extends Fragment {
     private static final String ARG_POINT = "point";
 	private static final String STATE_POINT = "point";
-	private static final String ARG_IS_OVERLAY = "c";
+	private static final String ARG_IS_OVERLAY = "overlay";
 	private static final String STATE_IS_OVERLAY = "overlay";
 
 	private Point point;
 	private boolean isOverlay;
-
-	private FileManager fileManager;
-
-	private List<BitmapProcessor> galleryBitmapProcessors = new ArrayList<BitmapProcessor>();
 
 	private boolean isStateSaved;
 
@@ -129,10 +127,8 @@ public class PointDetailFragment extends Fragment {
 			isOverlay = savedInstanceState.getBoolean(STATE_IS_OVERLAY);
 		}
 
-		fileManager = FileManager.getInstance();
-
 		if (point.hasAudio()) {
-			fileManager.requestDownload(point.getAudioUrl(), FileSource.Variant.FULL, FileManager.Storage.CACHE);
+			//fileManager.requestDownload(point.getAudioUrl(), FileSource.Variant.FULL, FileManager.Storage.CACHE);
 		}
 
 		setHasOptionsMenu(true);
@@ -182,7 +178,7 @@ public class PointDetailFragment extends Fragment {
 	}
 
 	private void setupGallery2(View view) {
-		View galleryScroll = (View) view.findViewById(R.id.gallery_scroll);
+		HorizontalScrollView galleryScroll = (HorizontalScrollView) view.findViewById(R.id.gallery_scroll);
 
 		LinearLayout galleryLayout = (LinearLayout) view.findViewById(R.id.gallery);
 		TrackManager trackManager = DefaultTrackManager.getInstance();
@@ -196,19 +192,18 @@ public class PointDetailFragment extends Fragment {
 		}
 
 		final int MARGIN_SIZE = Utils.getDP(8);
-		final int PHOTO_SIZE = Utils.getDP(80);
+		final int IMAGE_SIZE = Utils.getDP(80);
 
 		for (final String photo : photos) {
 			ImageView photoImage = new ImageView(context);
-			LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
-					ViewGroup.LayoutParams.MATCH_PARENT);
+			LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, IMAGE_SIZE );
 			params.setMargins(MARGIN_SIZE, MARGIN_SIZE, MARGIN_SIZE, MARGIN_SIZE);
+
 			photoImage.setLayoutParams(params);
 			photoImage.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
 
-			BitmapProcessor photoBitmapProcessor = BitmapProcessor.requestBitmap(fileManager, photo, FileSource.Variant.FULL,
-					-1, PHOTO_SIZE, FileManager.ScaleMode.NO_SCALE, new ImageViewSetter(photoImage));
-			galleryBitmapProcessors.add(photoBitmapProcessor);
+			ImageLoader.getInstance().displayImage(photo, photoImage);
+
 			galleryLayout.addView(photoImage);
 
 			photoImage.setOnClickListener(new View.OnClickListener() {
@@ -218,6 +213,8 @@ public class PointDetailFragment extends Fragment {
 				}
 			});
 		}
+
+		galleryScroll.requestLayout();
 	}
 
 	private void galleryImageClicked(String photo) {
@@ -264,12 +261,6 @@ public class PointDetailFragment extends Fragment {
     @Override
     public void onDetach() {
 		super.onDetach();
-
-		if (!isOverlay) {
-			for (BitmapProcessor bp : galleryBitmapProcessors) {
-				bp.recycle();
-			}
-		}
 	}
 
 	@Override
