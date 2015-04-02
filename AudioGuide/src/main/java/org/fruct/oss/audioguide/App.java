@@ -4,17 +4,25 @@ import android.app.Application;
 import android.content.Context;
 import android.preference.PreferenceManager;
 
+import com.nostra13.universalimageloader.cache.disc.DiskCache;
+import com.nostra13.universalimageloader.cache.disc.impl.LimitedAgeDiscCache;
 import com.nostra13.universalimageloader.cache.disc.impl.UnlimitedDiscCache;
+import com.nostra13.universalimageloader.cache.disc.impl.ext.LruDiscCache;
+import com.nostra13.universalimageloader.cache.disc.naming.HashCodeFileNameGenerator;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 
+import org.fruct.oss.audioguide.files2.PersistableDiskCache;
+import org.fruct.oss.audioguide.files2.PersistenceChecker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
 
 public class App extends Application {
+	private final static int CACHE_SIZE = 50_000_000;
 	private final static Logger log = LoggerFactory.getLogger(App.class);
 	private static Context context;
 
@@ -38,8 +46,28 @@ public class App extends Application {
 			cacheDir = new File(context.getCacheDir(), "uil");
 		}
 
-		cacheDir.mkdirs();
-		UnlimitedDiscCache cache = new UnlimitedDiscCache(cacheDir);
+		File tmpCacheDir = new File(cacheDir, "tmpcache");
+		tmpCacheDir.mkdirs();
+
+		File persistentCacheDir = new File(cacheDir, "perscache");
+		persistentCacheDir.mkdirs();
+
+		DiskCache tmpCache;
+		DiskCache persistentCache = new UnlimitedDiscCache(persistentCacheDir);
+
+		try {
+			tmpCache = new LruDiscCache(tmpCacheDir, new HashCodeFileNameGenerator(), CACHE_SIZE);
+		} catch (IOException e) {
+			tmpCache = new LimitedAgeDiscCache(tmpCacheDir, null, 3600);
+			// TODO: handle error
+		}
+
+		PersistableDiskCache cache = new PersistableDiskCache(persistentCache, tmpCache, new PersistenceChecker() {
+			@Override
+			public boolean isPersistent(String url) {
+				return false;
+			}
+		});
 
 		DisplayImageOptions defaultOptions = new DisplayImageOptions.Builder()
 				.cacheInMemory(true)
