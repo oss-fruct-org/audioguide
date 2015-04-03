@@ -4,9 +4,10 @@ import android.database.Cursor;
 import android.location.Location;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Xml;
 
 import org.fruct.oss.audioguide.config.Config;
-import org.fruct.oss.audioguide.parsers.GetsResponse;
+import org.fruct.oss.audioguide.track.gets.XmlUtil;
 import org.fruct.oss.audioguide.util.Utils;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -340,16 +341,16 @@ public class Point implements Parcelable, Comparable<Point> {
 
 			String tagName = parser.getName();
 			if (tagName.equals("name")) {
-				point.name = GetsResponse.readText(parser);
+				point.name = XmlUtil.readText(parser);
 				parser.require(XmlPullParser.END_TAG, null, "name");
 			} else if (tagName.equals("description")) {
-				point.description = GetsResponse.readText(parser);
+				point.description = XmlUtil.readText(parser);
 				parser.require(XmlPullParser.END_TAG, null, "description");
 			} else if (tagName.equals("Point")) {
 				parser.nextTag();
 				parser.require(XmlPullParser.START_TAG, null, "coordinates");
 
-				point.setCoordinates(GetsResponse.readText(parser));
+				point.setCoordinates(XmlUtil.readText(parser));
 
 				parser.nextTag();
 				parser.require(XmlPullParser.END_TAG, null, "Point");
@@ -373,7 +374,7 @@ public class Point implements Parcelable, Comparable<Point> {
 
 			String tagName = parser.getName();
 			if (tagName.equals("gets:photo")) {
-				String value = GetsResponse.readText(parser);
+				String value = XmlUtil.readText(parser);
 				if (point.photoUrl == null) {
 					point.photoUrl = value;
 				}
@@ -385,7 +386,7 @@ public class Point implements Parcelable, Comparable<Point> {
 
 				parser.nextTag();
 				parser.require(XmlPullParser.START_TAG, null, "value");
-				String value = GetsResponse.readText(parser);
+				String value = XmlUtil.readText(parser);
 
 				switch (key) {
 				case "uuid":
