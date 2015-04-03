@@ -387,21 +387,28 @@ public class Point implements Parcelable, Comparable<Point> {
 				parser.require(XmlPullParser.START_TAG, null, "value");
 				String value = GetsResponse.readText(parser);
 
-				if (key.equals("uuid")) {
+				switch (key) {
+				case "uuid":
 					point.uuid = value;
-				} else if (key.equals("time")) {
+					break;
+				case "time":
 					point.time = value;
-				} else if (key.equals("photo")) {
+					break;
+				case "photo":
 					if (point.photoUrl == null) {
 						point.photoUrl = value;
 					}
 					point.addPhotoUrl(value);
-				} else if (key.equals("audio")) {
+					break;
+				case "audio":
 					point.audioUrl = value;
-				} else if (key.equals("access")) {
+					break;
+				case "access":
 					point.setPrivate(value.equals("rw"));
-				} else if (key.equals("idx")) {
+					break;
+				case "idx":
 					point.setIdx(Long.parseLong(value));
+					break;
 				}
 
 				parser.nextTag();

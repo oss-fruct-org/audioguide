@@ -15,6 +15,7 @@ import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 
 import org.fruct.oss.audioguide.files2.PersistableDiskCache;
 import org.fruct.oss.audioguide.files2.PersistenceChecker;
+import org.fruct.oss.audioguide.track.Database;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,7 +25,11 @@ import java.io.IOException;
 public class App extends Application {
 	private final static int CACHE_SIZE = 50_000_000;
 	private final static Logger log = LoggerFactory.getLogger(App.class);
+
 	private static Context context;
+	private static App instance;
+
+	private Database database;
 
 	@Override
 	public void onCreate() {
@@ -36,6 +41,11 @@ public class App extends Application {
 		PreferenceManager.setDefaultValues(context, R.xml.preferences, false);
 
 		setupImageLoader();
+		setupDatabase();
+	}
+
+	private void setupDatabase() {
+		database = new Database(context);
 	}
 
 	private void setupImageLoader() {
@@ -80,6 +90,14 @@ public class App extends Application {
 				.build();
 
 		ImageLoader.getInstance().init(config);
+	}
+
+	public Database getDatabase() {
+		return database;
+	}
+
+	public static App getInstance() {
+		return instance;
 	}
 
 	public static Context getContext() {

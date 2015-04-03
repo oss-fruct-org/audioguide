@@ -29,10 +29,7 @@ import org.fruct.oss.audioguide.MultiPanel;
 import org.fruct.oss.audioguide.NavigationDrawerFragment;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.adapters.PointCursorAdapter;
-import org.fruct.oss.audioguide.files.BitmapProcessor;
-import org.fruct.oss.audioguide.files.FileManager;
-import org.fruct.oss.audioguide.files.FileSource;
-import org.fruct.oss.audioguide.files.ImageViewSetter;
+import org.fruct.oss.audioguide.events.DataUpdatedEvent;
 import org.fruct.oss.audioguide.track.CursorHolder;
 import org.fruct.oss.audioguide.track.DefaultTrackManager;
 import org.fruct.oss.audioguide.track.Point;
@@ -40,11 +37,15 @@ import org.fruct.oss.audioguide.track.Track;
 import org.fruct.oss.audioguide.track.TrackListener;
 import org.fruct.oss.audioguide.track.TrackManager;
 import org.fruct.oss.audioguide.track.TrackingService;
+import org.fruct.oss.audioguide.track.tasks.StoreTrackTask;
+import org.fruct.oss.audioguide.util.EventReceiver;
 import org.fruct.oss.audioguide.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+
+import de.greenrobot.event.EventBus;
 
 /**
  * A fragment representing a list of Items.
@@ -53,7 +54,7 @@ import java.util.List;
  * Activities containing this fragment MUST implement the {@link org.fruct.oss.audioguide.MultiPanel}
  * interface.
  */
-public class PointFragment extends ListFragment implements TrackListener {
+public class PointFragment extends ListFragment {
 	private final static Logger log = LoggerFactory.getLogger(PointFragment.class);
 
 	private static final String STATE_TRACK = "track";
@@ -76,6 +77,8 @@ public class PointFragment extends ListFragment implements TrackListener {
 
 	private TrackingServiceConnection serviceConnection = new TrackingServiceConnection();
 	private ViewGroup headerView;
+
+	private StoreTrackTask storeTrackTask;
 
 	public static PointFragment newInstance(Track track) {
 		Bundle args = new Bundle(1);
@@ -158,7 +161,7 @@ public class PointFragment extends ListFragment implements TrackListener {
 				if (track.isLocal()) {
 					startTrack();
 				} else {
-					saveTrack();
+					saveTrack(true);
 				}
 			}
 		});
@@ -185,8 +188,13 @@ public class PointFragment extends ListFragment implements TrackListener {
 		frag.selectItem(1, args);
 	}
 
-	private void saveTrack() {
-		trackManager.storeTrackLocal(track);
+	private void saveTrack(boolean local) {
+		if (storeTrackTask != null) {
+			storeTrackTask.cancel(true);
+		}
+
+		storeTrackTask = new StoreTrackTask(track, local);
+		storeTrackTask.execute();
 	}
 
 	private void tryUpdateImage(int imageWidth) {
@@ -205,12 +213,12 @@ public class PointFragment extends ListFragment implements TrackListener {
 		getActivity().bindService(new Intent(getActivity(), TrackingService.class),
 				serviceConnection, Context.BIND_AUTO_CREATE);
 
-		trackManager.addListener(this);
+		EventBus.getDefault().register(this);
 	}
 
 	@Override
 	public void onStop() {
-		trackManager.removeListener(this);
+		EventBus.getDefault().unregister(this);
 		getActivity().unbindService(serviceConnection);
 		super.onStop();
 	}
@@ -218,6 +226,10 @@ public class PointFragment extends ListFragment implements TrackListener {
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
+
+		if (storeTrackTask != null) {
+			storeTrackTask.cancel(true);
+		}
 
 		cursorHolder.close();
 		trackManager = null;
@@ -238,11 +250,12 @@ public class PointFragment extends ListFragment implements TrackListener {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case R.id.action_refresh:
-			trackManager.requestPointsInTrack(track);
+			saveTrack(false);
+
 			break;
 
 		case R.id.action_save:
-			trackManager.storeTrackLocal(track);
+			saveTrack(true);
 			break;
 		}
 
@@ -312,8 +325,8 @@ public class PointFragment extends ListFragment implements TrackListener {
 		outState.putParcelable(STATE_TRACK, track);
 	}
 
-	@Override
-	public void onDataChanged() {
+	@EventReceiver
+	public void onEventMainThread(DataUpdatedEvent event) {
 		track = trackManager.getTrackByName(track.getName());
 		setupTrack(track);
 	}

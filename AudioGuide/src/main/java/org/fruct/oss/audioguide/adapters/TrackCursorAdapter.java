@@ -26,6 +26,7 @@ import org.fruct.oss.audioguide.files.ImageViewSetter;
 import org.fruct.oss.audioguide.track.DefaultTrackManager;
 import org.fruct.oss.audioguide.track.Track;
 import org.fruct.oss.audioguide.track.TrackManager;
+import org.fruct.oss.audioguide.track.tasks.StoreTrackTask;
 import org.fruct.oss.audioguide.util.Utils;
 
 import java.lang.reflect.InvocationTargetException;
@@ -33,11 +34,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TrackCursorAdapter extends CursorAdapter implements View.OnClickListener, FileListener {
+	private StoreTrackTask storeTrackTask;
+
 	public TrackCursorAdapter(Context context) {
 		super(context, null, false);
 	}
 
 	public void close() {
+		if (storeTrackTask != null) {
+			storeTrackTask.cancel(true);
+		}
 	}
 
 	@Override
@@ -117,12 +123,12 @@ public class TrackCursorAdapter extends CursorAdapter implements View.OnClickLis
 
 	@Override
 	public void onClick(View view) {
-		TrackManager trackManager = DefaultTrackManager.getInstance();
 		TrackHolder holder = (TrackHolder) view.getTag();
 		if (holder != null) {
 			Track track = holder.track;
 			if (holder.localImage == view && !track.isLocal()) {
-				trackManager.storeTrackLocal(holder.track);
+				storeTrackTask = new StoreTrackTask(holder.track);
+				storeTrackTask.execute();
 			}
 		}
 	}

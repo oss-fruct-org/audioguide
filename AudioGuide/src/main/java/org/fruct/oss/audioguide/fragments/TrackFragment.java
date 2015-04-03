@@ -23,6 +23,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+import org.fruct.oss.audioguide.App;
 import org.fruct.oss.audioguide.MultiPanel;
 import org.fruct.oss.audioguide.NavigationDrawerFragment;
 import org.fruct.oss.audioguide.R;
@@ -34,16 +35,16 @@ import org.fruct.oss.audioguide.track.DefaultTrackManager;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.Track;
 import org.fruct.oss.audioguide.track.TrackManager;
+import org.fruct.oss.audioguide.track.tasks.StoreTrackTask;
+import org.fruct.oss.audioguide.track.tasks.TracksTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemClickListener, AdapterView.OnItemLongClickListener {
+public class TrackFragment extends ListFragment implements AdapterView.OnItemLongClickListener {
 	private final static Logger log = LoggerFactory.getLogger(TrackFragment.class);
 
 	public static final String STATE_SPINNER_STATE = "spinner-state";
 	private static final int HIGHLIGHT_COLOR = 0xff99ff99;
-
-	private SharedPreferences pref;
 
 	private MultiPanel multiPanel;
 	private TrackManager trackManager;
@@ -52,13 +53,8 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 	private TrackCursorAdapter trackCursorAdapter;
 	private CursorHolder cursorHolder;
 
-	private MenuItem popupShowPoints;
-	private MenuItem popupItemEdit;
-	private MenuItem popupItemEditPoints;
-	private MenuItem popupItemDeactivate;
-	private MenuItem popupItemActivate;
-	private MenuItem popupItemDownload;
-	private MenuItem popupItemSend;
+	private StoreTrackTask storeTrackTask;
+	private TracksTask tracksTask;
 
 	private Track selectedTrack;
 	private int selectedPosition;
@@ -74,8 +70,6 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-
-		pref = PreferenceManager.getDefaultSharedPreferences(getActivity());
 
 		trackManager = DefaultTrackManager.getInstance();
 		cursorHolder = trackManager.loadTracks();
@@ -192,6 +186,14 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 
 	@Override
 	public void onDestroy() {
+		if (storeTrackTask != null) {
+			storeTrackTask.cancel(true);
+		}
+
+		if (tracksTask != null) {
+			tracksTask.cancel(true);
+		}
+
 		cursorHolder.close();
 		trackCursorAdapter.close();
 		super.onDestroy();
@@ -241,7 +243,13 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 		if (actionMode == null) {
 			Track track = trackCursorAdapter.getTrack(position);
 			multiPanel.replaceFragment(PointFragment.newInstance(track), this);
-			trackManager.requestPointsInTrack(track);
+
+			if (storeTrackTask != null) {
+				storeTrackTask.cancel(true);
+			}
+
+			storeTrackTask = new StoreTrackTask(selectedTrack, false);
+			storeTrackTask.execute();
 		} else {
 			actionMode.finish();
 			actionMode = null;
@@ -263,7 +271,8 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case R.id.action_refresh:
-			trackManager.requestTracksInRadius();
+			tracksTask = new TracksTask(getActivity());
+			tracksTask.execute();
 			break;
 		}
 
@@ -274,26 +283,7 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 	public void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
 
-		ActionBarActivity activity = (ActionBarActivity) getActivity();
-		ActionBar actionBar = activity.getSupportActionBar();
-
 		outState.putInt(STATE_SPINNER_STATE, selectedSpinnerItem);
-	}
-
-	@SuppressWarnings("StatementWithEmptyBody")
-	@Override
-	public boolean onMenuItemClick(MenuItem menuItem) {
-		if (menuItem == popupItemActivate) {
-			//trackManager.activateTrack(selectedTrack);
-		} else if (menuItem == popupItemDeactivate) {
-			//trackManager.deactivateTrack(selectedTrack);
-		} else if (menuItem == popupItemDownload) {
-			//trackManager.refreshPoints(selectedTrack);
-		} else if (menuItem == popupShowPoints) {
-			multiPanel.replaceFragment(PointFragment.newInstance(selectedTrack), this);
-		}
-
-		return false;
 	}
 
 	private ActionMode.Callback actionModeCallback = new ActionMode.Callback() {
@@ -325,7 +315,13 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 
 			case R.id.action_save:
 				// FIXME: selectedTrack can sometimes be null
-				trackManager.storeTrackLocal(selectedTrack);
+				if (storeTrackTask != null) {
+					storeTrackTask.cancel(true);
+				}
+
+				storeTrackTask = new StoreTrackTask(selectedTrack);
+				storeTrackTask.execute();
+
 				actionMode.finish();
 				TrackFragment.this.actionMode = null;
 				return true;
@@ -375,19 +371,11 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 	private void startDeletingTrack(final Track track) {
 		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 		builder.setTitle(R.string.delete_track);
-		if (!Config.isEditLocked() && track.isPrivate()) {
-			builder.setPositiveButton(R.string.delete_track_server, new DialogInterface.OnClickListener() {
-				@Override
-				public void onClick(DialogInterface dialogInterface, int i) {
-					trackManager.deleteTrack(track, true);
-				}
-			});
-		}
 
 		builder.setNeutralButton(R.string.delete_track_local, new DialogInterface.OnClickListener() {
 			@Override
 			public void onClick(DialogInterface dialogInterface, int i) {
-				trackManager.deleteTrack(track, false);
+				App.getInstance().getDatabase().deleteTrack(track);
 			}
 		});
 

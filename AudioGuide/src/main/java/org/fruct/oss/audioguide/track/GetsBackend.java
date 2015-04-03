@@ -13,7 +13,6 @@ import org.fruct.oss.audioguide.gets.LoadTrackRequest;
 import org.fruct.oss.audioguide.gets.LoadTracksRequest;
 import org.fruct.oss.audioguide.gets.UpdatePointRequest;
 import org.fruct.oss.audioguide.parsers.CategoriesContent;
-import org.fruct.oss.audioguide.parsers.GetsException;
 import org.fruct.oss.audioguide.parsers.GetsResponse;
 import org.fruct.oss.audioguide.parsers.Kml;
 import org.fruct.oss.audioguide.parsers.TracksContent;
@@ -63,36 +62,6 @@ public class GetsBackend implements StorageBackend, CategoriesBackend, Closeable
 				callback.call(categories);
 			}
 		});
-	}
-
-	@Override
-	public void updateTrack(final Track track, final List<Point> points) throws InterruptedException, GetsException {
-		UpdateRequest request = new UpdateRequest(points.size());
-		doUpdateTrack(track, points, request);
-		request.latch.await();
-
-		if (!request.isSuccess)
-			throw new GetsException("Can't update track in GeTS");
-	}
-
-	@Override
-	public void updatePoint(Point point) throws InterruptedException, GetsException {
-		UpdateRequest request = new UpdateRequest(1);
-		sendPointUpdate(point, request);
-		request.latch.await();
-
-		if (!request.isSuccess)
-			throw new GetsException("Can't update point in GeTS");
-	}
-
-	@Override
-	public void insertPoint(long categoryId, Point point) throws InterruptedException, GetsException {
-		UpdateRequest request = new UpdateRequest(1);
-		sendPoint(categoryId, point, request);
-		request.latch.await();
-
-		if (!request.isSuccess)
-			throw new GetsException("Can't insert point in GeTS");
 	}
 
 	private void doUpdateTrack(final Track track, final List<Point> points, final UpdateRequest request) {

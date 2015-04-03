@@ -7,11 +7,6 @@ import org.fruct.oss.audioguide.util.Utils;
 import java.util.List;
 
 public interface StorageBackend {
-	void updateTrack(Track track, List<Point> points) throws InterruptedException, GetsException;
-
-	void updatePoint(Point point)  throws InterruptedException, GetsException;
-
-	void insertPoint(long categoryId, Point point) throws InterruptedException, GetsException;
 
 	void loadTracksInRadius(float lat, float lon, float radius, List<Category> categories, Utils.Callback<List<Track>> callback);
 

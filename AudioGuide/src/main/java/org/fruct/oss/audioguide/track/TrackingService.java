@@ -31,6 +31,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
+import de.greenrobot.event.EventBus;
+
 public class TrackingService extends Service implements DistanceTracker.Listener, LocationReceiver.Listener, SharedPreferences.OnSharedPreferenceChangeListener {
 	private final static Logger log = LoggerFactory.getLogger(TrackingService.class);
 
@@ -183,7 +185,6 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 
 		locationReceiver = new LocationReceiver(this);
 		trackManager = DefaultTrackManager.getInstance();
-		trackManager.updateLoadRadius(pref.getInt(SettingsActivity.PREF_LOAD_RADIUS, 500));
 
 		updateDistanceTracker();
 
@@ -411,7 +412,7 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 
 		LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
 
-		DefaultTrackManager.getInstance().updateUserLocation(location);
+		EventBus.getDefault().postSticky(new LocationEvent(location));
 	}
 
 	public void sendLastLocation() {
@@ -434,9 +435,6 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 					releaseWakeLock();
 				}
 			}
-		} else if (s.equals(SettingsActivity.PREF_LOAD_RADIUS)) {
-			int newRadius = sharedPreferences.getInt(s, 500);
-			DefaultTrackManager.getInstance().updateLoadRadius(newRadius);
 		} else if (s.equals(TrackManager.PREF_TRACK_MODE)) {
 			updateDistanceTracker();
 		}

@@ -48,6 +48,7 @@ import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.Track;
 import org.fruct.oss.audioguide.track.TrackManager;
 import org.fruct.oss.audioguide.track.TrackingService;
+import org.fruct.oss.audioguide.track.tasks.PointsTask;
 import org.osmdroid.api.IGeoPoint;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.util.ResourceProxyImpl;
@@ -93,6 +94,8 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 	private Point selectedPoint;
 
 	private List<EditOverlay> trackOverlays = new ArrayList<EditOverlay>();
+
+	private PointsTask pointsTask;
 
 	/**
 	 * Use this factory method to create a new instance of
@@ -173,9 +176,8 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 		Toast.makeText(getActivity(), "Searching near points...", Toast.LENGTH_LONG).show();
 
 		if (myPositionOverlay.getLocation() != null) {
-			trackManager.requestPointsInRadius((float) myPositionOverlay.getLocation().getLatitude(),
-					(float) myPositionOverlay.getLocation().getLongitude(),
-					true);
+			pointsTask = new PointsTask(getActivity());
+			pointsTask.execute();
 		} else {
 			Toast.makeText(getActivity(), R.string.warn_no_providers, Toast.LENGTH_SHORT).show();
 		}
@@ -303,7 +305,10 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 	@Override
 	public void onDestroy() {
 		log.trace("MapFragment onDestroy");
-		super.onDestroy();
+
+		if (pointsTask != null) {
+			pointsTask.cancel(true);
+		}
 
 		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getActivity());
 		pref.unregisterOnSharedPreferenceChangeListener(this);
@@ -315,6 +320,7 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 		mapView.getTileProvider().clearTileCache();
 
 		trackManager = null;
+		super.onDestroy();
 	}
 
 	@Override

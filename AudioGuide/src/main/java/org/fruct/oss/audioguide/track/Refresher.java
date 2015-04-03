@@ -67,8 +67,8 @@ public class Refresher {
 				.putLong(PREF_TIMESTAMP, lastTimestamp)
 				.apply();
 
-		trackManager.requestTracksInRadius();
-		trackManager.requestPointsInRadius(lastLatitude, lastLongitude, false);
+		//trackManager.requestTracksInRadius();
+		//trackManager.requestPointsInRadius(lastLatitude, lastLongitude, false);
 
 	}
 

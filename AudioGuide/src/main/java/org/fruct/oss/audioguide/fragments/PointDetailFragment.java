@@ -28,7 +28,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.example.pagercontainer.PagerContainer;
 import com.nostra13.universalimageloader.core.ImageLoader;
 
 import org.fruct.oss.audioguide.GalleryActivity;
