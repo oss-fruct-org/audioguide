@@ -13,6 +13,7 @@ import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 
+import org.fruct.oss.audioguide.files2.DatabasePersistenceChecker;
 import org.fruct.oss.audioguide.files2.PersistableDiskCache;
 import org.fruct.oss.audioguide.files2.PersistenceChecker;
 import org.fruct.oss.audioguide.track.Database;
@@ -30,6 +31,8 @@ public class App extends Application {
 	private static App instance;
 
 	private Database database;
+	private PersistableDiskCache cache;
+	private DatabasePersistenceChecker persistenceChecker;
 
 	@Override
 	public void onCreate() {
@@ -41,8 +44,8 @@ public class App extends Application {
 		instance = this;
 		PreferenceManager.setDefaultValues(context, R.xml.preferences, false);
 
-		setupImageLoader();
 		setupDatabase();
+		setupImageLoader();
 	}
 
 	private void setupDatabase() {
@@ -73,12 +76,8 @@ public class App extends Application {
 			// TODO: handle error
 		}
 
-		PersistableDiskCache cache = new PersistableDiskCache(persistentCache, tmpCache, new PersistenceChecker() {
-			@Override
-			public boolean isPersistent(String url) {
-				return false;
-			}
-		});
+		persistenceChecker = new DatabasePersistenceChecker(database);
+		cache = new PersistableDiskCache(persistentCache, tmpCache, persistenceChecker);
 
 		DisplayImageOptions defaultOptions = new DisplayImageOptions.Builder()
 				.cacheInMemory(true)
@@ -97,6 +96,10 @@ public class App extends Application {
 		return database;
 	}
 
+	public DatabasePersistenceChecker getPersistenceChecker() {
+		return persistenceChecker;
+	}
+
 	public static App getInstance() {
 		return instance;
 	}
@@ -104,4 +107,6 @@ public class App extends Application {
 	public static Context getContext() {
 		return context;
 	}
+
+
 }

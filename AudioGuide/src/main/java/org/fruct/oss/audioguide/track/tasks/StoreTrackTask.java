@@ -47,6 +47,7 @@ public class StoreTrackTask extends AsyncTask<Void, Void, Boolean> {
 			storeToDatabase(track, kml.getPoints());
 
 			if (local) {
+				App.getInstance().getPersistenceChecker().updatePersistentUrls();
 				queueAudioDownload(kml.getPoints());
 			}
 

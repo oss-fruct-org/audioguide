@@ -12,7 +12,8 @@ import java.io.InputStream;
 public class PersistableDiskCache implements DiskCache {
 	private final DiskCache persistentCache;
 	private final DiskCache temporaryCache;
-	private final PersistenceChecker checker;
+
+	private PersistenceChecker checker;
 
 	public PersistableDiskCache(DiskCache persistentCache, DiskCache temporaryCache, PersistenceChecker checker) {
 		this.persistentCache = persistentCache;
@@ -74,5 +75,9 @@ public class PersistableDiskCache implements DiskCache {
 	public void clear() {
 		temporaryCache.clear();
 		persistentCache.clear();
+	}
+
+	public void setChecker(PersistenceChecker checker) {
+		this.checker = checker;
 	}
 }

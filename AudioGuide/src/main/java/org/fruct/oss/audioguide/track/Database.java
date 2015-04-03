@@ -389,6 +389,24 @@ public class Database {
 		return ret;
 	}
 
+	public List<String> getPersistentUrls() {
+		Cursor cursor = db.rawQuery("SELECT DISTINCT url.url " +
+						"FROM url " +
+						"INNER JOIN point ON url.id = point.audioUrl " +
+						"INNER JOIN tp ON tp.pointId = point.id " +
+						"INNER JOIN track ON tp.trackId = track.id " +
+						"WHERE track.local = 1;",
+				null);
+
+		ArrayList<String> ret = new ArrayList<>(cursor.getCount());
+		while (cursor.moveToNext()) {
+			ret.add(cursor.getString(0));
+		}
+		cursor.close();
+
+		return ret;
+	}
+
 	private static class Helper extends SQLiteOpenHelper {
 		public static final String DB_NAME = "tracksdb2";
 		public static final int DB_VERSION = 2; // published 2
