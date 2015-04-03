@@ -265,11 +265,6 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 		case R.id.action_refresh:
 			trackManager.requestTracksInRadius();
 			break;
-		case R.id.action_add:
-			EditTrackDialog dialog = EditTrackDialog.newInstance(null);
-			dialog.setListener(editDialogListener);
-			dialog.show(getFragmentManager(), "edit-track-dialog");
-			break;
 		}
 
 		return super.onOptionsItemSelected(item);
@@ -296,42 +291,10 @@ public class TrackFragment extends ListFragment implements PopupMenu.OnMenuItemC
 			//trackManager.refreshPoints(selectedTrack);
 		} else if (menuItem == popupShowPoints) {
 			multiPanel.replaceFragment(PointFragment.newInstance(selectedTrack), this);
-		} else if (menuItem == popupItemEdit) {
-			EditTrackDialog dialog = EditTrackDialog.newInstance(selectedTrack);
-			dialog.setListener(editDialogListener);
-			dialog.show(getFragmentManager(), "edit-track-dialog");
-		} else if (menuItem == popupItemEditPoints) {
-			//trackManager.setEditingTrack(selectedTrack);
-
-			//trackAdapter.clearTrackHighlights();
-			//trackAdapter.addTrackHighlight(trackManager.getEditingTrack(), HIGHLIGHT_COLOR);
-			//trackAdapter.notifyDataSetChanged();
-		} else if (menuItem == popupItemSend) {
-			//trackManager.sendTrack(selectedTrack);
-			//trackManager.setEditingTrack(null);
-			//trackAdapter.clearTrackHighlights();
-			//trackAdapter.notifyDataSetChanged();
 		}
 
 		return false;
 	}
-
-	private EditTrackDialog.Listener editDialogListener = new EditTrackDialog.Listener() {
-		@Override
-		public void trackCreated(Track track) {
-			log.debug("Track created callback");
-			track.setLocal(true);
-			track.setPrivate(true);
-			trackManager.insertTrack(track);
-			//trackManager.storeLocal(track);
-		}
-
-		@Override
-		public void trackUpdated(Track track) {
-			log.debug("Track updated callback");
-			//trackManager.storeLocal(track);
-		}
-	};
 
 	private ActionMode.Callback actionModeCallback = new ActionMode.Callback() {
 		@Override

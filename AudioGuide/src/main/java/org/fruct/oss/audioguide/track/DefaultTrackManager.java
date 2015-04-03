@@ -32,7 +32,6 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	private final List<TrackListener> listeners = new ArrayList<TrackListener>();
 	private final List<CursorHolder> cursorHolders = new ArrayList<CursorHolder>();
 
-	private final SynchronizerThread synchronizer;
 	private final Refresher refresher;
 
 	private Location location = new Location("no-provider");
@@ -51,23 +50,10 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 		synchronizeFileManager();
 
 		refresher = new Refresher(context, database, this);
-
-		if (!Config.isEditLocked()) {
-			synchronizer = new SynchronizerThread(database, backend);
-			synchronizer.start();
-			synchronizer.initializeHandler();
-		} else {
-			synchronizer = null;
-		}
 	}
 
 	@Override
 	public synchronized void close() {
-		if (synchronizer != null) {
-			synchronizer.interrupt();
-			synchronizer.quit();
-		}
-
 		if (backend instanceof Closeable) {
 			try {
 				((Closeable) backend).close();
@@ -77,27 +63,6 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 
 		database.close();
 		isClosed = true;
-	}
-
-	@Override
-	public void insertPoint(Point point) {
-		database.insertPoint(point);
-		database.markPointUpdate(point);
-		notifyDataChanged();
-	}
-
-	@Override
-	public void insertTrack(Track track) {
-		database.insertTrack(track);
-		database.markTrackUpdate(track);
-		notifyDataChanged();
-	}
-
-	@Override
-	public void insertToTrack(Track track, Point point, int selectedPosition) {
-		database.insertToTrack(track, point, selectedPosition);
-		database.markTrackUpdate(track);
-		notifyDataChanged();
 	}
 
 	@Override

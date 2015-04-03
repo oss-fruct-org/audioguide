@@ -40,36 +40,6 @@ public class Database {
 		}
 	}
 
-	public void markPointUpdate(Point point) {
-		long pointId = findPointId(point);
-		ContentValues updateCv = new ContentValues(1);
-		updateCv.put("pointId", pointId);
-		db.insert("point_update", null, updateCv);
-
-		Cursor cursor = db.rawQuery("SELECT tp.trackId FROM tp WHERE tp.pointId=?", Utils.toArray(pointId));
-		while (cursor.moveToNext()) {
-			ContentValues updateCv2 = new ContentValues(1);
-			updateCv2.put("trackId", cursor.getLong(0));
-			db.insert("track_update", null, updateCv2);
-		}
-		cursor.close();
-	}
-
-	public void markTrackUpdate(Track track) {
-		long trackId = findTrackId(track);
-		ContentValues updateCv = new ContentValues(1);
-		updateCv.put("trackId", trackId);
-		db.insert("track_update", null, updateCv);
-	}
-
-	public void clearTrackUpdates() {
-		db.execSQL("delete from track_update;");
-	}
-
-	public void clearPointUpdate(long pointId) {
-		db.execSQL("delete from point_update where pointId=?", Utils.toArray(pointId));
-	}
-
 	public long insertPoint(Point newPoint) {
 		long existingPointId = findPointId(newPoint);
 
@@ -153,24 +123,6 @@ public class Database {
 		}
 	}
 
-	public void insertToTrack(Track track, Point point, int position) {
-		long pointId = insertPoint(point);
-
-		long trackId = findTrackId(track);
-		if (trackId == -1)
-			trackId = insertTrack(track);
-
-		// Reorder points
-		db.beginTransaction();
-		try {
-			db.execSQL("UPDATE tp SET idx = idx + 1 WHERE idx >= ? AND trackId=?;", Utils.toArray(position, trackId));
-			db.execSQL("INSERT INTO tp VALUES (?, ?, ?);", Utils.toArray(trackId, pointId, position));
-			db.setTransactionSuccessful();
-		} finally {
-			db.endTransaction();
-		}
-	}
-
 	private void insertPointPhoto(long pointId, String url) {
 		long photoUrlId = findOrInsertUrl(url, URL_TYPE_PHOTO);
 		db.execSQL("INSERT INTO point_photo VALUES (?, ?);", Utils.toArray(pointId, photoUrlId));
@@ -207,7 +159,6 @@ public class Database {
 		);
 		return cursor;
 	}
-
 
 	public Cursor loadPointsCursor() {
 		Cursor cursor = db.rawQuery(

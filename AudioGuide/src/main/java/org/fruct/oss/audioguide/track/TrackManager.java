@@ -10,12 +10,6 @@ import java.util.List;
 public interface TrackManager extends Closeable {
 	public static final String PREF_TRACK_MODE = "pref_track_mode";
 
-	void insertPoint(Point point);
-
-	void insertTrack(Track track);
-
-	void insertToTrack(Track track, Point point, int selectedPosition);
-
 	void storeTrackLocal(Track track);
 
 	void requestTracksInRadius();
@@ -39,7 +33,6 @@ public interface TrackManager extends Closeable {
 	CursorHolder loadLocalPoints();
 
 	CursorHolder loadPoints(Track track);
-
 
 	Track getTrackByName(String name);
 

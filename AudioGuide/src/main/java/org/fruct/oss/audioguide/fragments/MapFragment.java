@@ -38,7 +38,6 @@ import android.widget.Toast;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.config.Config;
 import org.fruct.oss.audioguide.dialogs.EditPointDialog;
-import org.fruct.oss.audioguide.dialogs.InsertPointDialog;
 import org.fruct.oss.audioguide.dialogs.SelectTrackDialog;
 import org.fruct.oss.audioguide.overlays.EditOverlay;
 import org.fruct.oss.audioguide.overlays.MyPositionOverlay;
@@ -137,9 +136,6 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 		case R.id.action_place:
 			mockLocation();
 			break;
-		case R.id.action_add:
-			startAddingPoint();
-			break;
 		case R.id.action_find_me:
 			if (myPositionOverlay != null && myPositionOverlay.getLocation() != null) {
 				GeoPoint newMapCenter = new GeoPoint(myPositionOverlay.getLocation());
@@ -183,12 +179,6 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 		} else {
 			Toast.makeText(getActivity(), R.string.warn_no_providers, Toast.LENGTH_SHORT).show();
 		}
-	}
-
-	private void startAddingPoint() {
-		EditPointDialog dialog = EditPointDialog.newInstance(null);
-		dialog.setListener(editDialogListener);
-		dialog.show(getFragmentManager(), "edit-point-dialog");
 	}
 
 	private void mockLocation() {
@@ -498,15 +488,6 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 		}
 	}
 
-	private SelectTrackDialog.Listener addPointToTrackListener = new SelectTrackDialog.Listener() {
-		@Override
-		public void trackSelected(Track track) {
-			InsertPointDialog dialog = InsertPointDialog.newInstance(track, selectedPoint);
-			dialog.show(getFragmentManager(), "insert-point-dialog");
-			selectedPoint = null;
-		}
-	};
-
 	private SelectTrackDialog.Listener activateTrackListener = new SelectTrackDialog.Listener() {
 		@Override
 		public void trackSelected(Track track) {
@@ -515,30 +496,9 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 		}
 	};
 
-	private EditPointDialog.Listener editDialogListener = new EditPointDialog.Listener() {
-		@Override
-		public void pointCreated(Point point) {
-			log.debug("Point created callback");
-
-			IGeoPoint mapCenter = mapView.getMapCenter();
-			point.setCoordinates(mapCenter.getLatitudeE6(), mapCenter.getLongitudeE6());
-
-			point.setPrivate(true);
-			trackManager.insertPoint(point);
-		}
-
-		@Override
-		public void pointUpdated(Point point) {
-			log.debug("Point updated callback");
-			trackManager.insertPoint(point);
-		}
-	};
-
 	private EditOverlay.Listener trackOverlayListener = new EditOverlay.Listener() {
 		@Override
 		public void pointMoved(Point point, IGeoPoint geoPoint) {
-			point.setCoordinates(geoPoint.getLatitudeE6(), geoPoint.getLongitudeE6());
-			trackManager.insertPoint(point);
 		}
 
 		@Override
@@ -554,48 +514,6 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 
 		@Override
 		public void pointLongPressed(Point point) {
-			selectedPoint = point;
-			ActionBarActivity activity = (ActionBarActivity) getActivity();
-			activity.startSupportActionMode(pointActionMode);
-		}
-	};
-
-	private ActionMode.Callback pointActionMode = new ActionMode.Callback() {
-		@Override
-		public boolean onCreateActionMode(ActionMode actionMode, Menu menu) {
-			actionMode.getMenuInflater().inflate(R.menu.point_menu, menu);
-			return true;
-		}
-
-		@Override
-		public boolean onPrepareActionMode(ActionMode actionMode, Menu menu) {
-			return false;
-		}
-
-		@Override
-		public boolean onActionItemClicked(ActionMode actionMode, MenuItem menuItem) {
-			switch (menuItem.getItemId()) {
-			case R.id.action_add_to_track:
-				SelectTrackDialog dialog = SelectTrackDialog.newInstance();
-				dialog.setListener(addPointToTrackListener);
-				dialog.show(getFragmentManager(), "select-track-dialog");
-				actionMode.finish();
-				return true;
-
-			case R.id.action_edit:
-				EditPointDialog editPointDialog = EditPointDialog.newInstance(selectedPoint);
-				editPointDialog.setListener(editDialogListener);
-				editPointDialog.show(getFragmentManager(), "edit-point-dialog");
-				actionMode.finish();
-				return true;
-
-			default:
-				return false;
-			}
-		}
-
-		@Override
-		public void onDestroyActionMode(ActionMode actionMode) {
 		}
 	};
 }
