@@ -1,7 +1,6 @@
 package org.fruct.oss.audioguide.files2;
 
 import android.app.Notification;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
@@ -12,11 +11,14 @@ import android.support.v4.app.NotificationCompat;
 
 import com.nostra13.universalimageloader.cache.disc.DiskCache;
 import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.assist.ContentLengthInputStream;
 import com.nostra13.universalimageloader.utils.IoUtils;
 
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.events.AudioDownloadFinished;
+import org.fruct.oss.audioguide.events.AudioDownloadProgress;
 import org.fruct.oss.audioguide.track.Point;
+import org.fruct.oss.audioguide.util.IntervalCopyListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,26 +26,23 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import de.greenrobot.event.EventBus;
 
 public class AudioDownloadService extends Service {
-	private static final int MAX_THREADS = 3;
+	private static final int MAX_THREADS = 1;
 
 	private static final Logger log = LoggerFactory.getLogger(AudioDownloadService.class);
 
 	public final static String ACTION_DOWNLOAD = "org.fruct.oss.audioguide.AudioDownloadService.ACTION_DOWNLOAD";
 	public final static String ARG_POINTS = "org.fruct.oss.audioguide.AudioDownloadService.ACTION_DOWNLOAD.ARG_POINTS";
+	public final static String ARG_POINT = "org.fruct.oss.audioguide.AudioDownloadService.ACTION_DOWNLOAD.ARG_POINT";
 
 	private final Deque<String> queue = new ArrayDeque<>();
 
@@ -78,8 +77,14 @@ public class AudioDownloadService extends Service {
 
 		switch (intent.getAction()) {
 		case ACTION_DOWNLOAD:
-			List<Point> points = intent.getParcelableArrayListExtra(ARG_POINTS);
-			addDownloadPoints(points);
+			if (intent.getExtras().containsKey(ARG_POINTS)) {
+				List<Point> points = intent.getParcelableArrayListExtra(ARG_POINTS);
+				addDownloadPoints(points);
+			} else {
+				Point point = intent.getParcelableExtra(ARG_POINT);
+				addDownloadPoint(point);
+			}
+
 			scheduleTask();
 			break;
 		}
@@ -92,7 +97,8 @@ public class AudioDownloadService extends Service {
 			@Override
 			public void run() {
 				if (!queue.isEmpty()) {
-					processOneUrl();
+					while(processQueue())
+						;
 				} else {
 					stopForeground(true);
 				}
@@ -101,10 +107,10 @@ public class AudioDownloadService extends Service {
 
 	}
 
-	private void processOneUrl() {
+	private boolean processQueue() {
 		synchronized (executorService) {
 			if (workersCount == MAX_THREADS) {
-				return;
+				return false;
 			}
 
 			if (workersCount == 0) {
@@ -129,6 +135,8 @@ public class AudioDownloadService extends Service {
 				}
 			}
 		});
+
+		return true;
 	}
 
 	private Notification buildNotification() {
@@ -158,7 +166,7 @@ public class AudioDownloadService extends Service {
 		}
 	}
 
-	private void downloadFile(String fileUrl) throws IOException {
+	private void downloadFile(final String fileUrl) throws IOException {
 		log.info("Downloading audio url " + fileUrl);
 
 		URL url = new URL(fileUrl);
@@ -176,11 +184,13 @@ public class AudioDownloadService extends Service {
 			throw new IOException("Server returned " + code);
 		}
 
-		InputStream inputStream = conn.getInputStream();
-		boolean result = cache.save(fileUrl, inputStream, new IoUtils.CopyListener() {
+		InputStream inputStream = new ContentLengthInputStream(conn.getInputStream(), conn.getContentLength());
+		boolean result = cache.save(fileUrl, inputStream, new IntervalCopyListener(100000) {
 			@Override
-			public boolean onBytesCopied(int current, int total) {
-				return true;
+			public void onProgress(int current, int total) {
+				log.debug("Progress " + fileUrl + " " + current + " " + total);
+				// TODO: check if EventBus can process same event every time, and move this event to field
+				EventBus.getDefault().post(new AudioDownloadProgress(fileUrl, total, current));
 			}
 		});
 

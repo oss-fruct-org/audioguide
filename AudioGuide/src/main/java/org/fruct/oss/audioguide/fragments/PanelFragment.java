@@ -23,9 +23,11 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.events.AudioDownloadFinished;
+import org.fruct.oss.audioguide.events.AudioDownloadProgress;
 import org.fruct.oss.audioguide.files.FileListener;
 import org.fruct.oss.audioguide.files.FileManager;
 import org.fruct.oss.audioguide.files.FileSource;
+import org.fruct.oss.audioguide.files2.AudioDownloadService;
 import org.fruct.oss.audioguide.track.AudioPlayer;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.TrackingService;
@@ -37,7 +39,7 @@ import java.io.File;
 
 import de.greenrobot.event.EventBus;
 
-public class PanelFragment extends Fragment implements FileListener {
+public class PanelFragment extends Fragment {
 	private static final Logger log = LoggerFactory.getLogger(PanelFragment.class);
 
 	private BroadcastReceiver positionReceiver;
@@ -286,7 +288,7 @@ public class PanelFragment extends Fragment implements FileListener {
 
 		if (duration != -1) {
 			startPlaying(duration);
-		} else {
+		} else if (fallbackPoint != null) {
 			configureFallbackPoint();
 		}
 
@@ -299,6 +301,12 @@ public class PanelFragment extends Fragment implements FileListener {
 			if (cachedFile == null || !cachedFile.exists()) {
 				setLoadingState();
 				loadingUrl = fallbackPoint.getAudioUrl();
+
+				// Schedule point audio download with high priority
+				Intent intent = new Intent(AudioDownloadService.ACTION_DOWNLOAD, null,
+						getActivity(), AudioDownloadService.class);
+				intent.putExtra(AudioDownloadService.ARG_POINT, fallbackPoint);
+				getActivity().startService(intent);
 			} else {
 				setPausedState();
 			}
@@ -362,26 +370,13 @@ public class PanelFragment extends Fragment implements FileListener {
 		if (loadingUrl.equals(event.getUrl())) {
 			setPausedState();
 		}
-
 	}
 
-	@Override
-	public void itemLoaded(String url) {
-		if (loadingUrl.equals(url)) {
-			setPausedState();
+	@EventReceiver
+	public void onEventMainThread(AudioDownloadProgress event) {
+		if (loadingUrl.equals(event.getUrl())) {
+			progressBar.setMax(event.getTotal());
+			progressBar.setProgress(event.getCurrent());
 		}
-	}
-
-	@Override
-	public void itemDownloadProgress(String url, int current, int max) {
-		if (loadingUrl.equals(url)) {
-			progressBar.setMax(max);
-			progressBar.setProgress(current);
-		}
-	}
-
-	@Override
-	public void itemDownloadError(String fileUrl) {
-
 	}
 }
