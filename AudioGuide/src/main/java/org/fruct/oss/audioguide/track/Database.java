@@ -230,23 +230,6 @@ public class Database {
 		return cursor;
 	}
 
-	public Cursor loadRelationsCursor() {
-		Cursor cursor = db.rawQuery(
-				"SELECT tp.trackId, tp.pointId FROM tp INNER JOIN track " +
-						"ON track.id = tp.trackId " +
-						"WHERE track.local = 1 " +
-						"ORDER BY tp.trackId, tp.idx ", null);
-		return cursor;
-	}
-
-	public Cursor loadPrivateTracks() {
-		Cursor cursor = db.rawQuery("SELECT track.name, track.description, track.url, track.local, track.categoryId, track.private, track.hname, url.url, track.id AS _id " +
-				"FROM track " +
-				"LEFT JOIN url ON url.id = track.photoUrl " +
-				"WHERE track.private = 1;", null);
-		return cursor;
-	}
-
 	public Cursor loadLocalTracks() {
 		Cursor cursor = db.rawQuery("SELECT track.name, track.description, track.url, track.local, track.categoryId, track.private, track.hname, url.url, track.id AS _id " +
 				"FROM track " +
@@ -477,7 +460,7 @@ public class Database {
 
 	private static class Helper extends SQLiteOpenHelper {
 		public static final String DB_NAME = "tracksdb2";
-		public static final int DB_VERSION = 111; // published 2
+		public static final int DB_VERSION = 2; // published 2
 
 		public static final String CREATE_POINT_UPDATES_SQL = "CREATE TABLE point_update " +
 				"(pointId INTEGER," +

@@ -74,7 +74,6 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 	private PowerManager.WakeLock wakeLock;
 	private AudioPlayer audioPlayer;
 	private TrackManager trackManager;
-	private Handler monitorHandler;
 	private ServiceConnection singletonServiceConnection = new ServiceConnection() {
 		@Override
 		public void onServiceConnected(ComponentName name, IBinder service) {

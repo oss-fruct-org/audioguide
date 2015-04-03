@@ -93,26 +93,21 @@ public class EditOverlay extends Overlay implements Closeable {
 
 	private Listener listener;
 
-	private final CursorHolder relationsCursorHolder;
 	private Cursor currentRelationsCursor;
 
 	private final CursorHolder pointsCursorHolder;
 	private Cursor currentPointsCursor;
 
-	private final List<Pair<Long, Long>> relations = new ArrayList<Pair<Long, Long>>();
+	private final List<Pair<Long, Long>> relations = new ArrayList<>();
 
-	public EditOverlay(Context ctx, CursorHolder pointsCursorHolder,
-					   CursorHolder relationsCursorHolder, int markerIndex, MapView mapView) {
+	public EditOverlay(Context ctx, CursorHolder pointsCursorHolder, int markerIndex, MapView mapView) {
 		super(ctx);
 
 		this.mapView = mapView;
 		this.context = ctx;
 		this.pointsCursorHolder = pointsCursorHolder;
-		this.relationsCursorHolder = relationsCursorHolder;
 
 		pointsCursorHolder.attachToReceiver(pointsCursorReceiver);
-		if (relationsCursorHolder != null)
-			relationsCursorHolder.attachToReceiver(relationsCursorReceiver);
 
 		itemSize = Utils.getDP(24);
 
@@ -139,8 +134,6 @@ public class EditOverlay extends Overlay implements Closeable {
 	@Override
 	public void close() {
 		pointsCursorHolder.close();
-		if (relationsCursorHolder != null)
-			relationsCursorHolder.close();
 	}
 
 	private int getMeanColor(Drawable drawable) {

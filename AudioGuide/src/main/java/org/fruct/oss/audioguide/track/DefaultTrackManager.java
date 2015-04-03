@@ -220,20 +220,6 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	}
 
 	@Override
-	public CursorHolder loadPrivateTracks() {
-		CursorHolder cursorHolder = new CursorHolder() {
-			@Override
-			protected Cursor doQuery() {
-				return database.loadPrivateTracks();
-			}
-		};
-
-		addCursorHolder(cursorHolder);
-		cursorHolder.queryAsync();
-		return cursorHolder;
-	}
-
-	@Override
 	public CursorHolder loadLocalTracks() {
 		CursorHolder cursorHolder = new CursorHolder() {
 			@Override
@@ -268,20 +254,6 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 			@Override
 			protected Cursor doQuery() {
 				return database.loadPointsCursor(track);
-			}
-		};
-
-		addCursorHolder(cursorHolder);
-		cursorHolder.queryAsync();
-		return cursorHolder;
-	}
-
-	@Override
-	public CursorHolder loadRelations() {
-		CursorHolder cursorHolder = new CursorHolder() {
-			@Override
-			protected Cursor doQuery() {
-				return database.loadRelationsCursor();
 			}
 		};
 

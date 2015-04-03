@@ -416,17 +416,13 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 		if (activeTrack != null) {
 			Toast.makeText(getActivity(), R.string.str_tracks_mode, Toast.LENGTH_LONG).show();
 			activePoints = trackManager.loadPoints(activeTrack);
-			relations = trackManager.loadRelations();
-			// TODO: there are no need to use relations
 		} else {
 			Toast.makeText(getActivity(), R.string.str_points_mode, Toast.LENGTH_LONG).show();
 			activePoints = trackManager.loadLocalPoints();
-			relations = null;
 		}
 
 		EditOverlay freePointsOverlay = new EditOverlay(getActivity(),
-				activePoints, relations,
-				1, mapView);
+				activePoints, 1, mapView);
 
 		freePointsOverlay.setListener(trackOverlayListener);
 		freePointsOverlay.setMarkerIndex(1);
