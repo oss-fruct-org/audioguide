@@ -69,7 +69,7 @@ public class SettingsActivity extends PreferenceActivity implements SharedPrefer
 		});
 
 		if (Build.VERSION.SDK_INT >= 11) {
-			getActionBar().setDisplayHomeAsUpEnabled(true);
+			//getActionBar().setDisplayHomeAsUpEnabled(true);
 		}
 
 		bindService(new Intent(this, SingletonService.class), singletonServiceConnection, BIND_AUTO_CREATE);
