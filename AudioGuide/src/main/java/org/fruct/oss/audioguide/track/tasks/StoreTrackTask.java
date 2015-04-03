@@ -1,10 +1,12 @@
 package org.fruct.oss.audioguide.track.tasks;
 
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.util.Xml;
 
 import org.fruct.oss.audioguide.App;
 import org.fruct.oss.audioguide.events.DataUpdatedEvent;
+import org.fruct.oss.audioguide.files2.AudioDownloadService;
 import org.fruct.oss.audioguide.track.Database;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.Track;
@@ -16,6 +18,7 @@ import org.xmlpull.v1.XmlSerializer;
 
 import java.io.IOException;
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.List;
 
 import de.greenrobot.event.EventBus;
@@ -42,11 +45,23 @@ public class StoreTrackTask extends AsyncTask<Void, Void, Boolean> {
 		try {
 			Kml kml = gets.query("loadTrack.php", request, new KmlParser());
 			storeToDatabase(track, kml.getPoints());
+
+			if (local) {
+				queueAudioDownload(kml.getPoints());
+			}
+
 			EventBus.getDefault().post(new DataUpdatedEvent());
 			return true;
 		} catch (IOException | GetsException e) {
 			return false;
 		}
+	}
+
+	private void queueAudioDownload(List<Point> points) {
+		Intent intent = new Intent(AudioDownloadService.ACTION_DOWNLOAD, null, App.getContext(), AudioDownloadService.class);
+		intent.putExtra(AudioDownloadService.ARG_POINTS, new ArrayList<>(points));
+
+		App.getContext().startService(intent);
 	}
 
 	private void storeToDatabase(Track track, List<Point> points) {

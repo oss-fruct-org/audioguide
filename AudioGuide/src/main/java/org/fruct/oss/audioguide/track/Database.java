@@ -170,17 +170,6 @@ public class Database {
 		return cursor;
 	}
 
-	public Cursor loadUpdatedPoints() {
-		// FIXME: java.lang.IllegalStateException: database /data/data/org.fruct.oss.audioguide/databases/tracksdb2 already closed
-		// From synchronized
-		Cursor cursor = db.rawQuery("SELECT point.name, point.description, url_audio.url, url_photo.url, point.lat, point.lon, point.private, point.categoryId, point.time, point.uuid, point.id AS _id " +
-				"FROM point INNER JOIN point_update ON point.id = point_update.pointId " +
-				"LEFT JOIN url AS url_audio ON url_audio.id = point.audioUrl " +
-				"LEFT JOIN url AS url_photo ON url_photo.id = point.photoUrl " +
-				"GROUP BY point.id;", null);
-		return cursor;
-	}
-
 	public Cursor loadLocalTracks() {
 		Cursor cursor = db.rawQuery("SELECT track.name, track.description, track.url, track.local, track.categoryId, track.private, track.hname, url.url, track.id AS _id " +
 				"FROM track " +
@@ -188,15 +177,6 @@ public class Database {
 				"WHERE track.local = 1;", null);
 		return cursor;
 	}
-
-	public Cursor loadUpdatedTracks() {
-		Cursor cursor = db.rawQuery("SELECT track.name, track.description, track.url, track.local, track.categoryId, track.private, track.hname, url.photoUrl, track.id AS _id " +
-				"FROM track INNER JOIN track_update ON track.id = track_update.trackId " +
-				"LEFT JOIN url ON url.id = track.photoUrl " +
-				"GROUP BY track.id", null);
-		return cursor;
-	}
-
 
 	private long findPointId(Point point) {
 		Cursor cursor;

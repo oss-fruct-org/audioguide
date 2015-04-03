@@ -11,6 +11,7 @@ import org.fruct.oss.audioguide.events.DataUpdatedEvent;
 import org.fruct.oss.audioguide.files.FileManager;
 import org.fruct.oss.audioguide.gets.Category;
 import org.fruct.oss.audioguide.track.tasks.CategoriesTask;
+import org.fruct.oss.audioguide.util.EventReceiver;
 import org.fruct.oss.audioguide.util.Utils;
 
 import java.io.Closeable;
@@ -23,7 +24,6 @@ import de.greenrobot.event.EventBus;
 
 public class DefaultTrackManager implements TrackManager, Closeable {
 	private final Database database;
-	private final FileManager fileManager;
 	private final SharedPreferences pref;
 
 	private List<Category> categories;
@@ -33,17 +33,18 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	private boolean isClosed;
 
 	public DefaultTrackManager(Context context) {
-
 		pref = PreferenceManager.getDefaultSharedPreferences(context);
 
-		fileManager = FileManager.getInstance();
 		database = App.getInstance().getDatabase();
 
 		synchronizeFileManager();
+
+		EventBus.getDefault().register(this);
 	}
 
 	@Override
 	public synchronized void close() {
+		EventBus.getDefault().unregister(this);
 		isClosed = true;
 	}
 
@@ -162,13 +163,11 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	@Override
 	public void synchronizeFileManager() {
 		List<String> garbageUrls = database.gcUrls();
-		fileManager.removePersistentUrls(garbageUrls);
+		//fileManager.removePersistentUrls(garbageUrls);
 	}
-
 
 	private void notifyDataChanged() {
 		EventBus.getDefault().post(new DataUpdatedEvent());
-		reQueryCursorHolders();
 	}
 
 	private CursorHolder addCursorHolder(CursorHolder cursorHolder) {
@@ -176,7 +175,8 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 		return cursorHolder;
 	}
 
-	private void reQueryCursorHolders() {
+	@EventReceiver
+	public void onEventMainThread(DataUpdatedEvent event) {
 		for (Iterator<CursorHolder> iterator = cursorHolders.iterator(); iterator.hasNext(); ) {
 			CursorHolder holder = iterator.next();
 

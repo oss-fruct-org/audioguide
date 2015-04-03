@@ -15,9 +15,6 @@ public class SingletonService extends Service {
 	private static final Logger log = LoggerFactory.getLogger(SingletonService.class);
 
 	public static final int STOP_DELAY = 10000;
-	private TrackManager trackManager;
-	private FileManager fileManager;
-
 	private Handler handler;
 
 	public SingletonService() {
@@ -28,8 +25,6 @@ public class SingletonService extends Service {
 		super.onCreate();
 		log.trace("onCreate");
 
-		trackManager = DefaultTrackManager.getInstance();
-		fileManager = FileManager.getInstance();
 
 		handler = new Handler();
 	}
@@ -38,8 +33,6 @@ public class SingletonService extends Service {
 	public void onDestroy() {
 		log.trace("onDestroy");
 
-		trackManager.close();
-		fileManager.close();
 		super.onDestroy();
 	}
 

@@ -18,15 +18,24 @@ import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.SeekBar;
 
+import com.nostra13.universalimageloader.cache.disc.DiskCache;
+import com.nostra13.universalimageloader.core.ImageLoader;
+
 import org.fruct.oss.audioguide.R;
+import org.fruct.oss.audioguide.events.AudioDownloadFinished;
 import org.fruct.oss.audioguide.files.FileListener;
 import org.fruct.oss.audioguide.files.FileManager;
 import org.fruct.oss.audioguide.files.FileSource;
 import org.fruct.oss.audioguide.track.AudioPlayer;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.TrackingService;
+import org.fruct.oss.audioguide.util.EventReceiver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.File;
+
+import de.greenrobot.event.EventBus;
 
 public class PanelFragment extends Fragment implements FileListener {
 	private static final Logger log = LoggerFactory.getLogger(PanelFragment.class);
@@ -57,8 +66,9 @@ public class PanelFragment extends Fragment implements FileListener {
 
 	private ProgressBar progressBar;
 
-	private FileManager fileManager;
 	private String loadingUrl;
+
+	private DiskCache filesCache;
 
 	/**
      * Use this factory method to create a new instance of
@@ -121,13 +131,14 @@ public class PanelFragment extends Fragment implements FileListener {
 
 		setRetainInstance(true);
 
-		fileManager = FileManager.getInstance();
-
 		if (getArguments() != null) {
 			duration = getArguments().getInt("duration", -1);
 			fallbackPoint = getArguments().getParcelable("fallbackPoint");
 			point = getArguments().getParcelable("point");
 		}
+
+		filesCache = ImageLoader.getInstance().getDiskCache();
+
 	}
 
 	@Override
@@ -161,11 +172,15 @@ public class PanelFragment extends Fragment implements FileListener {
 				}
 			}
 		}, new IntentFilter(AudioPlayer.BC_ACTION_STOP_PLAY));
+
+		EventBus.getDefault().register(this);
 	}
 
 	@Override
 	public void onStop() {
 		super.onStop();
+
+		EventBus.getDefault().unregister(this);
 
 		LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(positionReceiver);
 		LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(stopReceiver);
@@ -280,10 +295,10 @@ public class PanelFragment extends Fragment implements FileListener {
 
 	private void configureFallbackPoint() {
 		if (!isStarted()) {
-			if (fileManager.getLocalFile(fallbackPoint.getAudioUrl(), FileSource.Variant.FULL) == null) {
+			File cachedFile = filesCache.get(fallbackPoint.getAudioUrl());
+			if (cachedFile == null || !cachedFile.exists()) {
 				setLoadingState();
 				loadingUrl = fallbackPoint.getAudioUrl();
-				fileManager.addListener(this);
 			} else {
 				setPausedState();
 			}
@@ -315,8 +330,6 @@ public class PanelFragment extends Fragment implements FileListener {
 	public void onDestroyView() {
 		super.onDestroyView();
 
-		fileManager.removeListener(this);
-
 		seekBar = null;
 		stopButton = null;
 		playButton = null;
@@ -324,12 +337,11 @@ public class PanelFragment extends Fragment implements FileListener {
 		stopLayout = null;
 		playLayout = null;
 		pauseLayout = null;
-
 	}
 
 	public void setFallbackPoint(Point point) {
 		this.fallbackPoint = point;
-		if (fileManager != null && pauseButton != null) {
+		if (pauseButton != null) {
 			configureFallbackPoint();
 		}
 	}
@@ -343,6 +355,14 @@ public class PanelFragment extends Fragment implements FileListener {
 					.setCustomAnimations(R.anim.bottom_up, R.anim.bottom_down)
 					.remove(this).commitAllowingStateLoss();
 		}
+	}
+
+	@EventReceiver
+	public void onEventMainThread(AudioDownloadFinished event) {
+		if (loadingUrl.equals(event.getUrl())) {
+			setPausedState();
+		}
+
 	}
 
 	@Override

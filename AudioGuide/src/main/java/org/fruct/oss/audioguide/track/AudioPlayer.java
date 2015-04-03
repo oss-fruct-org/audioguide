@@ -9,12 +9,16 @@ import android.os.Handler;
 import android.os.Looper;
 import android.support.v4.content.LocalBroadcastManager;
 
+import com.nostra13.universalimageloader.cache.disc.DiskCache;
+import com.nostra13.universalimageloader.core.ImageLoader;
+
 import org.fruct.oss.audioguide.files.FileManager;
 import org.fruct.oss.audioguide.files.FileSource;
 import org.fruct.oss.audioguide.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 
@@ -33,7 +37,7 @@ public class AudioPlayer implements MediaPlayer.OnPreparedListener,
 	private Uri currentUri;
 	private Point currentPoint;
 
-	private FileManager fileManager;
+	private DiskCache diskCache;
 
 	AudioPlayer(Context context) {
 		this.context = context;
@@ -41,7 +45,7 @@ public class AudioPlayer implements MediaPlayer.OnPreparedListener,
 		player = new MediaPlayer();
 		player.setAudioStreamType(AudioManager.STREAM_MUSIC);
 
-		fileManager = FileManager.getInstance();
+		diskCache = ImageLoader.getInstance().getDiskCache();
 	}
 
 	public void close() {
@@ -58,9 +62,9 @@ public class AudioPlayer implements MediaPlayer.OnPreparedListener,
 
 		try {
 			// Try to use cached uri
-			String localPath = fileManager.getLocalFile(point.getAudioUrl(), FileSource.Variant.FULL);
-			if (localPath != null) {
-				inputStream = new FileInputStream(localPath);
+			File localFile = diskCache.get(point.getAudioUrl());
+			if (localFile != null && localFile.exists()) {
+				inputStream = new FileInputStream(localFile);
 				player.setDataSource(inputStream.getFD());
 			} else {
 				return;
