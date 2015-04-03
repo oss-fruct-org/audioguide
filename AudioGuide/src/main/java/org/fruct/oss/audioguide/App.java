@@ -38,6 +38,7 @@ public class App extends Application {
 		log.info("App onCreate");
 
 		context = this.getApplicationContext();
+		instance = this;
 		PreferenceManager.setDefaultValues(context, R.xml.preferences, false);
 
 		setupImageLoader();
