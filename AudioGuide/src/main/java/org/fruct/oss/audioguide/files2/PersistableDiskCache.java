@@ -3,12 +3,20 @@ package org.fruct.oss.audioguide.files2;
 import android.graphics.Bitmap;
 
 import com.nostra13.universalimageloader.cache.disc.DiskCache;
+import com.nostra13.universalimageloader.cache.disc.impl.BaseDiscCache;
 import com.nostra13.universalimageloader.utils.IoUtils;
 
+import org.fruct.oss.audioguide.util.Utils;
+
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class PersistableDiskCache implements DiskCache {
 	private final DiskCache persistentCache;
@@ -79,8 +87,34 @@ public class PersistableDiskCache implements DiskCache {
 	}
 
 	public void setPersistentUrls(List<String> urls) {
+		Set<File> filesInCache = new HashSet<>();
+		Collections.addAll(filesInCache, persistentCache.getDirectory().listFiles());
+
 		for (String url : urls) {
+			File persistentCacheFile = persistentCache.get(url);
+
+			if (persistentCacheFile == null || !persistentCacheFile.exists()) {
+				File cachedFile = temporaryCache.get(url);
+				FileInputStream inputStream = null;
+				try {
+					inputStream = new FileInputStream(cachedFile);
+					persistentCache.save(url, inputStream, null);
+				} catch (NullPointerException | IOException e) {
+				} finally {
+					Utils.sclose(inputStream);
+				}
+			} else {
+				filesInCache.remove(persistentCacheFile);
+			}
+		}
+
+		for (File file : filesInCache) {
+			file.delete();
 		}
 	}
 
+	private boolean contains(DiskCache cache, String url) {
+		File file = cache.get(url);
+		return file != null && file.exists();
+	}
 }

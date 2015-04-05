@@ -13,6 +13,7 @@ import com.nostra13.universalimageloader.cache.disc.DiskCache;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.assist.ContentLengthInputStream;
 
+import org.fruct.oss.audioguide.App;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.events.AudioDownloadFinished;
 import org.fruct.oss.audioguide.events.AudioDownloadProgress;
@@ -38,6 +39,8 @@ public class AudioDownloadService extends Service {
 	private static final int MAX_THREADS = 1;
 
 	private static final Logger log = LoggerFactory.getLogger(AudioDownloadService.class);
+
+	public final static String ACTION_KEEP_PERSISTENT = "org.fruct.oss.audioguide.AudioDownloadService.ACTION_KEEP_PERSISTENT";
 
 	public final static String ACTION_DOWNLOAD = "org.fruct.oss.audioguide.AudioDownloadService.ACTION_DOWNLOAD";
 	public final static String ARG_POINTS = "org.fruct.oss.audioguide.AudioDownloadService.ACTION_DOWNLOAD.ARG_POINTS";
@@ -83,16 +86,33 @@ public class AudioDownloadService extends Service {
 			} else if (intent.getExtras().containsKey(ARG_POINT)) {
 				Point point = intent.getParcelableExtra(ARG_POINT);
 				addDownloadPoint(point);
-			} else if (intent.getExtras().containsKey(ARG_URLS)) {
-				List<String> urls = intent.getStringArrayListExtra(ARG_URLS);
-				addDownloadUrls(urls);
 			}
 
 			scheduleTask();
 			break;
+
+		case ACTION_KEEP_PERSISTENT:
+			if (intent.getExtras().containsKey(ARG_URLS)) {
+				List<String> urls = intent.getStringArrayListExtra(ARG_URLS);
+
+				addDownloadUrls(urls);
+				ensurePersistent(urls);
+
+				scheduleTask();
+			}
+			break;
 		}
 
 		return START_NOT_STICKY;
+	}
+
+	private void ensurePersistent(final List<String> urls) {
+		executorService.execute(new Runnable() {
+			@Override
+			public void run() {
+				App.getInstance().getCache().setPersistentUrls(urls);
+			}
+		});
 	}
 
 
@@ -117,15 +137,15 @@ public class AudioDownloadService extends Service {
 				return false;
 			}
 
+			if (queue.isEmpty())
+				return false;
+
 			if (workersCount == 0) {
 				startForeground(2, buildNotification());
 			}
 
 			workersCount++;
 		}
-
-		if (queue.isEmpty())
-			return false;
 
 		final String url = queue.removeLast();
 

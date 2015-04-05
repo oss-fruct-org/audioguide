@@ -372,6 +372,7 @@ public class TrackFragment extends ListFragment implements AdapterView.OnItemLon
 			@Override
 			public void onClick(DialogInterface dialogInterface, int i) {
 				App.getInstance().getDatabase().deleteTrack(track);
+				App.getInstance().getPersistenceChecker().updatePersistentUrls();
 			}
 		});
 

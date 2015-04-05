@@ -9,6 +9,7 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.location.LocationManager;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
@@ -112,7 +113,8 @@ public class MainActivity extends ActionBarActivity
 
 	private void resumePersistentUrlsDownload() {
 		List<String> persistentUrls = App.getInstance().getDatabase().getPersistentUrls();
-		Intent intent = new Intent(AudioDownloadService.ACTION_DOWNLOAD, null, this, AudioDownloadService.class);
+
+		Intent intent = new Intent(AudioDownloadService.ACTION_KEEP_PERSISTENT, null, this, AudioDownloadService.class);
 		intent.putExtra(AudioDownloadService.ARG_URLS, new ArrayList<>(persistentUrls));
 
 		startService(intent);

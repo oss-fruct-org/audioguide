@@ -100,6 +100,10 @@ public class App extends Application {
 		return persistenceChecker;
 	}
 
+	public PersistableDiskCache getCache() {
+		return cache;
+	}
+
 	public static App getInstance() {
 		return instance;
 	}
