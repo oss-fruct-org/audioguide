@@ -12,7 +12,6 @@ import android.support.v4.app.NotificationCompat;
 import com.nostra13.universalimageloader.cache.disc.DiskCache;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.assist.ContentLengthInputStream;
-import com.nostra13.universalimageloader.utils.IoUtils;
 
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.events.AudioDownloadFinished;
@@ -42,6 +41,7 @@ public class AudioDownloadService extends Service {
 
 	public final static String ACTION_DOWNLOAD = "org.fruct.oss.audioguide.AudioDownloadService.ACTION_DOWNLOAD";
 	public final static String ARG_POINTS = "org.fruct.oss.audioguide.AudioDownloadService.ACTION_DOWNLOAD.ARG_POINTS";
+	public final static String ARG_URLS = "org.fruct.oss.audioguide.AudioDownloadService.ACTION_DOWNLOAD.ARG_URLS";
 	public final static String ARG_POINT = "org.fruct.oss.audioguide.AudioDownloadService.ACTION_DOWNLOAD.ARG_POINT";
 
 	private final Deque<String> queue = new ArrayDeque<>();
@@ -80,9 +80,12 @@ public class AudioDownloadService extends Service {
 			if (intent.getExtras().containsKey(ARG_POINTS)) {
 				List<Point> points = intent.getParcelableArrayListExtra(ARG_POINTS);
 				addDownloadPoints(points);
-			} else {
+			} else if (intent.getExtras().containsKey(ARG_POINT)) {
 				Point point = intent.getParcelableExtra(ARG_POINT);
 				addDownloadPoint(point);
+			} else if (intent.getExtras().containsKey(ARG_URLS)) {
+				List<String> urls = intent.getStringArrayListExtra(ARG_URLS);
+				addDownloadUrls(urls);
 			}
 
 			scheduleTask();
@@ -91,6 +94,7 @@ public class AudioDownloadService extends Service {
 
 		return START_NOT_STICKY;
 	}
+
 
 	private void scheduleTask() {
 		handler.post(new Runnable() {
@@ -119,6 +123,9 @@ public class AudioDownloadService extends Service {
 
 			workersCount++;
 		}
+
+		if (queue.isEmpty())
+			return false;
 
 		final String url = queue.removeLast();
 
@@ -171,7 +178,7 @@ public class AudioDownloadService extends Service {
 
 		URL url = new URL(fileUrl);
 
-		HttpURLConnection conn = null;
+		HttpURLConnection conn;
 		conn = (HttpURLConnection) url.openConnection();
 		conn.setDoInput(true);
 		conn.setConnectTimeout(5000);
@@ -213,6 +220,15 @@ public class AudioDownloadService extends Service {
 				;
 
 			queue.add(point.getAudioUrl());
+		}
+	}
+
+	private void addDownloadUrls(List<String> urls) {
+		for (String url : urls) {
+				while(queue.remove(url))
+					;
+
+				queue.add(url);
 		}
 	}
 

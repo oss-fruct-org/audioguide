@@ -29,6 +29,7 @@ import android.widget.Toast;
 
 import org.fruct.oss.audioguide.config.Config;
 import org.fruct.oss.audioguide.dialogs.WarnDialog;
+import org.fruct.oss.audioguide.files2.AudioDownloadService;
 import org.fruct.oss.audioguide.fragments.AboutFragment;
 import org.fruct.oss.audioguide.fragments.CommonFragment;
 import org.fruct.oss.audioguide.fragments.GetsFragment;
@@ -41,6 +42,10 @@ import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
+
 public class MainActivity extends ActionBarActivity
 		implements NavigationDrawerFragment.NavigationDrawerCallbacks, MultiPanel,
 		TestFragment.OnFragmentInteractionListener {
@@ -102,6 +107,15 @@ public class MainActivity extends ActionBarActivity
 		setupBottomPanel();
 
 		startService(new Intent(this, SingletonService.class));
+		resumePersistentUrlsDownload();
+	}
+
+	private void resumePersistentUrlsDownload() {
+		List<String> persistentUrls = App.getInstance().getDatabase().getPersistentUrls();
+		Intent intent = new Intent(AudioDownloadService.ACTION_DOWNLOAD, null, this, AudioDownloadService.class);
+		intent.putExtra(AudioDownloadService.ARG_URLS, new ArrayList<>(persistentUrls));
+
+		startService(intent);
 	}
 
 	private void setupBottomPanel() {

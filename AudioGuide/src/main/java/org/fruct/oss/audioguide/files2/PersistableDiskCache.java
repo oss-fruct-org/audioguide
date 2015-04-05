@@ -8,12 +8,13 @@ import com.nostra13.universalimageloader.utils.IoUtils;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 public class PersistableDiskCache implements DiskCache {
 	private final DiskCache persistentCache;
 	private final DiskCache temporaryCache;
 
-	private PersistenceChecker checker;
+	private final PersistenceChecker checker;
 
 	public PersistableDiskCache(DiskCache persistentCache, DiskCache temporaryCache, PersistenceChecker checker) {
 		this.persistentCache = persistentCache;
@@ -77,7 +78,9 @@ public class PersistableDiskCache implements DiskCache {
 		persistentCache.clear();
 	}
 
-	public void setChecker(PersistenceChecker checker) {
-		this.checker = checker;
+	public void setPersistentUrls(List<String> urls) {
+		for (String url : urls) {
+		}
 	}
+
 }
