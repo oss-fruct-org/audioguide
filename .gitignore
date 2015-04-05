@@ -8,3 +8,6 @@
 AudioGuide/build
 /build
 *.apk
+
+*.iml
+/.idea
