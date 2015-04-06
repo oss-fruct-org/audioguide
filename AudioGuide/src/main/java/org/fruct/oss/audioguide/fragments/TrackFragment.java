@@ -71,12 +71,12 @@ public class TrackFragment extends ListFragment implements AdapterView.OnItemLon
 		super.onCreate(savedInstanceState);
 
 		trackManager = DefaultTrackManager.getInstance();
-		cursorHolder = trackManager.loadTracks();
+		//cursorHolder = trackManager.loadTracks();
 
-		trackCursorAdapter = new TrackCursorAdapter(getActivity());
-		cursorHolder.attachToAdapter(trackCursorAdapter);
+		//trackCursorAdapter = new TrackCursorAdapter(getActivity());
+		//cursorHolder.attachToAdapter(trackCursorAdapter);
 
-		setListAdapter(trackCursorAdapter);
+		//setListAdapter(trackCursorAdapter);
 
 		setHasOptionsMenu(true);
 
@@ -145,10 +145,20 @@ public class TrackFragment extends ListFragment implements AdapterView.OnItemLon
 				}
 
 				TrackCursorAdapter oldAdapter = trackCursorAdapter;
+				CursorHolder oldCursorHolder = cursorHolder;
+
+				cursorHolder = newCursorHolder;
 				trackCursorAdapter = new TrackCursorAdapter(getActivity());
-				newCursorHolder.attachToAdapter(trackCursorAdapter);
+				cursorHolder.attachToAdapter(trackCursorAdapter);
 				setListAdapter(trackCursorAdapter);
-				oldAdapter.close();
+				if (oldAdapter != null) {
+					oldAdapter.close();
+				}
+
+				if (oldCursorHolder != null) {
+					oldCursorHolder.close();
+				}
+
 				return true;
 			}
 		});
@@ -159,6 +169,9 @@ public class TrackFragment extends ListFragment implements AdapterView.OnItemLon
 	public void onStart() {
 		super.onStart();
 		getListView().setOnItemLongClickListener(this);
+
+		((MainActivity) getActivity()).onSectionAttached(getString(R.string.title_section1),
+				ActionBar.NAVIGATION_MODE_LIST, null);
 	}
 
 	@Override
@@ -171,8 +184,13 @@ public class TrackFragment extends ListFragment implements AdapterView.OnItemLon
 			tracksTask.cancel(true);
 		}
 
-		cursorHolder.close();
-		trackCursorAdapter.close();
+		if (cursorHolder != null) {
+			cursorHolder.close();
+		}
+
+		if (trackCursorAdapter != null) {
+			trackCursorAdapter.close();
+		}
 		super.onDestroy();
 	}
 
@@ -180,8 +198,6 @@ public class TrackFragment extends ListFragment implements AdapterView.OnItemLon
 	@Override
 	public void onAttach(Activity activity) {
 		super.onAttach(activity);
-		((MainActivity) activity).onSectionAttached(activity.getString(R.string.title_section1),
-				ActionBar.NAVIGATION_MODE_LIST, null);
 
 		try {
 			multiPanel = (MultiPanel) activity;

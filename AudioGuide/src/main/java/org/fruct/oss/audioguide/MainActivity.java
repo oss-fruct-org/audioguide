@@ -67,6 +67,7 @@ public class MainActivity extends ActionBarActivity
 	 */
 	private CharSequence mTitle;
 	private ActivityResultListener mActivityResultListener;
+	private int mNavigationMode;
 
 	private FragmentManager fragmentManager;
 	private BroadcastReceiver startAudioReceiver;
@@ -228,6 +229,7 @@ public class MainActivity extends ActionBarActivity
 	public void onSectionAttached(String title, int navigationMode, ActivityResultListener resultListener) {
 		mTitle = title;
 		mActivityResultListener = resultListener;
+		mNavigationMode = navigationMode;
 	}
 
 	@Override
@@ -251,14 +253,9 @@ public class MainActivity extends ActionBarActivity
 	public void restoreActionBar() {
 		ActionBar actionBar = getSupportActionBar();
 
-		/*if (fragmentStack.isEmpty() && currentFragment instanceof TrackFragment)
-			actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
-		else
-			actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);*/
-
-
 		actionBar.setDisplayShowTitleEnabled(true);
 		actionBar.setTitle(mTitle);
+		actionBar.setNavigationMode(mNavigationMode);
 	}
 
 	@Override

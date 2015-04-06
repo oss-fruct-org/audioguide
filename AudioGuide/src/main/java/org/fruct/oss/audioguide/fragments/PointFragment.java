@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.app.ListFragment;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v7.app.ActionBar;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -25,6 +26,7 @@ import android.widget.TextView;
 
 import com.nostra13.universalimageloader.core.ImageLoader;
 
+import org.fruct.oss.audioguide.MainActivity;
 import org.fruct.oss.audioguide.MultiPanel;
 import org.fruct.oss.audioguide.NavigationDrawerFragment;
 import org.fruct.oss.audioguide.R;
@@ -293,6 +295,10 @@ public class PointFragment extends ListFragment {
 	@Override
 	public void onAttach(Activity activity) {
 		super.onAttach(activity);
+
+		((MainActivity) activity).onSectionAttached(getString(R.string.title_section1),
+				ActionBar.NAVIGATION_MODE_STANDARD, null);
+
 		try {
 			multiPanel = (MultiPanel) activity;
 		} catch (ClassCastException e) {
