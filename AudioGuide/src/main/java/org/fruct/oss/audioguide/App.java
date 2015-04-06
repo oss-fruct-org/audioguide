@@ -53,25 +53,25 @@ public class App extends Application {
 
 	private void setupImageLoader() {
 		File cacheDir;
+		File persistentCacheDir;
 		if (BuildConfig.DEBUG) {
-			cacheDir = new File("/sdcard/debug/uil");
+			cacheDir = new File("/sdcard/debug/uil/tmpcache");
+			persistentCacheDir = new File("/sdcard/debug/uil/perscache");
 		} else {
 			cacheDir = new File(context.getCacheDir(), "uil");
+			persistentCacheDir = new File(context.getExternalFilesDir(null), "uil");
 		}
 
-		File tmpCacheDir = new File(cacheDir, "tmpcache");
-		tmpCacheDir.mkdirs();
-
-		File persistentCacheDir = new File(cacheDir, "perscache");
+		cacheDir.mkdirs();
 		persistentCacheDir.mkdirs();
 
 		DiskCache tmpCache;
 		DiskCache persistentCache = new UnlimitedDiscCache(persistentCacheDir);
 
 		try {
-			tmpCache = new LruDiscCache(tmpCacheDir, new HashCodeFileNameGenerator(), CACHE_SIZE);
+			tmpCache = new LruDiscCache(cacheDir, new HashCodeFileNameGenerator(), CACHE_SIZE);
 		} catch (IOException e) {
-			tmpCache = new LimitedAgeDiscCache(tmpCacheDir, null, 3600);
+			tmpCache = new LimitedAgeDiscCache(cacheDir, null, 3600);
 			// TODO: handle error
 		}
 
@@ -110,6 +110,4 @@ public class App extends Application {
 	public static Context getContext() {
 		return context;
 	}
-
-
 }
