@@ -1,10 +1,9 @@
 package org.fruct.oss.audioguide.track.gets.parsers;
 
-import org.fruct.oss.audioguide.gets.Category;
+import org.fruct.oss.audioguide.track.gets.Category;
 import org.fruct.oss.audioguide.track.gets.GetsProperties;
 import org.fruct.oss.audioguide.track.gets.IContent;
 import org.fruct.oss.audioguide.track.gets.XmlUtil;
-import org.fruct.oss.audioguide.util.Utils;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 

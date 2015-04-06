@@ -3,7 +3,7 @@ package org.fruct.oss.audioguide.track.tasks;
 import android.os.AsyncTask;
 
 import org.fruct.oss.audioguide.App;
-import org.fruct.oss.audioguide.gets.Category;
+import org.fruct.oss.audioguide.track.gets.Category;
 import org.fruct.oss.audioguide.track.Database;
 import org.fruct.oss.audioguide.track.gets.Gets;
 import org.fruct.oss.audioguide.track.gets.GetsException;

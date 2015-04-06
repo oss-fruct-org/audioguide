@@ -7,7 +7,7 @@ import android.preference.PreferenceManager;
 
 import org.fruct.oss.audioguide.App;
 import org.fruct.oss.audioguide.events.DataUpdatedEvent;
-import org.fruct.oss.audioguide.gets.Category;
+import org.fruct.oss.audioguide.track.gets.Category;
 import org.fruct.oss.audioguide.track.tasks.CategoriesTask;
 import org.fruct.oss.audioguide.util.EventReceiver;
 

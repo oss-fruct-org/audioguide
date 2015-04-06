@@ -1,7 +1,6 @@
 package org.fruct.oss.audioguide.track.gets;
 
 import org.fruct.oss.audioguide.BuildConfig;
-import org.fruct.oss.audioguide.gets.Category;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.gets.parsers.CategoriesContent;
 import org.fruct.oss.audioguide.track.gets.parsers.CategoriesParser;

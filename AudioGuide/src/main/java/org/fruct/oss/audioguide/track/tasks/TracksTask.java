@@ -9,7 +9,7 @@ import android.util.Xml;
 
 import org.fruct.oss.audioguide.App;
 import org.fruct.oss.audioguide.events.DataUpdatedEvent;
-import org.fruct.oss.audioguide.gets.Category;
+import org.fruct.oss.audioguide.track.gets.Category;
 import org.fruct.oss.audioguide.preferences.SettingsActivity;
 import org.fruct.oss.audioguide.track.Database;
 import org.fruct.oss.audioguide.track.LocationEvent;

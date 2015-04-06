@@ -5,7 +5,7 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 
-import org.fruct.oss.audioguide.gets.Category;
+import org.fruct.oss.audioguide.track.gets.Category;
 import org.fruct.oss.audioguide.track.DefaultTrackManager;
 import org.fruct.oss.audioguide.track.TrackManager;
 

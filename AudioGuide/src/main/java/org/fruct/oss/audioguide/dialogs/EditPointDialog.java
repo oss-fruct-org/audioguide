@@ -21,7 +21,7 @@ import android.widget.ImageButton;
 import android.widget.Spinner;
 
 import org.fruct.oss.audioguide.R;
-import org.fruct.oss.audioguide.gets.Category;
+import org.fruct.oss.audioguide.track.gets.Category;
 import org.fruct.oss.audioguide.track.DefaultTrackManager;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.TrackManager;

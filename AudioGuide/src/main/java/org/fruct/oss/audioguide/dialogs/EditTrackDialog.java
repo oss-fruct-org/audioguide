@@ -12,7 +12,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import org.fruct.oss.audioguide.R;
-import org.fruct.oss.audioguide.gets.Category;
+import org.fruct.oss.audioguide.track.gets.Category;
 import org.fruct.oss.audioguide.track.Track;
 import org.fruct.oss.audioguide.util.Utils;
 import org.slf4j.Logger;

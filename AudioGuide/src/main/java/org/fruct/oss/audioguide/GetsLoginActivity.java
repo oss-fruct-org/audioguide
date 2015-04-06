@@ -8,7 +8,6 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-import org.fruct.oss.audioguide.parsers.AuthRedirectResponse;
 import org.fruct.oss.audioguide.track.gets.Gets;
 import org.fruct.oss.audioguide.track.gets.GetsException;
 import org.fruct.oss.audioguide.track.gets.GetsResponse;

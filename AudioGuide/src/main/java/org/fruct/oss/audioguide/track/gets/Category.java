@@ -1,4 +1,4 @@
-package org.fruct.oss.audioguide.gets;
+package org.fruct.oss.audioguide.track.gets;
 
 public class Category {
 	private final long id;
