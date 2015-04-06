@@ -193,7 +193,7 @@ public class PointFragment extends ListFragment {
 			storeTrackTask.cancel(true);
 		}
 
-		storeTrackTask = new StoreTrackTask(track, local);
+		storeTrackTask = new StoreTrackTask(getActivity(), track, local);
 		storeTrackTask.execute();
 	}
 

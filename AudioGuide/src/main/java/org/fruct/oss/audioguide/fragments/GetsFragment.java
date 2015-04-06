@@ -26,6 +26,7 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 import org.fruct.oss.audioguide.GetsLoginActivity;
 import org.fruct.oss.audioguide.MainActivity;
 import org.fruct.oss.audioguide.R;
+import org.fruct.oss.audioguide.SynchronizerService;
 import org.fruct.oss.audioguide.track.gets.Gets;
 import org.fruct.oss.audioguide.track.gets.GetsException;
 import org.fruct.oss.audioguide.track.gets.GetsResponse;
@@ -44,8 +45,8 @@ public class GetsFragment extends Fragment implements View.OnClickListener, Goog
 		MainActivity.ActivityResultListener {
 	private static final Logger log = LoggerFactory.getLogger(GetsFragment.class);
 
-	private static final String PREF_AUTH_TOKEN = "pref_auth_token";
-	private static final String PREF_USER_INFO = "pref_user_info";
+	public static final String PREF_AUTH_TOKEN = "pref_auth_token";
+	public static final String PREF_USER_INFO = "pref_user_info";
 
 	private GooglePlayServicesHelper googlePlayServicesHelper;
 	private static final int RC_GETS_FRAGMENT = 4;
@@ -263,6 +264,8 @@ public class GetsFragment extends Fragment implements View.OnClickListener, Goog
 
 		userInfoTask = new UserInfoTask();
 		userInfoTask.execute(getsToken);
+
+		SynchronizerService.startSyncTracks(getActivity());
 	}
 
 	private class UserInfoTask extends AsyncTask<String, Void, UserInfo> {

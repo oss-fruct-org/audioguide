@@ -29,9 +29,6 @@ public class Gets {
 		}
 	}
 
-	public static final String GET_CATEGORIES_REQUEST =
-			"<request><params/></request>";
-
 	private String getsServerUrl;
 	private static Logger log =  LoggerFactory.getLogger(Gets.class);
 
@@ -53,56 +50,6 @@ public class Gets {
 		}
 
 		return response.getContent();
-	}
-
-	/**
-	 * Receive list of categories
-	 * @return list of categories
-	 * @throws java.io.IOException
-	 */
-	public List<Category> getCategories() throws IOException, GetsException {
-		String responseStr = downloadUrl(getsServerUrl + "getCategories.php",
-				String.format(GET_CATEGORIES_REQUEST));
-		GetsResponse<CategoriesContent> resp = GetsResponse.parse(responseStr, new CategoriesParser());
-
-		if (resp.getCode() != 0) {
-			log.warn("getCategories returned with code {} message '{}'", resp.getCode(), resp.getMessage());
-			throw new GetsException("Server return error");
-		}
-
-		CategoriesContent categories = resp.getContent();
-		return categories.getCategories();
-
-	}
-
-	public List<Point> getPoints(Category category, GeoPoint position, int radius) throws IOException, GetsException {
-
-		StringBuilder requestBuilder = new StringBuilder();
-		requestBuilder.append("<request><params>");
-
-		requestBuilder.append("<latitude>").append(position.getLatitude()).append("</latitude>");
-		requestBuilder.append("<longitude>").append(position.getLongitude()).append("</longitude>");
-		requestBuilder.append("<radius>").append(radius / 1000.0).append("</radius>");
-
-		requestBuilder.append("</params></request>");
-
-		String responseStr = downloadUrl(getsServerUrl + "loadPoints.php",requestBuilder.toString());
-		log.trace("Req {}", requestBuilder.toString());
-		GetsResponse<Kml> kmlGetsResponse = GetsResponse.parse(responseStr, new KmlParser());
-		if (kmlGetsResponse.getCode() != 0) {
-			log.warn("getCategories returned with code {} message '{}'", kmlGetsResponse.getCode(),
-					kmlGetsResponse.getMessage());
-			throw new GetsException("Server return error");
-		}
-
-		Kml kml = kmlGetsResponse.getContent();
-
-		for (Point point : kml.getPoints()) {
-			point.setCategoryId(category.getId());
-		}
-
-		return kml.getPoints();
-
 	}
 
 	// TODO: Move this method to Utils

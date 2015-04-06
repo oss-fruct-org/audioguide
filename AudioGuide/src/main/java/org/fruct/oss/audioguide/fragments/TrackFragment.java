@@ -251,7 +251,7 @@ public class TrackFragment extends ListFragment implements AdapterView.OnItemLon
 				storeTrackTask.cancel(true);
 			}
 
-			storeTrackTask = new StoreTrackTask(track, false);
+			storeTrackTask = new StoreTrackTask(getActivity(), track, false);
 			storeTrackTask.execute();
 		} else {
 			actionMode.finish();
@@ -321,7 +321,7 @@ public class TrackFragment extends ListFragment implements AdapterView.OnItemLon
 					storeTrackTask.cancel(true);
 				}
 
-				storeTrackTask = new StoreTrackTask(selectedTrack);
+				storeTrackTask = new StoreTrackTask(getActivity(), selectedTrack, true);
 				storeTrackTask.execute();
 
 				actionMode.finish();

@@ -1,12 +1,16 @@
 package org.fruct.oss.audioguide.track.tasks;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
+import android.preference.PreferenceManager;
 import android.util.Xml;
 
 import org.fruct.oss.audioguide.App;
 import org.fruct.oss.audioguide.events.DataUpdatedEvent;
 import org.fruct.oss.audioguide.files.AudioDownloadService;
+import org.fruct.oss.audioguide.fragments.GetsFragment;
 import org.fruct.oss.audioguide.track.Database;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.Track;
@@ -26,15 +30,14 @@ import de.greenrobot.event.EventBus;
 public class StoreTrackTask extends AsyncTask<Void, Void, Boolean> {
 	private final Track track;
 	private final boolean local;
+	private final String token;
 
-	public StoreTrackTask(Track track) {
-		this.track = track;
-		this.local = true;
-	}
-
-	public StoreTrackTask(Track track, boolean local) {
+	public StoreTrackTask(Context context, Track track, boolean local) {
 		this.track = track;
 		this.local = local;
+
+		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
+		this.token = pref.getString(GetsFragment.PREF_AUTH_TOKEN, null);
 	}
 
 	@Override
@@ -90,6 +93,10 @@ public class StoreTrackTask extends AsyncTask<Void, Void, Boolean> {
 
 			serializer.startDocument("UTF-8", true);
 			serializer.startTag(null, "request").startTag(null, "params");
+
+			if (token != null) {
+				serializer.startTag(null, "auth_token").text(token).endTag(null, "auth_token");
+			}
 
 			serializer.startTag(null, "name").text(trackName).endTag(null, "name");
 			serializer.endTag(null, "params").endTag(null, "request");

@@ -9,11 +9,11 @@ import android.util.Xml;
 
 import org.fruct.oss.audioguide.App;
 import org.fruct.oss.audioguide.events.DataUpdatedEvent;
-import org.fruct.oss.audioguide.track.gets.Category;
+import org.fruct.oss.audioguide.fragments.GetsFragment;
 import org.fruct.oss.audioguide.preferences.SettingsActivity;
 import org.fruct.oss.audioguide.track.Database;
-import org.fruct.oss.audioguide.track.LocationEvent;
 import org.fruct.oss.audioguide.track.Track;
+import org.fruct.oss.audioguide.track.gets.Category;
 import org.fruct.oss.audioguide.track.gets.Gets;
 import org.fruct.oss.audioguide.track.gets.GetsException;
 import org.fruct.oss.audioguide.track.gets.parsers.TracksContent;
@@ -32,6 +32,7 @@ public class TracksTask extends AsyncTask<Void, Void, List<Track>> {
 
 	private final float radiusKm;
 	private final Gets gets;
+	private final String token;
 
 	public TracksTask(Location location, Context context) {
 		this.gets = new Gets(Gets.GETS_SERVER);
@@ -39,6 +40,7 @@ public class TracksTask extends AsyncTask<Void, Void, List<Track>> {
 		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
 		this.radiusKm = pref.getInt(SettingsActivity.PREF_LOAD_RADIUS, 500);
 		this.location = location;
+		this.token = pref.getString(GetsFragment.PREF_AUTH_TOKEN, null);
 	}
 
 	@Override
@@ -79,6 +81,10 @@ public class TracksTask extends AsyncTask<Void, Void, List<Track>> {
 
 			serializer.startDocument("UTF-8", true);
 			serializer.startTag(null, "request").startTag(null, "params");
+
+			if (token != null) {
+				serializer.startTag(null, "auth_token").text(token).endTag(null, "auth_token");
+			}
 
 			serializer.startTag(null, "category_name").text(cat.getName()).endTag(null, "category_name");
 			serializer.startTag(null, "space").text("all").endTag(null, "space");

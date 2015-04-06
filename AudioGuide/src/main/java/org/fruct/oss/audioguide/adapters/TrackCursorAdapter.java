@@ -114,7 +114,7 @@ public class TrackCursorAdapter extends CursorAdapter implements View.OnClickLis
 		if (holder != null) {
 			Track track = holder.track;
 			if (holder.localImage == view && !track.isLocal()) {
-				storeTrackTask = new StoreTrackTask(holder.track);
+				storeTrackTask = new StoreTrackTask(view.getContext(), holder.track, true);
 				storeTrackTask.execute();
 			}
 		}

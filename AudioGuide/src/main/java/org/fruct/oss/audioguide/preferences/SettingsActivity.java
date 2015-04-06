@@ -63,7 +63,6 @@ public class SettingsActivity extends PreferenceActivity implements SharedPrefer
 				log.debug("Clean points clicked");
 				Toast.makeText(SettingsActivity.this, "Cleaning points...", Toast.LENGTH_LONG).show();
 				DefaultTrackManager.getInstance().requestPointsCleanup();
-				DefaultTrackManager.getInstance().synchronizeFileManager();
 				return true;
 			}
 		});
