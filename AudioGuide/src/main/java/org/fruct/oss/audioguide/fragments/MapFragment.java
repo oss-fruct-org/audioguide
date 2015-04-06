@@ -88,18 +88,13 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 	private TrackingServiceConnection serviceConnection = new TrackingServiceConnection();
 	private SharedPreferences pref;
 
-
 	private MyPositionOverlay myPositionOverlay;
 	private BroadcastReceiver locationReceiver;
 	private BroadcastReceiver pointInRangeReceiver;
 
 	private ViewGroup bottomToolbar;
 
-	private Point selectedPoint;
-
 	private List<EditOverlay> trackOverlays = new ArrayList<EditOverlay>();
-
-	private PointsTask pointsTask;
 
 	/**
 	 * Use this factory method to create a new instance of
@@ -316,10 +311,6 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 	public void onDestroy() {
 		log.trace("MapFragment onDestroy");
 
-		if (pointsTask != null) {
-			pointsTask.cancel(true);
-		}
-
 		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getActivity());
 		pref.unregisterOnSharedPreferenceChangeListener(this);
 
@@ -410,7 +401,6 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 		trackOverlays.clear();
 
 		CursorHolder activePoints;
-		CursorHolder relations;
 
 		// active track can be null after cleaning database
 		// unlikely on non-debug use
@@ -427,13 +417,14 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 			activePoints = trackManager.loadLocalPoints();
 		}
 
-		EditOverlay freePointsOverlay = new EditOverlay(getActivity(),
-				activePoints, 1, mapView);
+		EditOverlay pointsOverlay = new EditOverlay(getActivity(), activePoints, 1,
+				mapView, activeTrack != null);
 
-		freePointsOverlay.setListener(trackOverlayListener);
-		freePointsOverlay.setMarkerIndex(1);
-		trackOverlays.add(freePointsOverlay);
-		mapView.getOverlays().add(freePointsOverlay);
+		pointsOverlay.setListener(trackOverlayListener);
+		pointsOverlay.setMarkerIndex(1);
+
+		trackOverlays.add(pointsOverlay);
+		mapView.getOverlays().add(pointsOverlay);
 
 		mapView.invalidate();
 	}

@@ -46,6 +46,7 @@ import java.util.Random;
 public class EditOverlay extends Overlay implements Closeable {
 	private final Context context;
 	private final MapView mapView;
+	private final boolean isTrackMode;
 
 	public interface Listener {
 		void pointMoved(Point p, IGeoPoint geoPoint);
@@ -93,19 +94,19 @@ public class EditOverlay extends Overlay implements Closeable {
 
 	private Listener listener;
 
-	private Cursor currentRelationsCursor;
-
 	private final CursorHolder pointsCursorHolder;
 	private Cursor currentPointsCursor;
 
 	private final List<Pair<Long, Long>> relations = new ArrayList<>();
 
-	public EditOverlay(Context ctx, CursorHolder pointsCursorHolder, int markerIndex, MapView mapView) {
+	public EditOverlay(Context ctx, CursorHolder pointsCursorHolder,
+					   int markerIndex, MapView mapView, boolean isTrackMode) {
 		super(ctx);
 
 		this.mapView = mapView;
 		this.context = ctx;
 		this.pointsCursorHolder = pointsCursorHolder;
+		this.isTrackMode = isTrackMode;
 
 		pointsCursorHolder.attachToReceiver(pointsCursorReceiver);
 
@@ -200,17 +201,18 @@ public class EditOverlay extends Overlay implements Closeable {
 		clipRect.set(view.getProjection().getIntrinsicScreenRect());
 		clipRect.inset(-itemSize, -itemSize);
 
-		drawPath(canvas, view);
+		if (isTrackMode) {
+			drawPath(canvas, view);
+		}
+
 		drawItems(canvas, view);
 	}
 
 	private void drawPath(Canvas canvas, MapView view) {
-		for (Pair<Long, Long> line : relations) {
-			EditOverlayItem p1 = items.get(line.first);
-			EditOverlayItem p2 = items.get(line.second);
-
-			if (p1 != null && p2 != null)
-				drawLine(canvas, view, p1, p2);
+		for (int i = 0; i < items.size() - 1; i++) {
+			EditOverlayItem item1 = items.valueAt(i);
+			EditOverlayItem item2 = items.valueAt(i + 1);
+			drawLine(canvas, view, item1, item2);
 		}
 	}
 
@@ -273,7 +275,7 @@ public class EditOverlay extends Overlay implements Closeable {
 			canvas.drawBitmap(iconBitmap, bounds.left + markerPadding.left, bounds.top + markerPadding.top, null);
 			canvas.restore();
 		} else {
-			canvas.drawText(String.valueOf(index), point.x, point.y - itemSize + itemSize / 3, itemBackgroundPaint);
+			//canvas.drawText(String.valueOf(index), point.x, point.y - itemSize + itemSize / 3, itemBackgroundPaint);
 		}
 	}
 
@@ -426,34 +428,6 @@ private void checkDistance(MapView mapView, android.graphics.Point p) {
 			}
 
 			mapView.invalidate();
-
-			return oldCursor;
-		}
-	};
-
-	private CursorReceiver relationsCursorReceiver = new CursorReceiver() {
-		@Override
-		public Cursor swapCursor(Cursor cursor) {
-			Cursor oldCursor = currentPointsCursor;
-			currentPointsCursor = cursor;
-
-			long currentTrackId = -1;
-			long prevPointId = -1;
-
-			while (cursor.moveToNext()) {
-				long trackId = cursor.getLong(0);
-
-				if (trackId != currentTrackId) {
-					currentTrackId = trackId;
-					prevPointId = cursor.getLong(1);
-					continue;
-				}
-
-				long currentPointId = cursor.getLong(1);
-
-				relations.add(Pair.create(prevPointId, currentPointId));
-				prevPointId = currentPointId;
-			}
 
 			return oldCursor;
 		}
