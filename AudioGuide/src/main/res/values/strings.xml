@@ -25,7 +25,6 @@
         <item>Private</item>
         <item>Public</item>
         <item>Local</item>
-        <item>Active</item>
     </string-array>
 
     <string name="pref_seek_bar_summary_stub">Play sound if point nearer than meters</string>

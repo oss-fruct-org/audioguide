@@ -139,11 +139,31 @@ public class Database {
 		return cursor;
 	}
 
-	public Cursor loadTracksCursor() {
+	private Cursor loadTracksCursor(String addWhere) {
 		Cursor cursor = db.rawQuery("SELECT track.name, track.description, track.url, track.local, track.categoryId, track.private, track.hname, url.url, track.id AS _id " +
 				"FROM track LEFT JOIN category ON category.id = track.categoryId " +
 				"LEFT JOIN url ON url.id = track.photoUrl " +
-				"WHERE category.state = 1 OR category.state IS NULL;", null);
+				"WHERE (category.state = 1 OR category.state IS NULL) AND " + addWhere + ";", null);
+		return cursor;
+	}
+
+	public Cursor loadAllTracksCursor() {
+		return loadTracksCursor("1=1");
+	}
+
+	public Cursor loadPrivateTracks() {
+		return loadTracksCursor("track.private = 1");
+	}
+
+	public Cursor loadPublicTracks() {
+		return loadTracksCursor("track.private = 0");
+	}
+
+	public Cursor loadLocalTracks() {
+		Cursor cursor = db.rawQuery("SELECT track.name, track.description, track.url, track.local, track.categoryId, track.private, track.hname, url.url, track.id AS _id " +
+				"FROM track " +
+				"LEFT JOIN url ON url.id = track.photoUrl " +
+				"WHERE track.local = 1;", null);
 		return cursor;
 	}
 
@@ -167,14 +187,6 @@ public class Database {
 						"LEFT JOIN url AS url_audio ON url_audio.id = point.audioUrl " +
 						"LEFT JOIN url AS url_photo ON url_photo.id = point.photoUrl " +
 						"WHERE category.state=1 OR category.state IS NULL;", null);
-		return cursor;
-	}
-
-	public Cursor loadLocalTracks() {
-		Cursor cursor = db.rawQuery("SELECT track.name, track.description, track.url, track.local, track.categoryId, track.private, track.hname, url.url, track.id AS _id " +
-				"FROM track " +
-				"LEFT JOIN url ON url.id = track.photoUrl " +
-				"WHERE track.local = 1;", null);
 		return cursor;
 	}
 
@@ -319,7 +331,7 @@ public class Database {
 
 	public void deleteTrack(Track track) {
 		db.delete("point", "point.id IN (SELECT tp.pointId FROM tp INNER JOIN track ON track.id=tp.trackId WHERE track.name=?);", new String[]{ track.getName() });
-		db.delete("track", "name=?", new String[]{ track.getName() });
+		db.delete("track", "name=?", new String[]{track.getName()});
 	}
 
 	public void cleanupPoints(Location location, float radius) {
@@ -419,6 +431,9 @@ public class Database {
 			}
 		}
 	}
+
+
+
 	private static class Helper extends SQLiteOpenHelper {
 		public static final String DB_NAME = "tracksdb2";
 		public static final int DB_VERSION = 2; // published 2

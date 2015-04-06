@@ -16,9 +16,14 @@ public interface TrackManager extends Closeable {
 
 	CursorHolder loadLocalTracks();
 
+	CursorHolder loadPrivateTracks();
+
+	CursorHolder loadPublicTracks();
+
 	CursorHolder loadLocalPoints();
 
 	CursorHolder loadPoints(Track track);
+
 
 	Track getTrackByName(String name);
 
@@ -31,4 +36,6 @@ public interface TrackManager extends Closeable {
 	void requestPointsCleanup();
 
 	void synchronizeFileManager();
+
+
 }

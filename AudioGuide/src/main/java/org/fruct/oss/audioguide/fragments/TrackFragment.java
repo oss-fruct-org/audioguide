@@ -111,69 +111,47 @@ public class TrackFragment extends ListFragment implements AdapterView.OnItemLon
 		ActionBarActivity activity = (ActionBarActivity) getActivity();
 		ActionBar actionBar = activity.getSupportActionBar();
 
-
 		ArrayAdapter<CharSequence> spinnerAdapter = ArrayAdapter.createFromResource(actionBar.getThemedContext(),
 				R.array.track_spinner_array,
 				android.support.v7.appcompat.R.layout.support_simple_spinner_dropdown_item);
 
 		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
-		/*actionBar.setListNavigationCallbacks(spinnerAdapter, new ActionBar.OnNavigationListener() {
+		actionBar.setListNavigationCallbacks(spinnerAdapter, new ActionBar.OnNavigationListener() {
 			@Override
 			public boolean onNavigationItemSelected(int i, long l) {
 				selectedSpinnerItem = i;
+
+				CursorHolder newCursorHolder;
+
 				switch (i) {
 				case 0: // All tracks
-					trackAdapter.setFilter(new TrackModelAdapter.Filter() {
-						@Override
-						public boolean check(Track track) {
-							return true;
-						}
-					});
+					newCursorHolder = trackManager.loadTracks();
 					break;
 
 				case 1: // Private tracks
-					trackAdapter.setFilter(new TrackModelAdapter.Filter() {
-						@Override
-						public boolean check(Track track) {
-							return track.isPrivate();
-						}
-					});
+					newCursorHolder = trackManager.loadPrivateTracks();
 					break;
 
 				case 2: // Public tracks
-					trackAdapter.setFilter(new TrackModelAdapter.Filter() {
-						@Override
-						public boolean check(Track track) {
-							return !track.isPrivate();
-						}
-					});
+					newCursorHolder = trackManager.loadPublicTracks();
 					break;
 
 				case 3: // Local tracks
-					trackAdapter.setFilter(new TrackModelAdapter.Filter() {
-						@Override
-						public boolean check(Track track) {
-							return track.isLocal();
-						}
-					});
-					break;
-
-				case 4: // Active tracks
-					trackAdapter.setFilter(new TrackModelAdapter.Filter() {
-						@Override
-						public boolean check(Track track) {
-							return track.isActive();
-						}
-					});
+					newCursorHolder = trackManager.loadLocalTracks();
 					break;
 
 				default:
 					return false;
 				}
 
+				TrackCursorAdapter oldAdapter = trackCursorAdapter;
+				trackCursorAdapter = new TrackCursorAdapter(getActivity());
+				newCursorHolder.attachToAdapter(trackCursorAdapter);
+				setListAdapter(trackCursorAdapter);
+				oldAdapter.close();
 				return true;
 			}
-		});*/
+		});
 		actionBar.setSelectedNavigationItem(selectedSpinnerItem);
 	}
 
@@ -203,7 +181,7 @@ public class TrackFragment extends ListFragment implements AdapterView.OnItemLon
 	public void onAttach(Activity activity) {
 		super.onAttach(activity);
 		((MainActivity) activity).onSectionAttached(activity.getString(R.string.title_section1),
-				ActionBar.NAVIGATION_MODE_STANDARD, null);
+				ActionBar.NAVIGATION_MODE_LIST, null);
 
 		try {
 			multiPanel = (MultiPanel) activity;

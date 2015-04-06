@@ -29,7 +29,6 @@
         <item>Приватные</item>
         <item>Публичные</item>
         <item>Загруженные</item>
-        <item>Активные</item>
     </string-array>
 
     <string name="pref_seek_bar_summary_stub">Проигрывать звук, если точка ближе чем</string>
