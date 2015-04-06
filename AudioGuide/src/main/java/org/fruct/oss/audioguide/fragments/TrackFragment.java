@@ -21,6 +21,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 import org.fruct.oss.audioguide.App;
+import org.fruct.oss.audioguide.MainActivity;
 import org.fruct.oss.audioguide.MultiPanel;
 import org.fruct.oss.audioguide.NavigationDrawerFragment;
 import org.fruct.oss.audioguide.R;
@@ -62,6 +63,7 @@ public class TrackFragment extends ListFragment implements AdapterView.OnItemLon
 
 	public TrackFragment() {
 	}
+
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -195,9 +197,13 @@ public class TrackFragment extends ListFragment implements AdapterView.OnItemLon
 		super.onDestroy();
 	}
 
+
 	@Override
 	public void onAttach(Activity activity) {
 		super.onAttach(activity);
+		((MainActivity) activity).onSectionAttached(activity.getString(R.string.title_section1),
+				ActionBar.NAVIGATION_MODE_STANDARD, null);
+
 		try {
 			multiPanel = (MultiPanel) activity;
 		} catch (ClassCastException e) {

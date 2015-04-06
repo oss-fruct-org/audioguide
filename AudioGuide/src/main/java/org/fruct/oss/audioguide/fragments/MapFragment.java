@@ -2,6 +2,7 @@ package org.fruct.oss.audioguide.fragments;
 
 
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -21,6 +22,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.view.ActionMode;
 import android.view.LayoutInflater;
@@ -35,6 +37,7 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Toast;
 
+import org.fruct.oss.audioguide.MainActivity;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.config.Config;
 import org.fruct.oss.audioguide.dialogs.EditPointDialog;
@@ -107,6 +110,13 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 		return new MapFragment();
 	}
 	public MapFragment() {
+	}
+
+	@Override
+	public void onAttach(Activity activity) {
+		super.onAttach(activity);
+		((MainActivity) activity).onSectionAttached(activity.getString(R.string.title_section2),
+				ActionBar.NAVIGATION_MODE_STANDARD, null);
 	}
 
 	@Override

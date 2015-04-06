@@ -78,8 +78,13 @@
     <string name="str_description">Описание</string>
     <string name="str_select_category">Выберите категорию</string>
     <string name="about_text">Приложение является частью гранта KA322 программы Karelia ENPI CBC, которая финансируется совместно Европейским Союзом, Российской Федерацией и Финляндской Республикой. </string>
+
     <string name="str_logout">Выйти</string>
     <string name="str_login">Войти</string>
+    <string name="str_google_login_error">Ошибка авторизации. Попробуйте использовать авторизацию через браузер.</string>
+    <string name="str_login_google">Google</string>
+    <string name="str_login_web_browser">Веб-браузер</string>
+
     <string name="str_not_signed_in">Оффлайн</string>
 
     <string name="help_sound">Звук</string>

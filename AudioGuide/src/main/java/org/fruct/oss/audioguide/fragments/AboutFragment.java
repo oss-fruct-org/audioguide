@@ -2,16 +2,19 @@ package org.fruct.oss.audioguide.fragments;
 
 
 
+import android.app.Activity;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.ActionBar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.fruct.oss.audioguide.MainActivity;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.config.Config;
 import org.slf4j.Logger;
@@ -35,7 +38,16 @@ public class AboutFragment extends Fragment implements View.OnClickListener {
         // Required empty public constructor
     }
 
-    @Override
+
+	@Override
+	public void onAttach(Activity activity) {
+		super.onAttach(activity);
+		((MainActivity) activity).onSectionAttached(activity.getString(R.string.title_section4),
+				ActionBar.NAVIGATION_MODE_STANDARD, null);
+	}
+
+
+	@Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {

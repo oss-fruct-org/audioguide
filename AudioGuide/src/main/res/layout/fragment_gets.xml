@@ -1,33 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context="org.fruct.oss.audioguide.fragments.GetsFragment"
-    android:orientation="vertical">
+    android:layout_height="match_parent">
 
-    <TextView
-        android:id="@+id/login_label"
+    <LinearLayout
+        android:id="@+id/layout_user_info"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/str_not_signed_in"
-        style="@style/HeaderText"
+        android:orientation="horizontal"
+        android:visibility="gone">
+        <ImageView
+            android:id="@android:id/icon"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:padding="8dp"
+            />
+
+        <TextView
+            android:id="@+id/text_user_name"
+            android:textSize="18sp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            />
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/button_login_web_browser"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/rounded_button"
+
+        android:text="@string/str_login_web_browser"
+        android:layout_margin="8dp"
         />
 
     <Button
-        android:id="@+id/sign_in_button"
-        style="@style/Button"
-        android:text="@string/str_login"/>
+        android:id="@+id/button_login_google"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/rounded_button"
 
-<!--
-    <Button
-        android:id="@+id/manage_files_button"
-        style="@style/Button"
-        android:text="Manage files"/>
--->
+        android:text="@string/str_login_google"
+        android:layout_margin="8dp"
+        />
 
     <Button
-        android:id="@+id/logout_button"
-        style="@style/Button"
+        android:id="@+id/button_logout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/rounded_button"
+
         android:text="@string/str_logout"
+        android:layout_margin="8dp"
+
+        android:visibility="gone"
         />
 </LinearLayout>

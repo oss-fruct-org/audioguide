@@ -66,6 +66,7 @@ public class MainActivity extends ActionBarActivity
 	 * Used to store the last screen title. For use in {@link #restoreActionBar()}.
 	 */
 	private CharSequence mTitle;
+	private ActivityResultListener mActivityResultListener;
 
 	private FragmentManager fragmentManager;
 	private BroadcastReceiver startAudioReceiver;
@@ -73,6 +74,7 @@ public class MainActivity extends ActionBarActivity
 
 	private boolean networkToastShown;
 	private boolean providersToastShown;
+
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -224,21 +226,9 @@ public class MainActivity extends ActionBarActivity
 		}
 	}
 
-	public void onSectionAttached(int number) {
-		switch (number) {
-		case 1:
-			mTitle = getString(R.string.title_section1);
-			break;
-		case 2:
-			mTitle = getString(R.string.title_section2);
-			break;
-		case 3:
-			mTitle = getString(R.string.title_section3);
-			break;
-		case 4:
-			mTitle = getString(R.string.title_section4);
-			break;
-		}
+	public void onSectionAttached(String title, int navigationMode, ActivityResultListener resultListener) {
+		mTitle = title;
+		mActivityResultListener = resultListener;
 	}
 
 	@Override
@@ -343,6 +333,11 @@ public class MainActivity extends ActionBarActivity
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
+
+		if (mActivityResultListener != null) {
+			mActivityResultListener.onActivityResultRedirect(requestCode, resultCode, data);
+		}
+
 		log.debug("MainActivity onActivityResult {}, {}", requestCode, resultCode);
 	}
 
@@ -407,45 +402,7 @@ public class MainActivity extends ActionBarActivity
 		}
 	}
 
-	/**
-	 * A placeholder fragment containing a simple view.
-	 */
-	public static class PlaceholderFragment extends Fragment {
-		/**
-		 * The fragment argument representing the section number for this
-		 * fragment.
-		 */
-		private static final String ARG_SECTION_NUMBER = "section_number";
-
-		/**
-		 * Returns a new instance of this fragment for the given section
-		 * number.
-		 */
-		public static PlaceholderFragment newInstance(int sectionNumber) {
-			PlaceholderFragment fragment = new PlaceholderFragment();
-			Bundle args = new Bundle();
-			args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-			fragment.setArguments(args);
-			return fragment;
-		}
-
-		public PlaceholderFragment() {
-		}
-
-		@Override
-		public View onCreateView(LayoutInflater inflater, ViewGroup container,
-								 Bundle savedInstanceState) {
-			View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-			TextView textView = (TextView) rootView.findViewById(R.id.section_label);
-			textView.setText(Integer.toString(getArguments().getInt(ARG_SECTION_NUMBER)));
-			return rootView;
-		}
-
-		@Override
-		public void onAttach(Activity activity) {
-			super.onAttach(activity);
-			((MainActivity) activity).onSectionAttached(
-					getArguments().getInt(ARG_SECTION_NUMBER));
-		}
+	public interface ActivityResultListener {
+		void onActivityResultRedirect(int requestCode, int resultCode, Intent data);
 	}
 }

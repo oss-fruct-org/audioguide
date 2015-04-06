@@ -29,6 +29,7 @@ import de.greenrobot.event.EventBus;
 
 public class TracksTask extends AsyncTask<Void, Void, List<Track>> {
 	private final Location location;
+
 	private final float radiusKm;
 	private final Gets gets;
 
@@ -39,7 +40,11 @@ public class TracksTask extends AsyncTask<Void, Void, List<Track>> {
 		this.radiusKm = pref.getInt(SettingsActivity.PREF_LOAD_RADIUS, 500);
 
 		LocationEvent locationEvent = EventBus.getDefault().getStickyEvent(LocationEvent.class);
-		this.location = locationEvent.getLocation();
+		if (locationEvent != null) {
+			this.location = locationEvent.getLocation();
+		} else {
+			this.location = null;
+		}
 	}
 
 	@Override
