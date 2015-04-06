@@ -25,6 +25,7 @@ import org.fruct.oss.audioguide.MainActivity;
 import org.fruct.oss.audioguide.MultiPanel;
 import org.fruct.oss.audioguide.NavigationDrawerFragment;
 import org.fruct.oss.audioguide.R;
+import org.fruct.oss.audioguide.SynchronizerService;
 import org.fruct.oss.audioguide.adapters.TrackCursorAdapter;
 import org.fruct.oss.audioguide.config.Config;
 import org.fruct.oss.audioguide.track.CursorHolder;
@@ -273,8 +274,7 @@ public class TrackFragment extends ListFragment implements AdapterView.OnItemLon
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case R.id.action_refresh:
-			tracksTask = new TracksTask(getActivity());
-			tracksTask.execute();
+			SynchronizerService.startSyncTracks(getActivity());
 			break;
 		}
 

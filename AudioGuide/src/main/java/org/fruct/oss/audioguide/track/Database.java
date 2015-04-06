@@ -407,6 +407,18 @@ public class Database {
 		return ret;
 	}
 
+	public boolean isFirstRun() {
+		Cursor cursor = null;
+		try {
+			cursor = db.rawQuery("SELECT count(*) FROM track;", null);
+			cursor.moveToFirst();
+			return cursor.getInt(0) == 0;
+		} finally {
+			if (cursor != null) {
+				cursor.close();
+			}
+		}
+	}
 	private static class Helper extends SQLiteOpenHelper {
 		public static final String DB_NAME = "tracksdb2";
 		public static final int DB_VERSION = 2; // published 2

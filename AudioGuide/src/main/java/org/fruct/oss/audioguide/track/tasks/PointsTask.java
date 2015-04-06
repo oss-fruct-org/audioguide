@@ -32,14 +32,12 @@ public class PointsTask extends AsyncTask<Void, Void, List<Point>> {
 	private final float radiusKm;
 	private final Gets gets;
 
-	public PointsTask(Context context) {
+	public PointsTask(Location location, Context context) {
 		this.gets = new Gets(Gets.GETS_SERVER);
 
 		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
 		this.radiusKm = pref.getInt(SettingsActivity.PREF_LOAD_RADIUS, 500);
-
-		LocationEvent locationEvent = EventBus.getDefault().getStickyEvent(LocationEvent.class);
-		this.location = locationEvent.getLocation();
+		this.location = location;
 	}
 
 	@Override

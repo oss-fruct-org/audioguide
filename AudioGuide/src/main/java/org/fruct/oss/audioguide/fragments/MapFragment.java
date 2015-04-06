@@ -39,6 +39,7 @@ import android.widget.Toast;
 
 import org.fruct.oss.audioguide.MainActivity;
 import org.fruct.oss.audioguide.R;
+import org.fruct.oss.audioguide.SynchronizerService;
 import org.fruct.oss.audioguide.config.Config;
 import org.fruct.oss.audioguide.dialogs.EditPointDialog;
 import org.fruct.oss.audioguide.dialogs.SelectTrackDialog;
@@ -186,8 +187,7 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 		Toast.makeText(getActivity(), "Searching near points...", Toast.LENGTH_LONG).show();
 
 		if (myPositionOverlay.getLocation() != null) {
-			pointsTask = new PointsTask(getActivity());
-			pointsTask.execute();
+			SynchronizerService.startSyncPoints(getActivity());
 		} else {
 			Toast.makeText(getActivity(), R.string.warn_no_providers, Toast.LENGTH_SHORT).show();
 		}

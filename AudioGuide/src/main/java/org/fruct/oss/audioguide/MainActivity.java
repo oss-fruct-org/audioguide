@@ -107,8 +107,8 @@ public class MainActivity extends ActionBarActivity
 		}
 
 		setupBottomPanel();
-
 		resumePersistentUrlsDownload();
+		SynchronizerService.startInit(this);
 	}
 
 	private void resumePersistentUrlsDownload() {

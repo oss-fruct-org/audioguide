@@ -33,18 +33,12 @@ public class TracksTask extends AsyncTask<Void, Void, List<Track>> {
 	private final float radiusKm;
 	private final Gets gets;
 
-	public TracksTask(Context context) {
+	public TracksTask(Location location, Context context) {
 		this.gets = new Gets(Gets.GETS_SERVER);
 
 		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
 		this.radiusKm = pref.getInt(SettingsActivity.PREF_LOAD_RADIUS, 500);
-
-		LocationEvent locationEvent = EventBus.getDefault().getStickyEvent(LocationEvent.class);
-		if (locationEvent != null) {
-			this.location = locationEvent.getLocation();
-		} else {
-			this.location = null;
-		}
+		this.location = location;
 	}
 
 	@Override

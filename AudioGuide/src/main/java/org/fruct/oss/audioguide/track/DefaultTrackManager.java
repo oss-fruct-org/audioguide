@@ -8,7 +8,6 @@ import android.preference.PreferenceManager;
 import org.fruct.oss.audioguide.App;
 import org.fruct.oss.audioguide.events.DataUpdatedEvent;
 import org.fruct.oss.audioguide.track.gets.Category;
-import org.fruct.oss.audioguide.track.tasks.CategoriesTask;
 import org.fruct.oss.audioguide.util.EventReceiver;
 
 import java.io.Closeable;
@@ -190,8 +189,6 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 		if (instance == null || instance.isClosed) {
 			instance = new DefaultTrackManager(App.getContext());
 			instance.getCategories();
-
-			new CategoriesTask().execute();
 		}
 
 		return instance;
