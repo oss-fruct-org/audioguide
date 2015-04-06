@@ -20,8 +20,8 @@ import java.net.URL;
 import java.util.List;
 
 public class Gets {
-	public static String GETS_SERVER = "http://gets.cs.petrsu.ru/gets/service";
-	//public static String GETS_SERVER = "http://getsi.ddns.net/getslocal";
+	//public static String GETS_SERVER = "http://gets.cs.petrsu.ru/gets/service";
+	public static String GETS_SERVER = "http://getsi.ddns.net/getslocal";
 
 	static {
 		if (!BuildConfig.DEBUG) {

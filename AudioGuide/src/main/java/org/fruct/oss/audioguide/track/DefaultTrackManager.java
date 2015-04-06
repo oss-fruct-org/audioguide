@@ -32,8 +32,6 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 
 		database = App.getInstance().getDatabase();
 
-		synchronizeFileManager();
-
 		EventBus.getDefault().register(this);
 	}
 
@@ -41,11 +39,6 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	public synchronized void close() {
 		EventBus.getDefault().unregister(this);
 		isClosed = true;
-	}
-
-	@Override
-	public void requestPointsCleanup() {
-		notifyDataChanged();
 	}
 
 	@Override
@@ -179,12 +172,6 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 
 		//Gets.getInstance().setEnv("categories", activeCategories);
 		notifyDataChanged();
-	}
-
-	@Override
-	public void synchronizeFileManager() {
-		List<String> garbageUrls = database.gcUrls();
-		//fileManager.removePersistentUrls(garbageUrls);
 	}
 
 	private void notifyDataChanged() {

@@ -32,10 +32,4 @@ public interface TrackManager extends Closeable {
 	List<String> getPointPhotos(Point point);
 
 	void setCategoryState(Category category, boolean isActive);
-
-	void requestPointsCleanup();
-
-	void synchronizeFileManager();
-
-
 }

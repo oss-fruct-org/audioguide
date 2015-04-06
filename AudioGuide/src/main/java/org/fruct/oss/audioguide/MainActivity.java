@@ -113,6 +113,7 @@ public class MainActivity extends ActionBarActivity
 	}
 
 	private void resumePersistentUrlsDownload() {
+		App.getInstance().getDatabase().gcUrls();
 		List<String> persistentUrls = App.getInstance().getDatabase().getPersistentUrls();
 
 		Intent intent = new Intent(AudioDownloadService.ACTION_KEEP_PERSISTENT, null, this, AudioDownloadService.class);

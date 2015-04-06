@@ -334,6 +334,10 @@ public class Database {
 		db.delete("track", "name=?", new String[]{track.getName()});
 	}
 
+	public void deletePrivateTracks() {
+		db.delete("track", "track.private=1", null);
+	}
+
 	public void cleanupPoints(Location location, float radius) {
 		db.beginTransaction();
 		Cursor cursor = null;
@@ -384,7 +388,7 @@ public class Database {
 				"AND point1.id IS NULL " +
 				"AND point2.id IS NULL;", null);
 
-		List<String> ret = new ArrayList<String>(cursor.getCount());
+		List<String> ret = new ArrayList<>(cursor.getCount());
 
 		try {
 			db.beginTransaction();

@@ -23,6 +23,7 @@ import android.widget.Toast;
 
 import com.nostra13.universalimageloader.core.ImageLoader;
 
+import org.fruct.oss.audioguide.App;
 import org.fruct.oss.audioguide.GetsLoginActivity;
 import org.fruct.oss.audioguide.MainActivity;
 import org.fruct.oss.audioguide.R;
@@ -300,6 +301,8 @@ public class GetsFragment extends Fragment implements View.OnClickListener, Goog
 					.remove(PREF_USER_INFO)
 					.apply();
 
+			App.getInstance().getDatabase().deletePrivateTracks();
+			SynchronizerService.startSyncTracks(getActivity());
 			updateViewState();
 			getActivity().supportInvalidateOptionsMenu();
 		}
