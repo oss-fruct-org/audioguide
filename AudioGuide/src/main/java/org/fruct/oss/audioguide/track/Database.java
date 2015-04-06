@@ -348,8 +348,8 @@ public class Database {
 			float[] dist = new float[1];
 			String[] whereArgs = new String[1];
 			while (cursor.moveToNext()) {
-				double lat = cursor.getDouble(0) / 1e6;
-				double lon = cursor.getDouble(1) / 1e6;
+				double lat = cursor.getInt(0) / 1e6;
+				double lon = cursor.getInt(1) / 1e6;
 				int id = cursor.getInt(2);
 
 				Location.distanceBetween(lat, lon, location.getLatitude(), location.getLongitude(), dist);

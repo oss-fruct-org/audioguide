@@ -5,12 +5,15 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 
+import org.fruct.oss.audioguide.preferences.SettingsActivity;
 import org.fruct.oss.audioguide.track.Database;
 import org.fruct.oss.audioguide.track.LocationEvent;
 import org.fruct.oss.audioguide.track.Point;
@@ -31,6 +34,7 @@ public class SynchronizerService extends Service {
 	public static final String ACTION_INIT = "org.fruct.oss.audioguide.SynchronizerService.ACTION_INIT";
 	public static final String ACTION_SYNC_POINTS = "org.fruct.oss.audioguide.SynchronizerService.ACTION_SYNC_POINTS";
 	public static final String ACTION_SYNC_TRACKS = "org.fruct.oss.audioguide.SynchronizerService.ACTION_SYNC_TRACKS";
+	public static final String ACTION_CLEAN = "org.fruct.oss.audioguide.SynchronizerService.ACTION_CLEAN";
 
 	private ExecutorService executor;
 
@@ -65,6 +69,11 @@ public class SynchronizerService extends Service {
 
 	public static void startSyncTracks(Context context) {
 		Intent intent = createStartIntent(context, ACTION_SYNC_TRACKS);
+		context.startService(intent);
+	}
+
+	public static void startClean(Context context) {
+		Intent intent = createStartIntent(context, ACTION_CLEAN);
 		context.startService(intent);
 	}
 
@@ -105,9 +114,29 @@ public class SynchronizerService extends Service {
 		case ACTION_SYNC_TRACKS:
 			synchronizeTracks();
 			break;
+
+		case ACTION_CLEAN:
+			clean();
+			break;
 		}
 
 		return super.onStartCommand(intent, flags, startId);
+	}
+
+	private void clean() {
+		if (location == null) {
+			return;
+		}
+
+		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
+		final int radius = pref.getInt(SettingsActivity.PREF_LOAD_RADIUS, 500);
+
+		executor.execute(new Runnable() {
+			@Override
+			public void run() {
+				database.cleanupPoints(location, radius * 1000);
+			}
+		});
 	}
 
 	@EventReceiver

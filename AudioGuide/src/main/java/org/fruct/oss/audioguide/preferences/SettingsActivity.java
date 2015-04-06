@@ -16,6 +16,7 @@ import junit.framework.AssertionFailedError;
 import org.fruct.oss.audioguide.App;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.SingletonService;
+import org.fruct.oss.audioguide.SynchronizerService;
 import org.fruct.oss.audioguide.track.DefaultTrackManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,7 +63,7 @@ public class SettingsActivity extends PreferenceActivity implements SharedPrefer
 			public boolean onPreferenceClick(Preference preference) {
 				log.debug("Clean points clicked");
 				Toast.makeText(SettingsActivity.this, "Cleaning points...", Toast.LENGTH_LONG).show();
-				DefaultTrackManager.getInstance().requestPointsCleanup();
+				SynchronizerService.startClean(SettingsActivity.this);
 				return true;
 			}
 		});
