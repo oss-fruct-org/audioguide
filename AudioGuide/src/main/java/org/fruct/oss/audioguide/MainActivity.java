@@ -9,7 +9,6 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.location.LocationManager;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
@@ -30,7 +29,7 @@ import android.widget.Toast;
 
 import org.fruct.oss.audioguide.config.Config;
 import org.fruct.oss.audioguide.dialogs.WarnDialog;
-import org.fruct.oss.audioguide.files2.AudioDownloadService;
+import org.fruct.oss.audioguide.files.AudioDownloadService;
 import org.fruct.oss.audioguide.fragments.AboutFragment;
 import org.fruct.oss.audioguide.fragments.CommonFragment;
 import org.fruct.oss.audioguide.fragments.GetsFragment;

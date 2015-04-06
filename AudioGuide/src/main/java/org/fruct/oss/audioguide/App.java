@@ -13,9 +13,8 @@ import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 
-import org.fruct.oss.audioguide.files2.DatabasePersistenceChecker;
-import org.fruct.oss.audioguide.files2.PersistableDiskCache;
-import org.fruct.oss.audioguide.files2.PersistenceChecker;
+import org.fruct.oss.audioguide.files.DatabasePersistenceChecker;
+import org.fruct.oss.audioguide.files.PersistableDiskCache;
 import org.fruct.oss.audioguide.track.Database;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

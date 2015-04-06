@@ -5,9 +5,6 @@ import android.content.Intent;
 import android.os.Handler;
 import android.os.IBinder;
 
-import org.fruct.oss.audioguide.files.FileManager;
-import org.fruct.oss.audioguide.track.DefaultTrackManager;
-import org.fruct.oss.audioguide.track.TrackManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -12,8 +12,6 @@ import android.support.v4.content.LocalBroadcastManager;
 import com.nostra13.universalimageloader.cache.disc.DiskCache;
 import com.nostra13.universalimageloader.core.ImageLoader;
 
-import org.fruct.oss.audioguide.files.FileManager;
-import org.fruct.oss.audioguide.files.FileSource;
 import org.fruct.oss.audioguide.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

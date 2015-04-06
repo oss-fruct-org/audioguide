@@ -16,24 +16,11 @@ import android.widget.TextView;
 
 import com.nostra13.universalimageloader.core.ImageLoader;
 
-import org.fruct.oss.audioguide.App;
 import org.fruct.oss.audioguide.R;
-import org.fruct.oss.audioguide.files.BitmapProcessor;
-import org.fruct.oss.audioguide.files.FileListener;
-import org.fruct.oss.audioguide.files.FileManager;
-import org.fruct.oss.audioguide.files.FileSource;
-import org.fruct.oss.audioguide.files.ImageViewSetter;
-import org.fruct.oss.audioguide.track.DefaultTrackManager;
 import org.fruct.oss.audioguide.track.Track;
-import org.fruct.oss.audioguide.track.TrackManager;
 import org.fruct.oss.audioguide.track.tasks.StoreTrackTask;
-import org.fruct.oss.audioguide.util.Utils;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.List;
-
-public class TrackCursorAdapter extends CursorAdapter implements View.OnClickListener, FileListener {
+public class TrackCursorAdapter extends CursorAdapter implements View.OnClickListener {
 	private StoreTrackTask storeTrackTask;
 
 	public TrackCursorAdapter(Context context) {
@@ -131,21 +118,6 @@ public class TrackCursorAdapter extends CursorAdapter implements View.OnClickLis
 				storeTrackTask.execute();
 			}
 		}
-	}
-
-	@Override
-	public void itemLoaded(String fileUrl) {
-
-	}
-
-	@Override
-	public void itemDownloadProgress(String fileUrl, int current, int max) {
-
-	}
-
-	@Override
-	public void itemDownloadError(String fileUrl) {
-
 	}
 
 	private static class TrackHolder {

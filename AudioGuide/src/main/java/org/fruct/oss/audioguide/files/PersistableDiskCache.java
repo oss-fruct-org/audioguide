@@ -1,16 +1,14 @@
-package org.fruct.oss.audioguide.files2;
+package org.fruct.oss.audioguide.files;
 
 import android.graphics.Bitmap;
 
 import com.nostra13.universalimageloader.cache.disc.DiskCache;
-import com.nostra13.universalimageloader.cache.disc.impl.BaseDiscCache;
 import com.nostra13.universalimageloader.utils.IoUtils;
 
 import org.fruct.oss.audioguide.util.Utils;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;

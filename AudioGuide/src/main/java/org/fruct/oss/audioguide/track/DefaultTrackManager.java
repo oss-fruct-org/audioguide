@@ -3,19 +3,15 @@ package org.fruct.oss.audioguide.track;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.Cursor;
-import android.location.Location;
 import android.preference.PreferenceManager;
 
 import org.fruct.oss.audioguide.App;
 import org.fruct.oss.audioguide.events.DataUpdatedEvent;
-import org.fruct.oss.audioguide.files.FileManager;
 import org.fruct.oss.audioguide.gets.Category;
 import org.fruct.oss.audioguide.track.tasks.CategoriesTask;
 import org.fruct.oss.audioguide.util.EventReceiver;
-import org.fruct.oss.audioguide.util.Utils;
 
 import java.io.Closeable;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;

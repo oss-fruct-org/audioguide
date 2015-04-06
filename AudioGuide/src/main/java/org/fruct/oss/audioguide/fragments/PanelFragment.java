@@ -1,7 +1,6 @@
 package org.fruct.oss.audioguide.fragments;
 
 
-
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -24,10 +23,7 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.events.AudioDownloadFinished;
 import org.fruct.oss.audioguide.events.AudioDownloadProgress;
-import org.fruct.oss.audioguide.files.FileListener;
-import org.fruct.oss.audioguide.files.FileManager;
-import org.fruct.oss.audioguide.files.FileSource;
-import org.fruct.oss.audioguide.files2.AudioDownloadService;
+import org.fruct.oss.audioguide.files.AudioDownloadService;
 import org.fruct.oss.audioguide.track.AudioPlayer;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.TrackingService;

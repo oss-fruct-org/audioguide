@@ -6,7 +6,7 @@ import android.util.Xml;
 
 import org.fruct.oss.audioguide.App;
 import org.fruct.oss.audioguide.events.DataUpdatedEvent;
-import org.fruct.oss.audioguide.files2.AudioDownloadService;
+import org.fruct.oss.audioguide.files.AudioDownloadService;
 import org.fruct.oss.audioguide.track.Database;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.Track;

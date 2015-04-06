@@ -1,4 +1,4 @@
-package org.fruct.oss.audioguide.files2;
+package org.fruct.oss.audioguide.files;
 
 public interface PersistenceChecker {
 	boolean isPersistent(String url);

@@ -1,4 +1,4 @@
-package org.fruct.oss.audioguide.files2;
+package org.fruct.oss.audioguide.files;
 
 import android.app.Notification;
 import android.app.PendingIntent;
