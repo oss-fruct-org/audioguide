@@ -113,7 +113,7 @@ public class MainActivity extends ActionBarActivity
 
 		EventBus.getDefault().register(this);
 		resumePersistentUrlsDownload();
-		SynchronizerService.startInit(this);
+		//SynchronizerService.startInit(this);
 	}
 
 	private void resumePersistentUrlsDownload() {

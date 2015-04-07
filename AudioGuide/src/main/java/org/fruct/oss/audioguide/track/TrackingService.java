@@ -25,6 +25,7 @@ import org.fruct.oss.audioguide.LocationReceiver;
 import org.fruct.oss.audioguide.MainActivity;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.SingletonService;
+import org.fruct.oss.audioguide.SynchronizerService;
 import org.fruct.oss.audioguide.events.PointInRangeEvent;
 import org.fruct.oss.audioguide.events.PointOutRangeEvent;
 import org.fruct.oss.audioguide.preferences.SettingsActivity;
@@ -407,6 +408,7 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 	@Override
 	public void newLocation(Location location) {
 		EventBus.getDefault().postSticky(new LocationEvent(location));
+		SynchronizerService.startSyncByDistance(this);
 	}
 
 	public void sendLastLocation() {

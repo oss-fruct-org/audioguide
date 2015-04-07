@@ -31,11 +31,19 @@ import java.util.concurrent.Executors;
 import de.greenrobot.event.EventBus;
 
 public class SynchronizerService extends Service {
+	public static long SYNC_DELTA_TIME = 3600 * 1000;
+
+	private static final String PREF_LAST_LAT = "pref_last_sync_lat";
+	private static final String PREF_LAST_LON = "pref_last_sync_lon";
+	private static final String PREF_LAST_TIME = "pref_last_sync_time";
+
 	public static final String ACTION_INIT = "org.fruct.oss.audioguide.SynchronizerService.ACTION_INIT";
 	public static final String ACTION_SYNC_POINTS = "org.fruct.oss.audioguide.SynchronizerService.ACTION_SYNC_POINTS";
 	public static final String ACTION_SYNC_TRACKS = "org.fruct.oss.audioguide.SynchronizerService.ACTION_SYNC_TRACKS";
 	public static final String ACTION_CLEAN = "org.fruct.oss.audioguide.SynchronizerService.ACTION_CLEAN";
+	public static final String ACTION_SYNC_BY_DISTANCE = "org.fruct.oss.audioguide.SynchronizerService.ACTION_SYNC_BY_DISTANCE";
 
+	private SharedPreferences pref;
 	private ExecutorService executor;
 
 	private Database database;
@@ -50,11 +58,18 @@ public class SynchronizerService extends Service {
 
 	private Location location;
 
+	private transient float[] out = new float[1];
+
 	public SynchronizerService() {
 	}
 
 	private static Intent createStartIntent(Context context, String action) {
 		return new Intent(action, null, context, SynchronizerService.class);
+	}
+
+	public static void startSyncByDistance(Context context) {
+		Intent intent = createStartIntent(context, ACTION_SYNC_BY_DISTANCE);
+		context.startService(intent);
 	}
 
 	public static void startInit(Context context) {
@@ -81,6 +96,7 @@ public class SynchronizerService extends Service {
 	public void onCreate() {
 		super.onCreate();
 
+		pref = PreferenceManager.getDefaultSharedPreferences(this);
 		executor = Executors.newSingleThreadExecutor();
 		database = App.getInstance().getDatabase();
 		tasksCount = 0;
@@ -118,9 +134,35 @@ public class SynchronizerService extends Service {
 		case ACTION_CLEAN:
 			clean();
 			break;
+
+		case ACTION_SYNC_BY_DISTANCE:
+			syncByDistance();
+			break;
 		}
 
-		return super.onStartCommand(intent, flags, startId);
+		return START_NOT_STICKY;
+	}
+
+	private void syncByDistance() {
+		if (location == null) {
+			return;
+		}
+
+		long lastSyncTime = pref.getLong(PREF_LAST_TIME, 0);
+		if (System.currentTimeMillis() - lastSyncTime > SYNC_DELTA_TIME) {
+			synchronizeAll();
+			return;
+		}
+
+		double loadRadiusM = pref.getFloat(SettingsActivity.PREF_LOAD_RADIUS, 500) * 1000;
+		double lastSyncLat = pref.getFloat(PREF_LAST_LAT, 0);
+		double lastSyncLon = pref.getFloat(PREF_LAST_LON, 0);
+		Location.distanceBetween(location.getLatitude(), location.getLongitude(),
+				lastSyncLat, lastSyncLon, out);
+
+		if (out[0] > loadRadiusM) {
+			synchronizeAll();
+		}
 	}
 
 	private void clean() {
@@ -128,7 +170,6 @@ public class SynchronizerService extends Service {
 			return;
 		}
 
-		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
 		final int radius = pref.getInt(SettingsActivity.PREF_LOAD_RADIUS, 500);
 
 		executor.execute(new Runnable() {
@@ -166,6 +207,8 @@ public class SynchronizerService extends Service {
 		synchronizeCategories();
 		synchronizeTracks();
 		synchronizePoints();
+
+
 	}
 
 	private void synchronizePoints() {
@@ -288,6 +331,11 @@ public class SynchronizerService extends Service {
 		if (tasksCount == 0) {
 			stopForeground(true);
 		}
+
+		pref.edit().putLong(PREF_LAST_TIME, System.currentTimeMillis())
+				.putFloat(PREF_LAST_LAT, (float) location.getLatitude())
+				.putFloat(PREF_LAST_LON, (float) location.getLongitude())
+				.apply();
 	}
 
 	private Notification buildNotification() {
