@@ -427,7 +427,7 @@ public class Database {
 	public boolean isFirstRun() {
 		Cursor cursor = null;
 		try {
-			cursor = db.rawQuery("SELECT count(*) FROM track;", null);
+			cursor = db.rawQuery("SELECT count(*) FROM category;", null);
 			cursor.moveToFirst();
 			return cursor.getInt(0) == 0;
 		} finally {

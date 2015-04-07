@@ -34,6 +34,10 @@ public class TracksTask extends AsyncTask<Void, Void, List<Track>> {
 	private final Gets gets;
 	private final String token;
 
+	public List<Track> executeSync() {
+		return doInBackground();
+	}
+
 	public TracksTask(Location location, Context context) {
 		this.gets = new Gets(Gets.GETS_SERVER);
 

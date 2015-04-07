@@ -32,6 +32,10 @@ public class PointsTask extends AsyncTask<Void, Void, List<Point>> {
 	private final float radiusKm;
 	private final Gets gets;
 
+	public List<Point> executeSync() {
+		return doInBackground();
+	}
+
 	public PointsTask(Location location, Context context) {
 		this.gets = new Gets(Gets.GETS_SERVER);
 

@@ -37,7 +37,6 @@ public class SynchronizerService extends Service {
 	private static final String PREF_LAST_LON = "pref_last_sync_lon";
 	private static final String PREF_LAST_TIME = "pref_last_sync_time";
 
-	public static final String ACTION_INIT = "org.fruct.oss.audioguide.SynchronizerService.ACTION_INIT";
 	public static final String ACTION_SYNC_POINTS = "org.fruct.oss.audioguide.SynchronizerService.ACTION_SYNC_POINTS";
 	public static final String ACTION_SYNC_TRACKS = "org.fruct.oss.audioguide.SynchronizerService.ACTION_SYNC_TRACKS";
 	public static final String ACTION_CLEAN = "org.fruct.oss.audioguide.SynchronizerService.ACTION_CLEAN";
@@ -49,8 +48,6 @@ public class SynchronizerService extends Service {
 	private Database database;
 
 	private int tasksCount;
-
-	private boolean isPendingInitialization;
 
 	private CategoriesTask categoriesTask;
 	private PointsTask pointsTask;
@@ -69,11 +66,6 @@ public class SynchronizerService extends Service {
 
 	public static void startSyncByDistance(Context context) {
 		Intent intent = createStartIntent(context, ACTION_SYNC_BY_DISTANCE);
-		context.startService(intent);
-	}
-
-	public static void startInit(Context context) {
-		Intent intent = createStartIntent(context, ACTION_INIT);
 		context.startService(intent);
 	}
 
@@ -107,9 +99,13 @@ public class SynchronizerService extends Service {
 	@Override
 	public void onDestroy() {
 		EventBus.getDefault().unregister(this);
-
 		executor.shutdownNow();
 		super.onDestroy();
+	}
+
+	@EventReceiver
+	public void onEventMainThread(LocationEvent event) {
+		location = event.getLocation();
 	}
 
 	@Override
@@ -119,16 +115,26 @@ public class SynchronizerService extends Service {
 		}
 
 		switch (intent.getAction()) {
-		case ACTION_INIT:
-			init();
-			break;
-
 		case ACTION_SYNC_POINTS:
-			synchronizePoints();
+			executor.execute(new Runnable() {
+				@Override
+				public void run() {
+					if (synchronizeCategories()) {
+						synchronizePoints();
+					}
+				}
+			});
 			break;
 
 		case ACTION_SYNC_TRACKS:
-			synchronizeTracks();
+			executor.execute(new Runnable() {
+				@Override
+				public void run() {
+					if (synchronizeCategories()) {
+						synchronizeTracks();
+					}
+				}
+			});
 			break;
 
 		case ACTION_CLEAN:
@@ -180,141 +186,82 @@ public class SynchronizerService extends Service {
 		});
 	}
 
-	@EventReceiver
-	public void onEventMainThread(LocationEvent locationEvent) {
-		location = locationEvent.getLocation();
-
-		if (isPendingInitialization) {
-			init();
-		}
-	}
-
-	private void init() {
-		if (!database.isFirstRun()) {
-			return;
-		}
-
-		if (location == null) {
-			isPendingInitialization = true;
-			return;
-		}
-
-		isPendingInitialization = false;
-		synchronizeAll();
-	}
-
 	private void synchronizeAll() {
-		synchronizeCategories();
-		synchronizeTracks();
-		synchronizePoints();
+		executor.execute(new Runnable() {
+			@Override
+			public void run() {
+				onTaskStarted();
+				try {
+					boolean result = synchronizeCategories();
 
+					if (result)
+						result = synchronizeTracks();
 
+					if (result)
+						synchronizePoints();
+
+					if (result)
+						commitSynchronization();
+				} finally {
+					onTaskEnded();
+				}
+			}
+		});
 	}
 
-	private void synchronizePoints() {
-		if (pointsTask != null) {
-			pointsTask.cancel(true);
-		}
-
+	private boolean synchronizePoints() {
 		if (location == null) {
-			return;
+			return false;
 		}
 
 		pointsTask = new PointsTask(location, this) {
 			@Override
-			protected void onPreExecute() {
-				super.onPreExecute();
-				onTaskStarted();
-			}
-
-			@Override
 			protected void onPostExecute(List<Point> points) {
 				super.onPostExecute(points);
 				onTaskEnded();
-			}
 
-			@Override
-			protected void onCancelled() {
-				super.onCancelled();
-				onTaskEnded();
+				if (points != null) {
+					commitSynchronization();
+				}
 			}
 		};
 
-		execute(pointsTask);
+		List<Point> points = pointsTask.executeSync();
+		return points != null;
 	}
 
-	private void synchronizeTracks() {
-		if (tracksTask != null) {
-			tracksTask.cancel(true);
-		}
-
+	private boolean synchronizeTracks() {
 		if (location == null) {
-			return;
+			return false;
 		}
 
 		tracksTask = new TracksTask(location, this) {
-			@Override
-			protected void onPreExecute() {
-				super.onPreExecute();
-				onTaskStarted();
-			}
-
 			@Override
 			protected void onPostExecute(List<Track> tracks) {
 				super.onPostExecute(tracks);
 				onTaskEnded();
 			}
-
-			@Override
-			protected void onCancelled() {
-				super.onCancelled();
-				onTaskEnded();
-			}
 		};
 
-		execute(tracksTask);
+		List<Track> tracks = tracksTask.executeSync();
+		return tracks != null;
 	}
 
-	private void synchronizeCategories() {
-		if (categoriesTask != null) {
-			categoriesTask.cancel(true);
-		}
-
+	private boolean synchronizeCategories() {
 		if (location == null) {
-			return;
+			return false;
 		}
 
 		categoriesTask = new CategoriesTask() {
-			@Override
-			protected void onPreExecute() {
-				super.onPreExecute();
-				onTaskStarted();
-			}
-
 			@Override
 			protected void onPostExecute(List<Category> categories) {
 				super.onPostExecute(categories);
 				onTaskEnded();
 			}
-
-			@Override
-			protected void onCancelled() {
-				super.onCancelled();
-				onTaskEnded();
-			}
 		};
 
-		execute(categoriesTask);
-	}
-
-	@SafeVarargs
-	private final <Params, Progress, Result> void execute(AsyncTask<Params, Progress, Result> task,
-														  Params... params) {
-		if (Build.VERSION.SDK_INT > 11) {
-			task.executeOnExecutor(executor, params);
-		} else {
-			task.execute(params);
-		}
+		List<Category> categories = categoriesTask.executeSync();
+		return categories != null;
 	}
 
 	private void onTaskStarted() {
@@ -331,7 +278,9 @@ public class SynchronizerService extends Service {
 		if (tasksCount == 0) {
 			stopForeground(true);
 		}
+	}
 
+	private void commitSynchronization() {
 		pref.edit().putLong(PREF_LAST_TIME, System.currentTimeMillis())
 				.putFloat(PREF_LAST_LAT, (float) location.getLatitude())
 				.putFloat(PREF_LAST_LON, (float) location.getLongitude())

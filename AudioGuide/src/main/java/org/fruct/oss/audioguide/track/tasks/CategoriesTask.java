@@ -15,6 +15,10 @@ import java.util.List;
 
 
 public class CategoriesTask extends AsyncTask<Void, Void, List<Category>> {
+	public List<Category> executeSync() {
+		return doInBackground();
+	}
+
 	@Override
 	protected List<Category> doInBackground(Void... params) {
 		String request = "<request><params/></request>";
