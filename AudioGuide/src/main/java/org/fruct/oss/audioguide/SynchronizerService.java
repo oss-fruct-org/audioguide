@@ -160,7 +160,7 @@ public class SynchronizerService extends Service {
 			return;
 		}
 
-		double loadRadiusM = pref.getFloat(SettingsActivity.PREF_LOAD_RADIUS, 500) * 1000;
+		double loadRadiusM = pref.getFloat(SettingsActivity.PREF_LOAD_RADIUS, 500) * 1000 / 3;
 		double lastSyncLat = pref.getFloat(PREF_LAST_LAT, 0);
 		double lastSyncLon = pref.getFloat(PREF_LAST_LON, 0);
 		Location.distanceBetween(location.getLatitude(), location.getLongitude(),
