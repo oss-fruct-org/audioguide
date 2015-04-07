@@ -334,8 +334,9 @@ public class Database {
 		db.delete("track", "name=?", new String[]{track.getName()});
 	}
 
-	public void deletePrivateTracks() {
+	public void deletePrivateData() {
 		db.delete("track", "track.private=1", null);
+		db.delete("point", "point.private=1", null);
 	}
 
 	public void cleanupPoints(Location location, float radius) {

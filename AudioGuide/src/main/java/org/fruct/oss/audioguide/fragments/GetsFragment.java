@@ -301,7 +301,7 @@ public class GetsFragment extends Fragment implements View.OnClickListener, Goog
 					.remove(PREF_USER_INFO)
 					.apply();
 
-			App.getInstance().getDatabase().deletePrivateTracks();
+			App.getInstance().getDatabase().deletePrivateData();
 			SynchronizerService.startSyncTracks(getActivity());
 			updateViewState();
 			getActivity().supportInvalidateOptionsMenu();
