@@ -174,7 +174,7 @@ public class GetsFragment extends Fragment implements View.OnClickListener, Goog
 				|| requestCode == GooglePlayServicesHelper.RC_GET_CODE)
 				&& googlePlayServicesHelper != null) {
 			googlePlayServicesHelper.onActivityResult(requestCode, resultCode, data);
-		} else if (requestCode == GooglePlayServicesHelper.RC_CHECK || resultCode == Activity.RESULT_OK) {
+		} else if (requestCode == GooglePlayServicesHelper.RC_CHECK && resultCode == Activity.RESULT_OK) {
 			startGoogleLogin();
 		}
 	}
