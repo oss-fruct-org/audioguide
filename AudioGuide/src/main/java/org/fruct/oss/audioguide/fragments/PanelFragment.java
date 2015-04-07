@@ -1,16 +1,11 @@
 package org.fruct.oss.audioguide.fragments;
 
-
 import android.app.Activity;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.content.LocalBroadcastManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,8 +18,10 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.events.AudioDownloadFinished;
 import org.fruct.oss.audioguide.events.AudioDownloadProgress;
+import org.fruct.oss.audioguide.events.PlayPositionEvent;
+import org.fruct.oss.audioguide.events.PlayStartEvent;
+import org.fruct.oss.audioguide.events.PlayStopEvent;
 import org.fruct.oss.audioguide.files.AudioDownloadService;
-import org.fruct.oss.audioguide.track.AudioPlayer;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.TrackingService;
 import org.fruct.oss.audioguide.util.EventReceiver;
@@ -37,10 +34,6 @@ import de.greenrobot.event.EventBus;
 
 public class PanelFragment extends Fragment {
 	private static final Logger log = LoggerFactory.getLogger(PanelFragment.class);
-
-	private BroadcastReceiver positionReceiver;
-	private BroadcastReceiver stopReceiver;
-	private BroadcastReceiver startReceiver;
 
 	private SeekBar seekBar;
 
@@ -143,34 +136,6 @@ public class PanelFragment extends Fragment {
 	public void onStart() {
 		super.onStart();
 
-		LocalBroadcastManager.getInstance(getActivity()).registerReceiver(positionReceiver = new BroadcastReceiver() {
-			@Override
-			public void onReceive(Context context, Intent intent) {
-				if (seekBar != null && !isDragging) {
-					seekBar.setProgress(intent.getIntExtra("position", 0));
-				}
-			}
-		}, new IntentFilter(AudioPlayer.BC_ACTION_POSITION));
-
-		LocalBroadcastManager.getInstance(getActivity()).registerReceiver(startReceiver = new BroadcastReceiver() {
-			@Override
-			public void onReceive(Context context, Intent intent) {
-				if (stopReceiver != null)
-					startPlaying(intent.getIntExtra("duration", -1));
-			}
-		}, new IntentFilter(AudioPlayer.BC_ACTION_START_PLAY));
-
-		LocalBroadcastManager.getInstance(getActivity()).registerReceiver(stopReceiver = new BroadcastReceiver() {
-			@Override
-			public void onReceive(Context context, Intent intent) {
-				stopPlaying();
-				PointDetailFragment detailsFragment = (PointDetailFragment) getFragmentManager().findFragmentByTag("details-fragment");
-				if (detailsFragment != null && point != null && point.equals(detailsFragment.getPoint())) {
-					getFragmentManager().popBackStack("details-fragment", FragmentManager.POP_BACK_STACK_INCLUSIVE);
-				}
-			}
-		}, new IntentFilter(AudioPlayer.BC_ACTION_STOP_PLAY));
-
 		EventBus.getDefault().register(this);
 	}
 
@@ -179,14 +144,6 @@ public class PanelFragment extends Fragment {
 		super.onStop();
 
 		EventBus.getDefault().unregister(this);
-
-		LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(positionReceiver);
-		LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(stopReceiver);
-		LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(startReceiver);
-
-		positionReceiver = null;
-		stopReceiver = null;
-		stopReceiver = null;
 	}
 
 	@Override
@@ -373,6 +330,27 @@ public class PanelFragment extends Fragment {
 		if (loadingUrl.equals(event.getUrl())) {
 			progressBar.setMax(event.getTotal());
 			progressBar.setProgress(event.getCurrent());
+		}
+	}
+
+	@EventReceiver
+	public void onEventMainThread(PlayStartEvent event) {
+		startPlaying(event.getDuration());
+	}
+
+	@EventReceiver
+	public void onEventMainThread(PlayStopEvent event) {
+		stopPlaying();
+		PointDetailFragment detailsFragment = (PointDetailFragment) getFragmentManager().findFragmentByTag("details-fragment");
+		if (detailsFragment != null && point != null && point.equals(detailsFragment.getPoint())) {
+			getFragmentManager().popBackStack("details-fragment", FragmentManager.POP_BACK_STACK_INCLUSIVE);
+		}
+	}
+
+	@EventReceiver
+	public void onEventMainThread(PlayPositionEvent event) {
+		if (seekBar != null && !isDragging) {
+			seekBar.setProgress(event.getPosition());
 		}
 	}
 }

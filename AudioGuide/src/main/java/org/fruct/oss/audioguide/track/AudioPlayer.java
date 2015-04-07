@@ -12,6 +12,9 @@ import android.support.v4.content.LocalBroadcastManager;
 import com.nostra13.universalimageloader.cache.disc.DiskCache;
 import com.nostra13.universalimageloader.core.ImageLoader;
 
+import org.fruct.oss.audioguide.events.PlayPositionEvent;
+import org.fruct.oss.audioguide.events.PlayStartEvent;
+import org.fruct.oss.audioguide.events.PlayStopEvent;
 import org.fruct.oss.audioguide.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,12 +23,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 
+import de.greenrobot.event.EventBus;
+
 public class AudioPlayer implements MediaPlayer.OnPreparedListener,
 		MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener {
-	public static String BC_ACTION_START_PLAY = "org.fruct.oss.audioguide.AudioPlayer.START_PLAY";
-	public static String BC_ACTION_STOP_PLAY = "org.fruct.oss.audioguide.AudioPlayer.STOP_PLAY";
-	public static String BC_ACTION_POSITION = "org.fruct.oss.audioguide.AudioPlayer.POSITION";
-
 	private final static Logger log = LoggerFactory.getLogger(AudioPlayer.class);
 	private final Context context;
 
@@ -89,7 +90,7 @@ public class AudioPlayer implements MediaPlayer.OnPreparedListener,
 			Utils.sclose(currentInputStream);
 			currentUri = null;
 			currentInputStream = null;
-			LocalBroadcastManager.getInstance(context).sendBroadcast(new Intent(BC_ACTION_STOP_PLAY));
+			EventBus.getDefault().post(new PlayStopEvent());
 		}
 	}
 
@@ -102,10 +103,7 @@ public class AudioPlayer implements MediaPlayer.OnPreparedListener,
 		log.trace("Playing uri {}", currentUri);
 		mediaPlayer.start();
 
-		Intent intent = new Intent(BC_ACTION_START_PLAY);
-		intent.putExtra("duration", mediaPlayer.getDuration());
-		intent.putExtra("point", currentPoint);
-		LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+		EventBus.getDefault().post(new PlayStartEvent(mediaPlayer.getDuration(), currentPoint));
 
 		handlerInputStream = currentInputStream;
 		handler = new Handler(Looper.getMainLooper());
@@ -121,11 +119,8 @@ public class AudioPlayer implements MediaPlayer.OnPreparedListener,
 				return;
 			}
 
-			Intent intent = new Intent(BC_ACTION_POSITION);
-			intent.putExtra("position", player.getCurrentPosition());
-			intent.putExtra("point", currentPoint);
+			EventBus.getDefault().post(new PlayPositionEvent(player.getCurrentPosition(), currentPoint));
 
-			LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
 			handler.postDelayed(positionUpdater, 1000);
 		}
 	};
@@ -137,7 +132,7 @@ public class AudioPlayer implements MediaPlayer.OnPreparedListener,
 		Utils.sclose(currentInputStream);
 		currentUri = null;
 		currentInputStream = null;
-		LocalBroadcastManager.getInstance(context).sendBroadcast(new Intent(BC_ACTION_STOP_PLAY));
+		EventBus.getDefault().post(new PlayStopEvent());
 	}
 
 	@Override

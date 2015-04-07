@@ -29,6 +29,7 @@ import android.widget.Toast;
 
 import org.fruct.oss.audioguide.config.Config;
 import org.fruct.oss.audioguide.dialogs.WarnDialog;
+import org.fruct.oss.audioguide.events.PlayStartEvent;
 import org.fruct.oss.audioguide.files.AudioDownloadService;
 import org.fruct.oss.audioguide.fragments.AboutFragment;
 import org.fruct.oss.audioguide.fragments.CommonFragment;
@@ -39,12 +40,15 @@ import org.fruct.oss.audioguide.fragments.TrackFragment;
 import org.fruct.oss.audioguide.preferences.SettingsActivity;
 import org.fruct.oss.audioguide.track.AudioPlayer;
 import org.fruct.oss.audioguide.track.Point;
+import org.fruct.oss.audioguide.util.EventReceiver;
 import org.fruct.oss.audioguide.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import de.greenrobot.event.EventBus;
 
 public class MainActivity extends ActionBarActivity
 		implements NavigationDrawerFragment.NavigationDrawerCallbacks, MultiPanel,
@@ -107,7 +111,7 @@ public class MainActivity extends ActionBarActivity
 			updateUpButton();
 		}
 
-		setupBottomPanel();
+		EventBus.getDefault().register(this);
 		resumePersistentUrlsDownload();
 		SynchronizerService.startInit(this);
 	}
@@ -122,31 +126,22 @@ public class MainActivity extends ActionBarActivity
 		startService(intent);
 	}
 
-	private void setupBottomPanel() {
-		LocalBroadcastManager.getInstance(this).registerReceiver(startAudioReceiver = new BroadcastReceiver() {
-			@Override
-			public void onReceive(Context context, Intent intent) {
-				final int duration = intent.getIntExtra("duration", 0);
-				final Point point = intent.getParcelableExtra("point");
+	@EventReceiver
+	public void onEventMainThread(PlayStartEvent event) {
+		Point point = event.getPoint();
+		int duration = event.getDuration();
 
-				PanelFragment panelFragment = (PanelFragment) getSupportFragmentManager().findFragmentByTag("bottom-panel-fragment");
+		PanelFragment panelFragment = (PanelFragment) getSupportFragmentManager().findFragmentByTag("bottom-panel-fragment");
 
-				if (panelFragment == null || panelFragment.isRemoving()) {
-					panelFragment = PanelFragment.newInstance(null, duration, point);
-					fragmentManager.beginTransaction()
-							.setCustomAnimations(R.anim.bottom_up, R.anim.bottom_down)
-							.replace(R.id.panel_container, panelFragment, "bottom-panel-fragment").commit();
-				} else {
-					panelFragment.setCurrentPoint(point);
-					panelFragment.startPlaying(duration);
-				}
-			}
-		}, new IntentFilter(AudioPlayer.BC_ACTION_START_PLAY));
-
-	}
-
-	private void unsetupBottomPanel() {
-		LocalBroadcastManager.getInstance(this).unregisterReceiver(startAudioReceiver);
+		if (panelFragment == null || panelFragment.isRemoving()) {
+			panelFragment = PanelFragment.newInstance(null, duration, point);
+			fragmentManager.beginTransaction()
+					.setCustomAnimations(R.anim.bottom_up, R.anim.bottom_down)
+					.replace(R.id.panel_container, panelFragment, "bottom-panel-fragment").commit();
+		} else {
+			panelFragment.setCurrentPoint(point);
+			panelFragment.startPlaying(duration);
+		}
 	}
 
 	@Override
@@ -180,7 +175,7 @@ public class MainActivity extends ActionBarActivity
 	protected void onDestroy() {
 		super.onDestroy();
 		log.trace("MainActivity onDestroy");
-		unsetupBottomPanel();
+		EventBus.getDefault().unregister(this);
 	}
 
 	@Override
