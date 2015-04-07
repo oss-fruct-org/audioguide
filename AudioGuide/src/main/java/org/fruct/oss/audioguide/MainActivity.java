@@ -172,9 +172,9 @@ public class MainActivity extends ActionBarActivity
 
 	@Override
 	protected void onDestroy() {
-		super.onDestroy();
 		log.trace("MainActivity onDestroy");
 		EventBus.getDefault().unregister(this);
+		super.onDestroy();
 	}
 
 	@Override

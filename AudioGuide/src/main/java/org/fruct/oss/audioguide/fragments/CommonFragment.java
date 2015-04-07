@@ -16,6 +16,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import org.fruct.oss.audioguide.App;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.SingletonService;
 import org.fruct.oss.audioguide.dialogs.CategoriesDialog;
@@ -36,6 +37,8 @@ public class CommonFragment extends Fragment {
 	private ServiceConnection trackingServiceConnection;
 	private TrackingService trackingService;
 	private boolean isStateSaved;
+
+	private Context context;
 
 	private ServiceConnection singletonServiceConnection = new ServiceConnection() {
 		@Override
@@ -65,30 +68,21 @@ public class CommonFragment extends Fragment {
 		super.onCreate(savedInstanceState);
 
 		log.debug("CommonFragment.onCreate");
+		// It seems that using Activity's context is dangerous with setRetainInstance
+		context = App.getContext();
 
 		setHasOptionsMenu(true);
 		setRetainInstance(true);
 
-		LocalBroadcastManager.getInstance(getActivity()).registerReceiver(errorReceiver = new BroadcastReceiver() {
+		LocalBroadcastManager.getInstance(context).registerReceiver(errorReceiver = new BroadcastReceiver() {
 			@Override
 			public void onReceive(Context context, Intent intent) {
 				String message = intent.getStringExtra(BC_ARG_MESSAGE);
-				Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
+				Toast.makeText(context, message, Toast.LENGTH_LONG).show();
 			}
 		}, new IntentFilter(CommonFragment.BC_ERROR_MESSAGE));
 
-		if (savedInstanceState != null) {
-			isTrackingActive = savedInstanceState.getBoolean("isTrackingActive");
-		}
-
-	}
-
-	@Override
-	public void onStart() {
-		super.onStart();
-		isStateSaved = false;
-
-		getActivity().bindService(new Intent(getActivity(), TrackingService.class),
+		App.getContext().bindService(new Intent(context, TrackingService.class),
 				trackingServiceConnection = new ServiceConnection() {
 					@Override
 					public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
@@ -104,25 +98,32 @@ public class CommonFragment extends Fragment {
 					}
 				}, Context.BIND_AUTO_CREATE);
 
-		getActivity().bindService(new Intent(getActivity(), SingletonService.class), singletonServiceConnection, Context.BIND_AUTO_CREATE);
+		if (savedInstanceState != null) {
+			isTrackingActive = savedInstanceState.getBoolean("isTrackingActive");
+		}
+	}
+
+	@Override
+	public void onStart() {
+		super.onStart();
+		isStateSaved = false;
+		context.bindService(new Intent(context, SingletonService.class), singletonServiceConnection, Context.BIND_AUTO_CREATE);
 	}
 
 	@Override
 	public void onStop() {
 		super.onStop();
-
-		if (trackingService != null) {
-			getActivity().unbindService(trackingServiceConnection);
-			trackingServiceConnection = null;
-		}
-
-		getActivity().unbindService(singletonServiceConnection);
+		context.unbindService(singletonServiceConnection);
 	}
 
 	@Override
 	public void onDestroy() {
-		LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(errorReceiver);
+		LocalBroadcastManager.getInstance(context).unregisterReceiver(errorReceiver);
 
+		if (trackingServiceConnection != null) {
+			context.unbindService(trackingServiceConnection);
+			trackingServiceConnection = null;
+		}
 
 		super.onDestroy();
 	}
@@ -141,11 +142,11 @@ public class CommonFragment extends Fragment {
 		switch (item.getItemId()) {
 		case R.id.action_navigate:
 			if (isTrackingActive) {
-				getActivity().startService(new Intent(TrackingService.ACTION_STOP_TRACKING,
-						null, getActivity(), TrackingService.class));
+				context.startService(new Intent(TrackingService.ACTION_STOP_TRACKING,
+						null, context, TrackingService.class));
 			} else {
-				getActivity().startService(new Intent(TrackingService.ACTION_START_TRACKING,
-						null, getActivity(), TrackingService.class));
+				context.startService(new Intent(TrackingService.ACTION_START_TRACKING,
+						null, context, TrackingService.class));
 			}
 
 			isTrackingActive = !isTrackingActive;
