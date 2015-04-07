@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 
+import org.fruct.oss.audioguide.App;
 import org.fruct.oss.audioguide.track.gets.Category;
 import org.fruct.oss.audioguide.track.DefaultTrackManager;
 import org.fruct.oss.audioguide.track.TrackManager;
@@ -55,7 +56,7 @@ public class CategoriesDialog extends DialogFragment
 		}
 
 		trackManager = DefaultTrackManager.getInstance();
-		categories = trackManager.getCategories();
+		categories = App.getInstance().getDatabase().getCategories();
 
 		labels = new String[categories.size()];
 		checked = new boolean[categories.size()];

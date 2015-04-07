@@ -27,7 +27,6 @@ public interface TrackManager extends Closeable {
 
 	Track getTrackByName(String name);
 
-	List<Category> getCategories();
 
 	List<String> getPointPhotos(Point point);
 

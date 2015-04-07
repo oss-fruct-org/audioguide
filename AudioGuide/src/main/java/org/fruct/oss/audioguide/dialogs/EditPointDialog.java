@@ -20,6 +20,7 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Spinner;
 
+import org.fruct.oss.audioguide.App;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.track.gets.Category;
 import org.fruct.oss.audioguide.track.DefaultTrackManager;
@@ -97,7 +98,7 @@ public class EditPointDialog extends DialogFragment implements DialogInterface.O
 		}
 
 		TrackManager trackManager = DefaultTrackManager.getInstance();
-		categories = trackManager.getCategories();
+		categories = App.getInstance().getDatabase().getCategories();
 	}
 
 	@Override

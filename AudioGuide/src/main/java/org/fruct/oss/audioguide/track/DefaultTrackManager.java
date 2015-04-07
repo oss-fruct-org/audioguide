@@ -21,8 +21,6 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	private final Database database;
 	private final SharedPreferences pref;
 
-	private List<Category> categories;
-
 	private final List<CursorHolder> cursorHolders = new ArrayList<CursorHolder>();
 
 	private boolean isClosed;
@@ -140,15 +138,6 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	}
 
 	@Override
-	public List<Category> getCategories() {
-		if (categories == null) {
-			categories = database.getCategories();
-		}
-
-		return categories;
-	}
-
-	@Override
 	public List<String> getPointPhotos(Point point) {
 		Cursor photoCursor = database.loadPointPhotos(point);
 		ArrayList<String> ret = new ArrayList<String>(photoCursor.getCount());
@@ -163,12 +152,6 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	public void setCategoryState(Category category, boolean isActive) {
 		category.setActive(isActive);
 		database.setCategoryState(category);
-
-		for (Category cat : categories) {
-			if (category.getId() == cat.getId()) {
-				cat.setActive(isActive);
-			}
-		}
 
 		//Gets.getInstance().setEnv("categories", activeCategories);
 		notifyDataChanged();
@@ -201,7 +184,6 @@ public class DefaultTrackManager implements TrackManager, Closeable {
 	public synchronized static TrackManager getInstance() {
 		if (instance == null || instance.isClosed) {
 			instance = new DefaultTrackManager(App.getContext());
-			instance.getCategories();
 		}
 
 		return instance;
