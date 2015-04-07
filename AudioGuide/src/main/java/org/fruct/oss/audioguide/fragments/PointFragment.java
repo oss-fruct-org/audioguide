@@ -5,12 +5,10 @@ import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.app.ListFragment;
-import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.ActionBar;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -32,11 +30,12 @@ import org.fruct.oss.audioguide.NavigationDrawerFragment;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.adapters.PointCursorAdapter;
 import org.fruct.oss.audioguide.events.DataUpdatedEvent;
+import org.fruct.oss.audioguide.events.PointInRangeEvent;
+import org.fruct.oss.audioguide.events.PointOutRangeEvent;
 import org.fruct.oss.audioguide.track.CursorHolder;
 import org.fruct.oss.audioguide.track.DefaultTrackManager;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.Track;
-import org.fruct.oss.audioguide.track.TrackListener;
 import org.fruct.oss.audioguide.track.TrackManager;
 import org.fruct.oss.audioguide.track.TrackingService;
 import org.fruct.oss.audioguide.track.tasks.StoreTrackTask;
@@ -69,8 +68,6 @@ public class PointFragment extends ListFragment {
 	private ImageView trackImageView;
 
 	private Track track;
-	private BroadcastReceiver inReceiver;
-	private BroadcastReceiver outReceiver;
 
 	private PointCursorAdapter pointAdapter;
 	private CursorHolder cursorHolder;
@@ -119,7 +116,19 @@ public class PointFragment extends ListFragment {
 		setListAdapter(pointAdapter);
 
 		setHasOptionsMenu(true);
-		setupRangeReceiver();
+	}
+
+	@Override
+	public void onDestroy() {
+		super.onDestroy();
+
+		if (storeTrackTask != null) {
+			storeTrackTask.cancel(true);
+		}
+
+		cursorHolder.close();
+		trackManager = null;
+		pointAdapter.close();
 	}
 
 	@Override
@@ -225,21 +234,7 @@ public class PointFragment extends ListFragment {
 		super.onStop();
 	}
 
-	@Override
-	public void onDestroy() {
-		super.onDestroy();
 
-		if (storeTrackTask != null) {
-			storeTrackTask.cancel(true);
-		}
-
-		cursorHolder.close();
-		trackManager = null;
-		pointAdapter.close();
-
-		LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(inReceiver);
-		LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(outReceiver);
-	}
 
 	@Override
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
@@ -264,32 +259,16 @@ public class PointFragment extends ListFragment {
 		return super.onOptionsItemSelected(item);
 	}
 
-	private void setupRangeReceiver() {
-		inReceiver = new BroadcastReceiver() {
-			@Override
-			public void onReceive(Context context, Intent intent) {
-				pointInRange(TrackingService.getPointFromIntent(intent));
-			}
-		};
-		LocalBroadcastManager.getInstance(getActivity()).registerReceiver(inReceiver, new IntentFilter(TrackingService.BC_ACTION_POINT_IN_RANGE));
-
-		outReceiver = new BroadcastReceiver() {
-			@Override
-			public void onReceive(Context context, Intent intent) {
-				pointOutRange(TrackingService.getPointFromIntent(intent));
-			}
-		};
-		LocalBroadcastManager.getInstance(getActivity()).registerReceiver(outReceiver, new IntentFilter(TrackingService.BC_ACTION_POINT_OUT_RANGE));
+	@EventReceiver
+	public void onEventMainThread(PointInRangeEvent event) {
+		if (pointAdapter != null)
+			pointAdapter.addHighlightedItem(event.getPoint());
 	}
 
-	private void pointInRange(Point point) {
+	@EventReceiver
+	public void onEventMainThread(PointOutRangeEvent event) {
 		if (pointAdapter != null)
-			pointAdapter.addHighlightedItem(point);
-	}
-
-	private void pointOutRange(Point point) {
-		if (pointAdapter != null)
-			pointAdapter.removeHighlightedItem(point);
+			pointAdapter.removeHighlightedItem(event.getPoint());
 	}
 
 	@Override

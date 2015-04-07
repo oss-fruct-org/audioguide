@@ -25,6 +25,8 @@ import org.fruct.oss.audioguide.LocationReceiver;
 import org.fruct.oss.audioguide.MainActivity;
 import org.fruct.oss.audioguide.R;
 import org.fruct.oss.audioguide.SingletonService;
+import org.fruct.oss.audioguide.events.PointInRangeEvent;
+import org.fruct.oss.audioguide.events.PointOutRangeEvent;
 import org.fruct.oss.audioguide.preferences.SettingsActivity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,12 +38,7 @@ import de.greenrobot.event.EventBus;
 public class TrackingService extends Service implements DistanceTracker.Listener, LocationReceiver.Listener, SharedPreferences.OnSharedPreferenceChangeListener {
 	private final static Logger log = LoggerFactory.getLogger(TrackingService.class);
 
-	public static final String BC_ACTION_POINT_IN_RANGE = "BC_ACTION_POINT_IN_RANGE";
-	public static final String BC_ACTION_POINT_OUT_RANGE = "BC_ACTION_POINT_IOUTN_RANGE";
-	public static final String BC_ACTION_NEW_LOCATION = "BC_ACTION_NEW_LOCATION";
-
 	public static final String ARG_POINT = "point";
-	public static final String ARG_LOCATION = "ARG_LOCATION";
 
 	public static final String ACTION_WAKE = "org.fruct.oss.audioguide.TrackingService.ACTION_WAKE";
 
@@ -353,9 +350,7 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 	public void pointInRange(Point point) {
 		log.debug("pointInRange: {}", point.getName());
 
-		Intent intent = new Intent(BC_ACTION_POINT_IN_RANGE);
-		intent.putExtra(ARG_POINT, point);
-		LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+		EventBus.getDefault().post(new PointInRangeEvent(point));
 
 		if (isTrackingMode && point.hasAudio()) {
 			audioPlayer.startAudioTrack(point);
@@ -374,9 +369,7 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 	public void pointOutRange(Point point) {
 		log.debug("pointOutRange: {}", point.getName());
 
-		Intent intent = new Intent(BC_ACTION_POINT_OUT_RANGE);
-		intent.putExtra(ARG_POINT, point);
-		LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+		EventBus.getDefault().post(new PointOutRangeEvent(point));
 
 		if (point.hasAudio() && audioPlayer.isPlaying(Uri.parse(point.getAudioUrl()))) {
 			audioPlayer.stopAudioTrack();
@@ -393,9 +386,6 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 		return distanceTracker.getPointsInRange();
 	}
 
-	public static Point getPointFromIntent(Intent intent) {
-		return intent.getParcelableExtra(ARG_POINT);
-	}
 
 	public void mockLocation(final double latitude, final double longitude) {
 		Handler handler = new Handler(Looper.getMainLooper());
@@ -416,11 +406,6 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 
 	@Override
 	public void newLocation(Location location) {
-		Intent intent = new Intent(BC_ACTION_NEW_LOCATION);
-		intent.putExtra(ARG_LOCATION, location);
-
-		LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
-
 		EventBus.getDefault().postSticky(new LocationEvent(location));
 	}
 

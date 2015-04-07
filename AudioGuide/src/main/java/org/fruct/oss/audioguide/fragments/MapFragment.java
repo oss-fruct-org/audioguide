@@ -43,16 +43,19 @@ import org.fruct.oss.audioguide.SynchronizerService;
 import org.fruct.oss.audioguide.config.Config;
 import org.fruct.oss.audioguide.dialogs.EditPointDialog;
 import org.fruct.oss.audioguide.dialogs.SelectTrackDialog;
+import org.fruct.oss.audioguide.events.PointInRangeEvent;
 import org.fruct.oss.audioguide.overlays.EditOverlay;
 import org.fruct.oss.audioguide.overlays.MyPositionOverlay;
 import org.fruct.oss.audioguide.preferences.SettingsActivity;
 import org.fruct.oss.audioguide.track.CursorHolder;
 import org.fruct.oss.audioguide.track.DefaultTrackManager;
+import org.fruct.oss.audioguide.track.LocationEvent;
 import org.fruct.oss.audioguide.track.Point;
 import org.fruct.oss.audioguide.track.Track;
 import org.fruct.oss.audioguide.track.TrackManager;
 import org.fruct.oss.audioguide.track.TrackingService;
 import org.fruct.oss.audioguide.track.tasks.PointsTask;
+import org.fruct.oss.audioguide.util.EventReceiver;
 import org.osmdroid.api.IGeoPoint;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.util.ResourceProxyImpl;
@@ -64,6 +67,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import de.greenrobot.event.EventBus;
 
 import static android.view.ViewGroup.LayoutParams;
 
@@ -89,8 +94,6 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 	private SharedPreferences pref;
 
 	private MyPositionOverlay myPositionOverlay;
-	private BroadcastReceiver locationReceiver;
-	private BroadcastReceiver pointInRangeReceiver;
 
 	private ViewGroup bottomToolbar;
 
@@ -251,35 +254,30 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 		getActivity().bindService(new Intent(getActivity(), TrackingService.class),
 				serviceConnection, Context.BIND_AUTO_CREATE);
 
-		LocalBroadcastManager.getInstance(getActivity()).registerReceiver(locationReceiver = new BroadcastReceiver() {
-			@Override
-			public void onReceive(Context context, Intent intent) {
-				Location location = intent.getParcelableExtra(TrackingService.ARG_LOCATION);
-				if (myPositionOverlay != null) {
-					myPositionOverlay.setLocation(location);
-					mapView.invalidate();
-				}
-			}
-		}, new IntentFilter(TrackingService.BC_ACTION_NEW_LOCATION));
+		EventBus.getDefault().register(this);
+	}
 
-		LocalBroadcastManager.getInstance(getActivity()).registerReceiver(pointInRangeReceiver = new BroadcastReceiver() {
-			@Override
-			public void onReceive(Context context, Intent intent) {
-				final Point point = intent.getParcelableExtra(TrackingService.ARG_POINT);
 
-				PointDetailFragment detailsFragment = (PointDetailFragment) getFragmentManager().findFragmentByTag("details-fragment");
-				if (detailsFragment != null) {
-					getFragmentManager().popBackStack("details-fragment", FragmentManager.POP_BACK_STACK_INCLUSIVE);
-				}
+	@EventReceiver
+	public void onEventMainThread(PointInRangeEvent event) {
+		PointDetailFragment detailsFragment = (PointDetailFragment) getFragmentManager().findFragmentByTag("details-fragment");
+		if (detailsFragment != null) {
+			getFragmentManager().popBackStack("details-fragment", FragmentManager.POP_BACK_STACK_INCLUSIVE);
+		}
 
-				detailsFragment = PointDetailFragment.newInstance(point, true);
-				getFragmentManager().beginTransaction()
-						.addToBackStack("details-fragment")
-						.add(R.id.panel_details, detailsFragment, "details-fragment")
-						.commit();
-			}
-		}, new IntentFilter(TrackingService.BC_ACTION_POINT_IN_RANGE));
+		detailsFragment = PointDetailFragment.newInstance(event.getPoint(), true);
+		getFragmentManager().beginTransaction()
+				.addToBackStack("details-fragment")
+				.add(R.id.panel_details, detailsFragment, "details-fragment")
+				.commit();
+	}
 
+	@EventReceiver
+	public void onEventMainThread(LocationEvent event) {
+		if (myPositionOverlay != null) {
+			myPositionOverlay.setLocation(event.getLocation());
+			mapView.invalidate();
+		}
 	}
 
 	@Override
@@ -299,8 +297,7 @@ public class MapFragment extends Fragment implements SharedPreferences.OnSharedP
 				.putFloat(PREF_LATITUDE, (float) mapView.getMapCenter().getLatitude())
 				.putFloat(PREF_LONGITUDE, (float) mapView.getMapCenter().getLongitude()).apply();
 
-		LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(locationReceiver);
-		LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(pointInRangeReceiver);
+		EventBus.getDefault().unregister(this);
 
 		getActivity().unbindService(serviceConnection);
 
