@@ -148,5 +148,8 @@
     <string name="play_audio">Старт</string>
     <string name="pause_audio">Пауза</string>
     <string name="title_activity_gallery">Галерея</string>
+    <string name="str_google_login_success">Вход выполнен</string>
+    <string name="str_google_login_web_error">Неизвестная ошибка входа</string>
+    <string name="title_activity_google_login">Логин</string>
 
 </resources>

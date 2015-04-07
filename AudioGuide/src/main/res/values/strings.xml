@@ -78,6 +78,7 @@
     <string name="str_login">Sign in</string>
     <string name="str_login_web_browser">Web browser</string>
     <string name="str_login_google">Google</string>
+
     <string name="str_google_login_web_error">Unknown login error.</string>
     <string name="str_google_login_error">Can\'t login using android account. Try web browser method.</string>
     <string name="str_google_login_success">Login successful</string>

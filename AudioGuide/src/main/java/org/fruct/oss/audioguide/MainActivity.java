@@ -74,7 +74,6 @@ public class MainActivity extends ActionBarActivity
 	private int mNavigationMode;
 
 	private FragmentManager fragmentManager;
-	private BroadcastReceiver startAudioReceiver;
 	private int backStackCount;
 
 	private boolean networkToastShown;
