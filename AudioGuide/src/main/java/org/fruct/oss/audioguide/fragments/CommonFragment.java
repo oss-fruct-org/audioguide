@@ -88,9 +88,6 @@ public class CommonFragment extends Fragment {
 		super.onStart();
 		isStateSaved = false;
 
-		getActivity().startService(new Intent(TrackingService.ACTION_FOREGROUND, null,
-				getActivity(), TrackingService.class));
-
 		getActivity().bindService(new Intent(getActivity(), TrackingService.class),
 				trackingServiceConnection = new ServiceConnection() {
 					@Override
@@ -117,11 +114,6 @@ public class CommonFragment extends Fragment {
 		if (trackingService != null) {
 			getActivity().unbindService(trackingServiceConnection);
 			trackingServiceConnection = null;
-		}
-
-		if (!isStateSaved) {
-			getActivity().startService(new Intent(TrackingService.ACTION_BACKGROUND,
-					null, getActivity(), TrackingService.class));
 		}
 
 		getActivity().unbindService(singletonServiceConnection);

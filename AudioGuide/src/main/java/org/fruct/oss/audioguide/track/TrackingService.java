@@ -55,9 +55,6 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 	public static final String ACTION_UNPAUSE = "org.fruct.oss.audioguide.TrackingService.ACTION_UNPAUSE";
 	public static final String ACTION_SEEK = "org.fruct.oss.audioguide.TrackingService.ACTION_SEEK";
 
-	public static final String ACTION_BACKGROUND = "org.fruct.oss.audioguide.TrackingService.ACTION_BACKGROUND";
-	public static final String ACTION_FOREGROUND = "org.fruct.oss.audioguide.TrackingService.ACTION_FOREGROUND";
-
 	public static final String PREF_IS_TRACKING_MODE = "pref-tracking-service-is-tracking-mode";
 	public static final String PREF_IS_BACKGROUND_MODE = "pref-tracking-service-is-background-mode";
 
@@ -91,7 +88,20 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 
 	@Override
 	public IBinder onBind(Intent intent) {
+		goForeground();
 		return binder;
+	}
+
+	@Override
+	public boolean onUnbind(Intent intent) {
+		goBackground();
+		return true;
+	}
+
+	@Override
+	public void onRebind(Intent intent) {
+		super.onRebind(intent);
+		goForeground();
 	}
 
 	private void startLocationTrack() {
@@ -135,7 +145,10 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 				if (!isTrackingMode) {
 					log.debug("Disabling wake alarm");
 					alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+					PendingIntent alarmPendingIntent = createWakePendingIntent();
+
 					alarmManager.cancel(createWakePendingIntent());
+					alarmPendingIntent.cancel();
 
 					if (wakeLock != null && wakeLock.isHeld()) {
 						wakeLock.release();
@@ -161,10 +174,6 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 				startTracking();
 			} else if (action.equals(ACTION_STOP_TRACKING)) {
 				stopTracking();
-			} else if (action.equals(ACTION_BACKGROUND)) {
-				goBackground();
-			} else if (action.equals(ACTION_FOREGROUND)) {
-				goForeground();
 			}
 		}
 
@@ -194,6 +203,23 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 		//startLocationTrack();
 
 		bindService(new Intent(this, SingletonService.class), singletonServiceConnection, BIND_AUTO_CREATE);
+	}
+
+	@Override
+	public void onDestroy() {
+		super.onDestroy();
+
+		distanceTracker.stop();
+		distanceTracker.removeListener(this);
+
+		audioPlayer.stopAudioTrack();
+		audioPlayer.close();
+
+		releaseWakeLock();
+
+		unbindService(singletonServiceConnection);
+
+		log.info("TrackingService onDestroy");
 	}
 
 	private void updateDistanceTracker() {
@@ -282,22 +308,6 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 		notificationManager.notify(NOTIFICATION_ID, notification);
 	}
 
-	@Override
-	public void onDestroy() {
-		super.onDestroy();
-
-		distanceTracker.stop();
-		distanceTracker.removeListener(this);
-
-		audioPlayer.stopAudioTrack();
-		audioPlayer.close();
-
-		releaseWakeLock();
-
-		unbindService(singletonServiceConnection);
-
-		log.info("TrackingService onDestroy");
-	}
 
 	private void acquireWakeLock() {
 		if (!pref.getBoolean(SettingsActivity.PREF_WAKE, true)) {
@@ -317,7 +327,6 @@ public class TrackingService extends Service implements DistanceTracker.Listener
 			wakeLock.setReferenceCounted(false);
 			wakeLock.acquire(30000);
 		}
-
 	}
 
 	private PendingIntent createWakePendingIntent() {
