@@ -33,9 +33,9 @@ import de.greenrobot.event.EventBus;
 public class SynchronizerService extends Service {
 	public static long SYNC_DELTA_TIME = 3600 * 1000;
 
-	private static final String PREF_LAST_LAT = "pref_last_sync_lat";
-	private static final String PREF_LAST_LON = "pref_last_sync_lon";
-	private static final String PREF_LAST_TIME = "pref_last_sync_time";
+	public static final String PREF_LAST_LAT = "pref_last_sync_lat";
+	public static final String PREF_LAST_LON = "pref_last_sync_lon";
+	public static final String PREF_LAST_TIME = "pref_last_sync_time";
 
 	public static final String ACTION_SYNC_POINTS = "org.fruct.oss.audioguide.SynchronizerService.ACTION_SYNC_POINTS";
 	public static final String ACTION_SYNC_TRACKS = "org.fruct.oss.audioguide.SynchronizerService.ACTION_SYNC_TRACKS";

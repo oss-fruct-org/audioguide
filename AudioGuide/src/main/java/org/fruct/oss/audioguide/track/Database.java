@@ -2,11 +2,15 @@ package org.fruct.oss.audioguide.track;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.location.Location;
+import android.preference.PreferenceManager;
 
+import org.fruct.oss.audioguide.App;
+import org.fruct.oss.audioguide.SynchronizerService;
 import org.fruct.oss.audioguide.track.gets.Category;
 import org.fruct.oss.audioguide.util.Utils;
 
@@ -520,6 +524,9 @@ public class Database {
 			db.execSQL(CREATE_TRACK_UPDATES_SQL);
 			db.execSQL(CREATE_URLS_SQL);
 			db.execSQL(CREATE_POINT_PHOTO_SQL);
+
+			SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(App.getContext());
+			pref.edit().putLong(SynchronizerService.PREF_LAST_TIME, 0).apply();
 		}
 
 		@Override
@@ -544,12 +551,21 @@ public class Database {
 				db.execSQL("DROP TABLE IF EXISTS track");
 				onCreate(db);
 			}
+		}
 
-			/*for (int version = oldVersion + 1; version <= newVersion; version++) {
-				if (version == 2) {
-					// Add field photoUrl to track
-				}
-			}*/
+		@Override
+		public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+			if (oldVersion != newVersion) {
+				db.execSQL("DROP TABLE IF EXISTS point_update");
+				db.execSQL("DROP TABLE IF EXISTS track_update");
+				db.execSQL("DROP TABLE IF EXISTS point_photo");
+				db.execSQL("DROP TABLE IF EXISTS url");
+				db.execSQL("DROP TABLE IF EXISTS category");
+				db.execSQL("DROP TABLE IF EXISTS tp");
+				db.execSQL("DROP TABLE IF EXISTS point");
+				db.execSQL("DROP TABLE IF EXISTS track");
+				onCreate(db);
+			}
 		}
 	}
 }
